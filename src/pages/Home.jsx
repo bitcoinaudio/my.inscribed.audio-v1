@@ -23,18 +23,20 @@ const Home = () => {
     <img
       src={backgroundImage}
       alt=""
-      className= "size-1/2"
+      className= "size-1/3"
       
     />
     <div className="text-center lg:text-start"> 
             
-      <h1 className="font-urbanist text-3xl font-black uppercase md:text-7xl">
-        Welcome to My Inscribed Audio
+      <h1 className="font-urbanist text-3xl font-black uppercase md:text-5xl">
+        Welcome to 
+        My.Inscribed.Audio
         <span className="text-black/90"> tools to manage your onchain media</span>
       </h1>
       </div>
     </div>
   </div>
+  
  
       </motion.div>
     </motion.div>

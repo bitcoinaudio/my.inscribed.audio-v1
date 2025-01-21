@@ -15,11 +15,11 @@ const collections = [
     name: "The Ides of March",
     artist: "Kane Mayfield",
     icon: "/images/icons/ides.png",
-    insID: 'a33c04ca65a41c509becca1915b19bc5508e5c4df40944b42828001f5cebfd74i0',
+    insID: 'b1ade815da823de16f0dc26417c5bfb9caefc9005f0e9585b1f0072eb7e43605i0',
     description:
       "Redefining Digital Music on Bitcoin",
     details: "",
-    ordinal: "https://ordinals.com/content/a33c04ca65a41c509becca1915b19bc5508e5c4df40944b42828001f5cebfd74i0",
+    ordinal: "https://ordinals.com/content/b1ade815da823de16f0dc26417c5bfb9caefc9005f0e9585b1f0072eb7e43605i0",
     app: "https://arweave.net/0AphIk6Qiuu3RwGtYL02w9weo3Cci5Xp-M0LRgZ42Gg",
     page: "/ides"
 

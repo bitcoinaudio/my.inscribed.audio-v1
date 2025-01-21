@@ -2,33 +2,37 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom"; 
 import { Toggle } from "react-hook-theme";
 import ConnectWallet from './ConnectWallet';
-import ConnectMobile from './ConnectMobile';
 import { useDeviceContext } from "../utils/DeviceStore";
 import iaLogo from '/images/ia-bg3.png';
- 
+import { useWallet } from '../context/WalletContext';
 import "react-hook-theme/dist/styles/style.css";
 
-const navigation = [
-  { name: "Home", href: "/home" },
+const basenavigation = [
+  { name: "My Inscribed Audio", href: "/" },
   { name: "Collections", href: "/collections" },
-  { name: "Services", href: "/services" },
-  { name: "Team", href: "/team" },
   ];
+
 
 const NavBar = () => {
   const [active, setActive] = useState("Home");
-  const { isMobile, isIOS, isAndroid } = useDeviceContext();
+  const { isWalletConnected } = useWallet();
+  const { isMobile } = useDeviceContext();
+
+  const navigation = [
+    ...basenavigation,
+    ...(isWalletConnected ? [
+      { name: "Services", href: "/services" },
+      { name: "Team", href: "/team" },
+    ] : [])
+  ];
 
   return (
     <div className="sticky top-0 z-50 flex justify-center py-4 gap-4">
-         
-      {/* <div>
-        <p>Mobile: {isMobile ? "Yes" : "No"}</p>
-        <p>iOS: {isIOS ? "Yes" : "No"}</p>
-        <p>Android: {isAndroid ? "Yes" : "No"}</p>
-      </div> */}
       <div className="navbar ">
         <div className="navbar-start">
+        <Link to="https://inscribed.audio" className="btn btn-ghost font-urbanist text-lg font-semibold gap-4 ">
+           <img src={iaLogo} alt="inscribed audio" className="w-10 h-10" /><span className="text-sm font-semibold">Inscribed Audio</span>
+          </Link>
           <div className="dropdown">
             {/* Mobile Menu */}
             <div tabIndex={0} role="button" className="btn btn-circle btn-ghost lg:hidden ">
@@ -59,9 +63,7 @@ const NavBar = () => {
               ))}
             </ul>
           </div>
-          <Link to="/" className="btn btn-ghost font-urbanist text-lg font-semibold gap-4 ">
-           <img src={iaLogo} alt="Ordinal" className="w-10 h-10" />
-          </Link>
+         
         </div>
         {/* Desktop Menu */}
         <div className="navbar-center ml-10 hidden lg:flex">
@@ -76,14 +78,16 @@ const NavBar = () => {
               >
                 {item.name}
               </Link>
-
+               
             </nav>
           ))}
         </div>
 
         <div className="navbar-end h-10 scale-75">
-          
-          {isMobile ? <ConnectMobile />  : <ConnectWallet />}
+          <div className="flex flex-col gap-4">
+
+          <ConnectWallet />
+          </div>
 
           <Toggle />
         </div>

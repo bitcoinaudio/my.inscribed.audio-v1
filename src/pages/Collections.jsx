@@ -55,7 +55,7 @@ const Collections = () => {
                 </a>
               </li>
               <li>
-                <a class="tooltip" data-tip="Details" href={"https://ordinals.com/content" + item.insID} target="_blank">
+                <a class="tooltip" data-tip="Details" href={"https://ordinals.com/inscription/" + item.insID} target="_blank">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     class="h-5 w-5"
@@ -75,6 +75,20 @@ const Collections = () => {
                   <img class="size-5" src={ordImage} alt="IOM" />
                 </a>
               </li>
+              {item.name === "The Ides of March" && (
+                <li>
+                <a class="tooltip" data-tip="Buy" href="https://gamma.io/ordinals/collections/ides-of-march" target="_blank">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="black" stroke="currentColor" stroke-width="2" class="size-5">
+                    <path d="M3 3h18v4H3z"/>
+                    <path d="M5 7v13h14V7"/>
+                    <path d="M9 21V7"/>
+                    <path d="M15 21V7"/>
+                    <path d="M5 10h14"/>
+                    <path d="M5 14h14"/>
+                  </svg>
+                </a>
+              </li>
+              )}
             </ul>
             </div>
         </div>
