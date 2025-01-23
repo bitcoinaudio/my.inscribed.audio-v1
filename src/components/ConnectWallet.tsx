@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, memo } from "react";
+import { useNavigate } from 'react-router-dom';
 import { useWallet } from '../context/WalletContext';  
 import { Button } from "./ui/button";
 import { ChevronRight } from "lucide-react";
@@ -17,8 +18,15 @@ import {
 import { AddressPurpose, BitcoinNetworkType, request, RpcErrorCode } from "sats-connect";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { cn } from "../lib/utils";
-
+import { htmlArray, setHtmlArray } from "../globalState";
+import idesofmarch from '../lib/collections/idesofmarch.json';
 type WalletName = keyof typeof SUPPORTED_WALLETS;
+
+const idesOfMarchIDs = idesofmarch.map((item) => item.id);
+
+function checkIOMOwnership(insID) {
+  return idesOfMarchIDs.includes(insID);
+}
 
 interface ConnectWalletProps {
   className?: string;
@@ -85,74 +93,81 @@ const ConnectWallet = ({ className }: ConnectWalletProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isWalletName, setIsWalletName] = useState('');
   const [hasWallet, setHasWallet] = useState({ unisat: false, xverse: false, [MAGIC_EDEN]: false });
-
+  const navigate = useNavigate();
   useEffect(() => {
     setHasWallet({ unisat: hasUnisat, xverse: hasXverse, [MAGIC_EDEN]: hasMagicEden });
   }, [hasUnisat, hasXverse, hasMagicEden]);
-
+   
        
   const handleConnect = async (walletName: WalletName) => {
-    if (provider === walletName) {
-      await disconnect();
-      disconnectWallet();
-      console.log("disconnecting", provider, walletName);
+     
+      if (provider === walletName) {
+         disconnectWallet();
+         disconnect();
+         navigate('/');
+         
+      } else {
+        setIsOpen(false);
+        await connect(walletName);
+        connectWallet();
 
-    } else {
-      setIsOpen(false);
-      await connect(walletName);
-      connectWallet();
-       if (walletName === 'unisat') {
         setIsWalletName(walletName);
-        getUnisatInscriptions();
-        console.log("unisat", walletName);
-      } else if (walletName === 'xverse') {
-        setIsWalletName(walletName);
-        getXverseInscriptions();
-        console.log("xverse", walletName);
-      } else if (walletName === MAGIC_EDEN) {
-        setIsWalletName(walletName);
-        getMagicEdenInscriptions();
-        console.log("magic eden", walletName);
-      }
-
-    }
-    console.log("isWalletConnected", isWalletConnected);
-
-  };
-let htmlArray = [];
-  const getUnisatInscriptions = async () => {
-    htmlArray = [];
-    try {
-      console.log("isWalletName", isWalletName);
-      const res = await window[isWalletName].getInscriptions();
-      for (const inscription of res.list) {
-        if (inscription.contentType === 'text/html') {  
-          htmlArray.push(inscription.inscriptionId);
+        switch (walletName) {
+          case 'unisat':
+            await getUnisatInscriptions();
+            console.log("Connected to Unisat", walletName);
+            break;
+          case 'xverse':
+            await getXverseInscriptions();
+            console.log("Connected to Xverse", walletName);
+            break;
+          case MAGIC_EDEN:
+            await getMagicEdenInscriptions();
+            console.log("Connected to Magic Eden", walletName);
+            break;
+          default:
+            console.warn("Unknown wallet name:", walletName);
         }
+        navigate('/mymedia');
+
       }
-      console.log("unisat", htmlArray);
-    } catch (e) {
-      console.log(e);
+      
+    
+  };
+
+  const getUnisatInscriptions = async () => {
+    try {
+      const res = await window[isWalletName].getInscriptions();
+      console.log("Response from getInscriptions:", res);
+
+      if (res) {
+        res.list.forEach((inscription) => {
+           if (inscription.contentType === 'text/html') {
+            htmlArray.push({id: inscription.inscriptionId, isIOM: checkIOMOwnership(inscription.inscriptionId)} as never);
+          }
+        });
+      }
+      console.log("Filtered HTML Inscriptions:", htmlArray);
+    } catch (error) {
+      console.error("Error fetching Unisat inscriptions:", error);
     }
   };
 
   const getXverseInscriptions = async () => {
-    htmlArray = [];
-    try {
-      console.log("xverse", isWalletName);
-      const response = await request('wallet_connect', null);
-      if (response.status === 'success') {
-      const response2 = await request('ord_getInscriptions', { offset: 0, limit: 50 });
-
-        for (const address of response.result.addresses) {
+     try {
+       const response = await request('wallet_connect', null);
+       if (response.status === 'success') {
+          for (const address of response.result.addresses) {
           if (address.addressType === 'p2tr') { 
-            const inscriptions = response2;
-            for (const inscription of inscriptions.result.inscriptions) {
-              console.log("xverse", inscription.inscriptionId)
-              console.log("xverse", inscription.contentType);
-              htmlArray.push(inscription.inscriptionId);
+            const inscriptions = await request('ord_getInscriptions', { offset: 0, limit: 50 });
+            if (inscriptions.status === 'success') {
+              inscriptions.result.inscriptions.forEach((inscription) => {
+                console.log("inscription", inscription);
+                if (inscription.contentType === "text/html;charset=utf-8") {
+                  htmlArray.push({id: inscription.inscriptionId, isIOM: checkIOMOwnership(inscription.inscriptionId)} as never);
+                }
+              });
             }
-            
           }
         }
         console.log("xverse", htmlArray);
@@ -171,9 +186,6 @@ let htmlArray = [];
   };
 
   const getMagicEdenInscriptions = async () => {
-    htmlArray = [];
-     
-
     
     console.log("magic eden");
   };
@@ -188,7 +200,7 @@ let htmlArray = [];
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {address ? (
-        <Button onClick={() => disconnect()} className={buttonClass}>
+        <Button onClick={() => {disconnect(); disconnectWallet();}} className={buttonClass}>
           <div className="flex items-center gap-2">
             <WalletIcon size={32} walletName={provider as ProviderType} className="!w-[32px] !h-[32px]" />
             Disconnect
@@ -205,13 +217,15 @@ let htmlArray = [];
 
       <DialogContent className="bg-white dark:bg-gray-800 border-none text-black dark:text-white rounded-2xl  fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2  max-h-[560px] flex flex-col overflow-hidden p-0">
         <DialogHeader className="px-6 pt-5 pb-3">
-          <DialogTitle className="text-center text-[22px] font-medium text-black dark:text-white">Connect Wallet</DialogTitle>
+          <DialogTitle className="text-center text-[22px] font-medium text-black dark:text-white">Connect Desktop Wallet</DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto scrollbar-hide px-6">
           <DialogDescription className="flex flex-col gap-2 w-full">
             {Object.values(SUPPORTED_WALLETS).map((wallet) => (
+              hasWallet[wallet.name] && (
               <WalletButton key={wallet.name} wallet={wallet} hasWallet={hasWallet} onConnect={handleConnect} />
+              )
             ))}
           </DialogDescription>
         </div>

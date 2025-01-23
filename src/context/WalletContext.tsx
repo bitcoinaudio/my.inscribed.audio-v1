@@ -11,6 +11,7 @@ export const WalletProvider = ({ children }) => {
 
   const connectWallet = () => setIsWalletConnected(true);
   const disconnectWallet = () => setIsWalletConnected(false);
+   
 
   return (
     <WalletContext.Provider value={{ isWalletConnected, connectWallet, disconnectWallet }}>

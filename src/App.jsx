@@ -4,10 +4,8 @@ import Contact from "./pages/Contact";
 import Home from "./pages/Home";
 import Collections from "./pages/Collections";
  import NavBar from "./components/NavBar";
-import Services from "./pages/Services";
+import MyMedia from "./pages/MyMedia";
 import Team from "./pages/Team";
-import Testimonial from "./pages/Testimonial";
-import AboutPage from "./pages/AboutPage";
 import { LaserEyesProvider, MAINNET } from "@omnisat/lasereyes";
 import { DeviceProvider } from "./utils/DeviceStore"; 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
@@ -24,7 +22,7 @@ const App = () => {
           <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/collections" element={<Collections />} />
-          <Route path="/services" element={<Services />} />
+          <Route path="/mymedia" element={<MyMedia />} />
           <Route path="/team" element={<Team />} />
           </Routes>
          </div>

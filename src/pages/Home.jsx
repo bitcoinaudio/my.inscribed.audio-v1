@@ -27,12 +27,13 @@ const Home = () => {
       
     />
     <div className="text-center lg:text-start"> 
-            
-      <h1 className="font-urbanist text-3xl font-black uppercase md:text-5xl">
+    <h1 className="font-urbanist text-3xl font-black uppercase md:text-5xl">
         Welcome to 
-        My.Inscribed.Audio
-        <span className="text-black/90"> tools to manage your onchain media</span>
-      </h1>
+        </h1>
+      <h1 className="font-urbanist text-3xl font-black uppercase md:text-5xl">
+         My.Inscribed.Audio</h1>
+        <h1 className="text-black/90 font-urbanist text-3xl font-black uppercase md:text-5xl"> tools to manage your onchain media</h1>
+      
       </div>
     </div>
   </div>

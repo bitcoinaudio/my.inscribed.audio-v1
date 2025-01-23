@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom"; 
 import { Toggle } from "react-hook-theme";
 import ConnectWallet from './ConnectWallet';
+import ConnectMobile from './ConnectMobile';
 import { useDeviceContext } from "../utils/DeviceStore";
 import iaLogo from '/images/ia-bg3.png';
 import { useWallet } from '../context/WalletContext';
@@ -21,10 +22,11 @@ const NavBar = () => {
   const navigation = [
     ...basenavigation,
     ...(isWalletConnected ? [
-      { name: "Services", href: "/services" },
-      { name: "Team", href: "/team" },
+      { name: "My Media", href: "/mymedia" },
+      // { name: "Team", href: "/team" },
     ] : [])
   ];
+  console.log("isWalletConnected NavBar", isWalletConnected);
 
   return (
     <div className="sticky top-0 z-50 flex justify-center py-4 gap-4">
@@ -85,8 +87,7 @@ const NavBar = () => {
 
         <div className="navbar-end h-10 scale-75">
           <div className="flex flex-col gap-4">
-
-          <ConnectWallet />
+          {isMobile ? <ConnectMobile /> : <ConnectWallet />}
           </div>
 
           <Toggle />
