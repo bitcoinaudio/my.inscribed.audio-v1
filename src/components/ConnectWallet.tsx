@@ -33,7 +33,7 @@ interface ConnectWalletProps {
 }
 
 const WalletButton = memo(({ wallet, hasWallet, onConnect }: { wallet: any; hasWallet: any; onConnect: (wallet: WalletName) => void }) => {
-  const isConnected = hasWallet[wallet.name];
+const isConnected = hasWallet[wallet.name];
 
   return (
     <Button
@@ -94,7 +94,7 @@ const ConnectWallet = ({ className }: ConnectWalletProps) => {
   const [isWalletName, setIsWalletName] = useState('');
   const [hasWallet, setHasWallet] = useState({ unisat: false, xverse: false, [MAGIC_EDEN]: false });
   const navigate = useNavigate();
-  useEffect(() => {
+   useEffect(() => {
     setHasWallet({ unisat: hasUnisat, xverse: hasXverse, [MAGIC_EDEN]: hasMagicEden });
   }, [hasUnisat, hasXverse, hasMagicEden]);
    
@@ -104,13 +104,14 @@ const ConnectWallet = ({ className }: ConnectWalletProps) => {
       if (provider === walletName) {
          disconnectWallet();
          disconnect();
+         htmlArray.length = 0;
          navigate('/');
          
       } else {
+         
         setIsOpen(false);
         await connect(walletName);
         connectWallet();
-
         setIsWalletName(walletName);
         switch (walletName) {
           case 'unisat':
@@ -135,14 +136,21 @@ const ConnectWallet = ({ className }: ConnectWalletProps) => {
     
   };
 
-  const getUnisatInscriptions = async () => {
-    try {
-      const res = await window[isWalletName].getInscriptions();
-      console.log("Response from getInscriptions:", res);
+  const unisatTotal = async () => {
+    const res = await window[isWalletName].getInscriptions(0, 10);
+    return res.total;
+  }
 
+  const getUnisatInscriptions = async () => {
+    const total = await unisatTotal(); 
+    try {
+      const res = await window[isWalletName].getInscriptions(0, total);
+      console.log("Response from getInscriptions:", res);
+       
       if (res) {
-        res.list.forEach((inscription) => {
-           if (inscription.contentType === 'text/html') {
+        res.list.forEach((inscription : any) => {
+          console.log("inscription", inscription);
+           if (inscription.contentType === "text/html;charset=utf-8") {
             htmlArray.push({id: inscription.inscriptionId, isIOM: checkIOMOwnership(inscription.inscriptionId)} as never);
           }
         });
