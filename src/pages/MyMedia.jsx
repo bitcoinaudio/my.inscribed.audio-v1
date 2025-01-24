@@ -9,6 +9,7 @@ import { useWallet } from "../context/WalletContext";
  
 const MyMedia = () => {
   const { isWalletConnected } = useWallet();
+   
   return (
     <motion.div
       variants={staggerContainer}
