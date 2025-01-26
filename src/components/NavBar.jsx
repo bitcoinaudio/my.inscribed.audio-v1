@@ -26,7 +26,7 @@ const NavBar = () => {
       // { name: "Team", href: "/team" },
     ] : [])
   ];
-  console.log("isWalletConnected NavBar", isWalletConnected);
+  // console.log("isWalletConnected NavBar", isWalletConnected);
 
   return (
     <div className="sticky top-0 z-50 flex justify-center py-4 gap-4">

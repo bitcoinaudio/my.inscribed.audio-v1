@@ -1,4 +1,4 @@
 export let htmlArray = [];
-export let setHtmlArray = (htmlArray) => {
-    htmlArray = htmlArray;
+export let setHtmlArray = (array) => {
+    htmlArray = array;
 }
