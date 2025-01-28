@@ -3,7 +3,7 @@
 # dependencies
 /node_modules
 /dist
-
+vite.config.js
 # testing
 /coverage
 
