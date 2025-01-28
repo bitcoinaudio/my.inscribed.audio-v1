@@ -101,9 +101,6 @@ const ConnectWallet = ({ className }: ConnectWalletProps) => {
     setHasWallet({ unisat: hasUnisat, xverse: hasXverse, [MAGIC_EDEN]: hasMagicEden });
   }, [hasUnisat, hasXverse, hasMagicEden]);
    
-       
-
-
   const getUnisatInscriptions = async () => {
     setHtmlArray([]);
     setHtmlInscriptions([]);
@@ -174,8 +171,15 @@ const ConnectWallet = ({ className }: ConnectWalletProps) => {
   };
 
   const getMagicEdenInscriptions = async () => {
-    
-    console.log("magic eden");
+    const response = await request('ord_getInscriptions', { offset: 0, limit: 100 });
+    if (response.status === 'success') {
+      response.result.inscriptions.forEach((inscription) => {
+        if (inscription.contentType === "text/html;charset=utf-8") {
+          htmlInscriptions.push({id: inscription.inscriptionId, isIOM: checkIOMOwnership(inscription.inscriptionId)} as never);
+        }
+      });
+    }
+     console.log("magic eden", response);
   };
   
   const handleConnect = async (walletName: WalletName) => {
@@ -202,10 +206,10 @@ const ConnectWallet = ({ className }: ConnectWalletProps) => {
           await getXverseInscriptions();
            console.log("Connected to Xverse", walletName);
           break;
-        // case MAGIC_EDEN:
-        //   await getMagicEdenInscriptions();
-        //    console.log("Connected to Magic Eden", walletName);
-        //   break;
+        case MAGIC_EDEN:
+          await getMagicEdenInscriptions();
+           console.log("Connected to Magic Eden", walletName);
+          break;
         default:
           console.warn("Unknown wallet name:", walletName);
       }
@@ -249,11 +253,13 @@ const ConnectWallet = ({ className }: ConnectWalletProps) => {
 
         <div className="flex-1 overflow-y-auto scrollbar-hide px-6">
           <DialogDescription className="flex flex-col gap-2 w-full">
+
             {Object.values(SUPPORTED_WALLETS).map((wallet) => (
               hasWallet[wallet.name] && (
               <WalletButton key={wallet.name} wallet={wallet} hasWallet={hasWallet} onConnect={handleConnect} />
               )
             ))}
+            
           </DialogDescription>
         </div>
 

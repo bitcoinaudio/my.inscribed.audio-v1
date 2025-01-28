@@ -32,11 +32,12 @@ const NavBar = () => {
     <div className="sticky top-0 z-50 flex justify-center py-4 gap-4">
       <div className="navbar ">
         <div className="navbar-start">
-        <Link to="https://inscribed.audio" className="btn btn-ghost font-urbanist text-lg font-semibold gap-4 ">
-           <img src={iaLogo} alt="inscribed audio" className="w-10 h-10" /><span className="text-sm font-semibold">Inscribed Audio</span>
+        <Link to="https://inscribed.audio" className="btn btn-ghost font-urbanist text-lg font-semibold gap-4 lg:hidden">
+           <img src={iaLogo} alt="inscribed audio" className="w-10 h-10" />
           </Link>
           <div className="dropdown">
             {/* Mobile Menu */}
+            
             <div tabIndex={0} role="button" className="btn btn-circle btn-ghost lg:hidden ">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -69,6 +70,9 @@ const NavBar = () => {
         </div>
         {/* Desktop Menu */}
         <div className="navbar-center ml-10 hidden lg:flex">
+            <Link to="https://inscribed.audio" className="btn btn-ghost font-urbanist text-lg font-semibold gap-4 ">
+           <img src={iaLogo} alt="inscribed audio" className="w-10 h-10" /><span className="text-sm font-semibold">Inscribed.Audio</span>
+          </Link>
           {navigation.map((item, index) => (
             <nav key={index} className="menu menu-horizontal px-1">
               <Link
