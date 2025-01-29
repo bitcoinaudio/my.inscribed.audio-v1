@@ -123,7 +123,6 @@ const ConnectWallet = ({ className }: ConnectWalletProps) => {
     setHtmlArray(htmlInscriptions);
   };
 
-
   const getXverseTotal = async () => {
     const xverseTotal = await request('ord_getInscriptions', { offset: 0, limit: 1 });
     if (xverseTotal.status === 'success') {
@@ -131,7 +130,6 @@ const ConnectWallet = ({ className }: ConnectWalletProps) => {
     }
     return 0;
   }
-
 
   const getXverseInscriptions = async () => {
    
