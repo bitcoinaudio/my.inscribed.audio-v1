@@ -32,7 +32,7 @@ const nonce = Date.now().toString();
 const browserUrl = "http://localhost:3333/mymedia";
 const mobileWalletDeepLink = {
   unisat: `unisat://request?method=connect&from=${appName}&nonce=${nonce}`,
-  xverse: `https://connect.xverse.app/`,
+  xverse: `https://connect.xverse.app/browser?url=https://my.inscribed.audio/media`,
   magiceden: `magiceden://connect?from=${appName}&nonce=${nonce}`,
 };
 
