@@ -21,7 +21,7 @@ import idesofmarch from '../lib/collections/idesofmarch.json';
 import { detectMobileAppBrowser } from '../utils/browserCheck';
 
 const activeBrowser = detectMobileAppBrowser();
-console.log(`Active Browser: ${activeBrowser}`);
+// console.log(`Active Browser: ${activeBrowser}`);
 
 
 type WalletName = keyof typeof SUPPORTED_WALLETS;
@@ -30,9 +30,10 @@ const mobileWallets = [UNISAT, XVERSE, MAGIC_EDEN];
 const appName = "Ides of March";  
 const nonce = Date.now().toString();
 const browserUrl = "http://localhost:3333/mymedia";
+const xversebrowserUrl = 'https://my.inscribed.audio/?inXverse=1';
 const mobileWalletDeepLink = {
   unisat: `unisat://request?method=connect&from=${appName}&nonce=${nonce}`,
-  xverse: `https://connect.xverse.app/browser?url=https://my.inscribed.audio/media`,
+  xverse: `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`,
   magiceden: `magiceden://connect?from=${appName}&nonce=${nonce}`,
 };
 
@@ -99,6 +100,7 @@ export default function ConnectWallet({ className }: ConnectWalletProps) {
   const [htmlInscriptions, setHtmlInscriptions] = useState<{ id: string; isIOM: boolean }[]>([]);
   const navigate = useNavigate();
   const { isMobile } = useDeviceContext();
+  const [activeBrowser, setActiveBrowser] = useState('');
 
   const [hasWallet, setHasWallet] = useState({
     unisat: false,
@@ -281,23 +283,25 @@ export default function ConnectWallet({ className }: ConnectWalletProps) {
           
         </DialogHeader>
         <DialogDescription className="flex flex-col gap-2 w-full p-2">
-          {activeBrowser === 'unisat' && (
-            <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
+          {hasWallet[UNISAT] || hasWallet[XVERSE] || hasWallet[MAGIC_EDEN] ? (
+            <>
+              {hasWallet[UNISAT] && (
+          <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
+              )}
+              {hasWallet[XVERSE] && (
+          <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />
+              )}
+              {hasWallet[MAGIC_EDEN] && (
+          <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
+              )}
+            </>
+          ) : (
+            <>
+              <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
+              <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet="unisat" hasWallet={hasWallet} onConnect={handleConnect} />
+              <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet="xverse" hasWallet={hasWallet} onConnect={handleConnect} />
+            </>
           )}
-          {activeBrowser === 'xverse' && (
-            <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />
-          )}
-          {activeBrowser === 'magiceden' && (
-            <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
-          )}
-        {activeBrowser === 'Unknown' && (
-          <>
-            <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
-            <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet="unisat" hasWallet={hasWallet} onConnect={handleConnect} />
-            <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet="xverse" hasWallet={hasWallet} onConnect={handleConnect} />
-          </>
-        )}
-
         </DialogDescription>
       </DialogContent>
     </Dialog>
