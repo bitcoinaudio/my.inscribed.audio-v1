@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Button } from "./ui/button";
-import { ChevronRight, X } from "lucide-react";
+import { ChevronRight, Wallet, X } from "lucide-react";
 import { useDeviceContext } from "../utils/DeviceStore";
 import {
   MAGIC_EDEN,
@@ -30,11 +30,13 @@ const mobileWallets = [UNISAT, XVERSE, MAGIC_EDEN];
 const appName = "Ides of March";  
 const nonce = Date.now().toString();
 const browserUrl = "http://localhost:3333/mymedia";
-const xversebrowserUrl = 'https://my.inscribed.audio/?inXverse=1';
+const xversebrowserUrl = 'https://my.inscribed.audio/mymedia';
+const unisatbrowserUrl = 'https://my.inscribed.audio/mymedia';
+const magicedenbrowserUrl = 'https://my.inscribed.audio/?inMagicEden=1';
 const mobileWalletDeepLink = {
   unisat: `unisat://request?method=connect&from=${appName}&nonce=${nonce}`,
-  xverse: `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`,
-  magiceden: `magiceden://connect?from=${appName}&nonce=${nonce}`,
+  xverse: `https://connect.xverse.app/browser?url=${encodeURIComponent(xversebrowserUrl)}`,
+  magiceden: `magiceden://connect?from=${appName}&nonce=${nonce}&browserUrl=${encodeURIComponent(magicedenbrowserUrl)}`,
 };
 
 interface ConnectWalletProps {
@@ -214,9 +216,9 @@ export default function ConnectWallet({ className }: ConnectWalletProps) {
     }
   }, [location.search]);
 
-  useEffect(() => {
-    processCallbackResponse();
-  }, [processCallbackResponse]);
+  // useEffect(() => {
+  //   processCallbackResponse();
+  // }, [processCallbackResponse]);
 
   const handleConnect = async (walletName: WalletName) => {
     if (provider === walletName) {
@@ -224,20 +226,18 @@ export default function ConnectWallet({ className }: ConnectWalletProps) {
     } else {
       setIsOpen(false);
       await connect(walletName);
-      if (walletName === UNISAT) {
-        // window.open(mobileWalletDeepLink.unisat);
+      if (walletName === UNISAT) {        
         getUnisatInscriptions();
       } else if (walletName === XVERSE) {
-        // window.open(mobileWalletDeepLink.xverse);
-        getXverseInscriptions();
+         getXverseInscriptions();
       } else if (walletName === MAGIC_EDEN) {
-        // window.open(mobileWalletDeepLink.magiceden);
-        getMagicEdenInscriptions();
+         getMagicEdenInscriptions();
       }
 
       setHtmlArray(htmlInscriptions);
-      console.log("mobile", htmlInscriptions);
       navigate('/mymedia');
+      console.log("mobile", htmlInscriptions);
+
     }
   };
 
@@ -280,18 +280,18 @@ export default function ConnectWallet({ className }: ConnectWalletProps) {
       )}>
         <DialogHeader className="px-6 pt-5 pb-3">
           <DialogTitle className="text-center text-[22px] font-medium text-black dark:text-white">Connect Mobile Wallet</DialogTitle>
-          
         </DialogHeader>
         <DialogDescription className="flex flex-col gap-2 w-full p-2">
+
           {hasWallet[UNISAT] || hasWallet[XVERSE] || hasWallet[MAGIC_EDEN] ? (
             <>
-              {hasWallet[UNISAT] && (
+              {detectMobileAppBrowser() === 'unisat' && (
           <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
               )}
-              {hasWallet[XVERSE] && (
+              {detectMobileAppBrowser() === 'xverse' && (
           <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />
               )}
-              {hasWallet[MAGIC_EDEN] && (
+              {detectMobileAppBrowser() === 'magic-eden' && (
           <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
               )}
             </>
@@ -302,6 +302,7 @@ export default function ConnectWallet({ className }: ConnectWalletProps) {
               <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet="xverse" hasWallet={hasWallet} onConnect={handleConnect} />
             </>
           )}
+
         </DialogDescription>
       </DialogContent>
     </Dialog>
