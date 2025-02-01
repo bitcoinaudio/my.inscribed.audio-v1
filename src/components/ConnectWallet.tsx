@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { cn } from "../lib/utils";
 import { htmlArray, setHtmlArray } from "../globalState";
 import idesofmarch from '../lib/collections/idesofmarch.json';
+import { get } from "http";
 
 type WalletName = keyof typeof SUPPORTED_WALLETS;
 let htmlarray = [];
@@ -95,28 +96,74 @@ const ConnectWallet = ({ className }: ConnectWalletProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isWalletName, setIsWalletName] = useState('');
   const [hasWallet, setHasWallet] = useState({ unisat: false, xverse: false, [MAGIC_EDEN]: false });
-  const [htmlInscriptions, setHtmlInscriptions] = useState([]);
+  interface HtmlInscription {
+    id: string;
+    isIOM: boolean;
+    isBRC420: boolean;
+    brc420Url: string;
+  }
+  const [brc420Url, setBrc420Url] = useState('');
+  const [ isbrc420, setisbrc420 ] = useState(false);
+  const [htmlInscriptions, setHtmlInscriptions] = useState<HtmlInscription[]>([]);
+
   const navigate = useNavigate();
   useEffect(() => {
     setHasWallet({ unisat: hasUnisat, xverse: hasXverse, [MAGIC_EDEN]: hasMagicEden });
   }, [hasUnisat, hasXverse, hasMagicEden]);
-   
+
+  function getBRC420(inscriptionId) {
+    const url = 'https://ordinals.com/content/' + inscriptionId;
+    return fetch(url, { method: 'GET' })
+      .then(response => response.text())
+      .then(text => {
+        const brc420 = text.trim();
+        // console.log("brc420", brc420);
+          if (brc420.startsWith('/content/')) {
+          setisbrc420(true);
+          setBrc420Url("https://ordinals.com" + brc420); 
+            // console.log("brc420Url", brc420Url, "isbrc420", isbrc420);      
+          return {isbrc420, brc420Url}; 
+        } else {
+            setisbrc420(false);
+          return null;
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching BRC420:", error);
+          setisbrc420(false);
+        return null;
+      });
+  }
+  
+
+  const getUnisatTotal = async () => { 
+    const unisatTotal = await window[isWalletName].getInscriptions(0, 1); 
+    if (unisatTotal.status === 'success') {
+      console.log("unisatTotal", unisatTotal.list.length);
+      return unisatTotal.list.length;
+    }
+    return 0
+   };
   const getUnisatInscriptions = async () => {
+    // const total = await getUnisatTotal();
     setHtmlArray([]);
     setHtmlInscriptions([]);
+    
      try {
-      const res = await window[isWalletName].getInscriptions();
-      console.log("Response from getInscriptions:", res);
+      const res = await window[isWalletName].getInscriptions(0, 100);
 
       if (res) {
-        res.list.forEach((inscription) => {
-           if (inscription.contentType === 'text/html;charset=utf-8') {
-             htmlInscriptions.push({id: inscription.inscriptionId, isIOM: checkIOMOwnership(inscription.inscriptionId)} as never);
- 
+        res.list.forEach(async (inscription) => {
+          const brc420Data = await getBRC420(inscription.inscriptionId);
+
+           if (inscription.contentType === 'text/html;charset=utf-8' || inscription.contentType === 'text/html') {
+                htmlInscriptions.push({id: inscription.inscriptionId, isIOM: checkIOMOwnership(inscription.inscriptionId), isBRC420: brc420Data?.isbrc420, brc420Url: brc420Data?.brc420Url} as never);
+  
           }
         });
-       }
-       console.log("htmlArray", htmlArray);
+      }
+
+      //  console.log("htmlArray", htmlArray);
      } catch (error) {
       console.error("Error fetching Unisat inscriptions:", error);
     }
@@ -144,10 +191,10 @@ const ConnectWallet = ({ className }: ConnectWalletProps) => {
           if (address.addressType === 'p2tr') { 
             const inscriptions = await request('ord_getInscriptions', { offset: 0, limit: limit });
             if (inscriptions.status === 'success') {
-              inscriptions.result.inscriptions.forEach((inscription) => {
-                console.log("inscription", inscription);
-                if (inscription.contentType === "text/html;charset=utf-8") {
-                   htmlInscriptions.push({id: inscription.inscriptionId, isIOM: checkIOMOwnership(inscription.inscriptionId)} as never);
+              inscriptions.result.inscriptions.forEach(async (inscription) => {
+                if (inscription.contentType === "text/html;charset=utf-8" || inscription.contentType === "text/html") {
+                  const brc420Data = await getBRC420(inscription.inscriptionId);
+                  htmlInscriptions.push({id: inscription.inscriptionId, isIOM: checkIOMOwnership(inscription.inscriptionId), isBRC420: brc420Data?.isbrc420, brc420Url: brc420Data?.brc420Url} as never);
                 }
               });
              }
@@ -171,9 +218,10 @@ const ConnectWallet = ({ className }: ConnectWalletProps) => {
   const getMagicEdenInscriptions = async () => {
     const response = await request('ord_getInscriptions', { offset: 0, limit: 100 });
     if (response.status === 'success') {
-      response.result.inscriptions.forEach((inscription) => {
-        if (inscription.contentType === "text/html;charset=utf-8") {
-          htmlInscriptions.push({id: inscription.inscriptionId, isIOM: checkIOMOwnership(inscription.inscriptionId)} as never);
+      response.result.inscriptions.forEach(async (inscription) => {
+        if (inscription.contentType === "text/html;charset=utf-8" || inscription.contentType === "text/html") {
+          const brc420Data = await getBRC420(inscription.inscriptionId);
+          htmlInscriptions.push({id: inscription.inscriptionId, isIOM: checkIOMOwnership(inscription.inscriptionId), isBRC420: brc420Data?.isbrc420, brc420Url: brc420Data?.brc420Url} as never);
         }
       });
     }
@@ -215,11 +263,13 @@ const ConnectWallet = ({ className }: ConnectWalletProps) => {
       navigate('/mymedia');
       console.log("handleConnect htmlArray", htmlArray);
       console.log("handleConnect htmlInscriptions", htmlInscriptions);
-
+ 
     }
     
   
 };
+
+
   const buttonClass = cn(
     "btn btn-ghost text-black dark:text-white font-bold rounded-lg transition duration-300",
     "bg-white dark:bg-gray-800 hover:bg-gray-900 hover:text-white dark:hover:bg-gray-700",

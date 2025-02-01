@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion"
 import { fadeIn, staggerContainer } from "../utils/motion"
 import { htmlArray, setHtmlArray } from "../globalState";
@@ -7,8 +7,41 @@ import { useWallet } from "../context/WalletContext";
 import iomImage from '/images/idesofmarch.png';
 
  const MyMedia = () => {
+  // const { brc420Url , setBrc420Url } = useState('');
+  // const { isbrc420, setIsbrc420 } = useState(false);
 
+  // const getBRC420 = async (inscriptionId) => {
+  //   const url = 'https://ordinals.com/content/' + inscriptionId;
+  //   return fetch(url, { method: 'GET' })
+  //     .then(response => response.text())
+  //     .then(text => {
+  //       const brc420 = text.trim();
+  //       // console.log("brc420", brc420);
+  //        if (brc420.startsWith('/content/')) {
+  //         setIsbrc420(true);
+  //         setBrc420Url('https://ordinals.com' + brc420);
+  //         console.log("brc420Url", brc420Url, isbrc420);
+  //         return 'https://ordinals.com' + brc420;
+  //       } else {
+            
+  //         return null;
+  //       }
+  //     })
+  //     .catch(error => {
+  //       console.error("Error fetching BRC420:", error);
+          
+  //       return null;
+  //     });
+  // }
   console.log("htmlArray", htmlArray);
+
+  // useEffect(() => {
+  //   console.log("loading");
+  //   if (htmlArray.length > 0) {
+  //     const url = htmlArray[0].id;
+  //     console.log("url", url);
+  //   }
+  // }, []);
  
   return (
     <motion.div
@@ -28,8 +61,12 @@ import iomImage from '/images/idesofmarch.png';
         className="card max-w-2xl  transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box mt-4 gap-4"
       >
         <div className="card-body shadow-inner">
-          
+        {item.isbrc420 ? (
+          <iframe src={item.brc420Url} title="IOM"  height="100%" width="100%" allowfullscreen></iframe>
+        ): (
           <iframe src={"https://ordinals.com/content/" + item.id} title="IOM"  height="100%" width="100%" allowfullscreen></iframe>
+
+        )}
          
           <h2 className="font-urbanist card-title text-3xl font-black ">
             

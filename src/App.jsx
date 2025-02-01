@@ -6,6 +6,9 @@ import Collections from "./pages/Collections";
  import NavBar from "./components/NavBar";
 import MyMedia from "./pages/MyMedia";
 import Team from "./pages/Team";
+import Feature from "./pages/Feature";
+import FooterPage  from "./pages/Footer";
+
 import { LaserEyesProvider, MAINNET } from "@omnisat/lasereyes";
 import { DeviceProvider } from "./utils/DeviceStore"; 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
@@ -16,20 +19,25 @@ const App = () => {
     <Router>
       <WalletProvider>
       <LaserEyesProvider config={{ network: MAINNET }}>
-        <DeviceProvider>    
+        <DeviceProvider>  
+        {/* <NavBar />
+        <Home />
+        <Feature /> */}
          <div className="p-2 md:px-10">
           <NavBar />
           <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={[<Home />, <Feature />]} />
           <Route path="/collections" element={<Collections />} />
           <Route path="/mymedia" element={<MyMedia />} />
           <Route path="/team" element={<Team />} />
           </Routes>
          </div>
+         <FooterPage />
       </DeviceProvider>
       </LaserEyesProvider>
       </WalletProvider>
     </Router>
+    
   );
 }
 
