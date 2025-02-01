@@ -6,44 +6,17 @@ import ordImage from '/images/ordinals.svg';
 import { useWallet } from "../context/WalletContext";
 import iomImage from '/images/idesofmarch.png';
 
+
  const MyMedia = () => {
-  // const { brc420Url , setBrc420Url } = useState('');
-  // const { isbrc420, setIsbrc420 } = useState(false);
+  
+  const [localHtmlArray, setLocalHtmlArray] = useState(htmlArray);
 
-  // const getBRC420 = async (inscriptionId) => {
-  //   const url = 'https://ordinals.com/content/' + inscriptionId;
-  //   return fetch(url, { method: 'GET' })
-  //     .then(response => response.text())
-  //     .then(text => {
-  //       const brc420 = text.trim();
-  //       // console.log("brc420", brc420);
-  //        if (brc420.startsWith('/content/')) {
-  //         setIsbrc420(true);
-  //         setBrc420Url('https://ordinals.com' + brc420);
-  //         console.log("brc420Url", brc420Url, isbrc420);
-  //         return 'https://ordinals.com' + brc420;
-  //       } else {
-            
-  //         return null;
-  //       }
-  //     })
-  //     .catch(error => {
-  //       console.error("Error fetching BRC420:", error);
-          
-  //       return null;
-  //     });
-  // }
-  console.log("htmlArray", htmlArray);
+  useEffect(() => {
+    setLocalHtmlArray(htmlArray);
+    console.log("htmlArray updated", htmlArray);
+  }, [htmlArray]);
 
-  // useEffect(() => {
-  //   console.log("loading");
-  //   if (htmlArray.length > 0) {
-  //     const url = htmlArray[0].id;
-  //     console.log("url", url);
-  //   }
-  // }, []);
- 
-  return (
+   return (
     <motion.div
       variants={staggerContainer}
       initial="hidden"
