@@ -35,7 +35,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
   const { isWalletConnected, connectWallet, disconnectWallet } = useWallet();
   const [isOpen, setIsOpen] = useState(false);
-  const [isWalletName, setIsWalletName] = useState('');
+  const [isWalletName, setIsWalletName] = useState<string | null>(null);
   const [hasWallet, setHasWallet] = useState({ unisat: false, xverse: false, [MAGIC_EDEN]: false });
   const [htmlInscriptions, setHtmlInscriptions] = useState<HtmlInscription[]>([]);
   const navigate = useNavigate();
@@ -51,7 +51,8 @@ const ConnectWallet = ({ className }: { className?: string }) => {
       return text.trim().startsWith('/content/')
         ? { isBRC420: true, brc420Url: `https://ordinals.com${text.trim()}` }
         : { isBRC420: false, brc420Url: '' };
-    } catch {
+    } catch (error) {
+      console.error("Error fetching BRC420:", error);
       return { isBRC420: false, brc420Url: '' };
     }
   }
@@ -77,35 +78,30 @@ const ConnectWallet = ({ className }: { className?: string }) => {
       setHtmlInscriptions(filteredInscriptions);
       setHtmlArray([...filteredInscriptions]);
     } catch (error) {
-      console.error("Error fetching inscriptions:", error);
+      console.error("Error fetching UniSat total inscriptions:", error);
+      return 0;
     }
   };
 
   const getUnisatInscriptions = async () => {
+    if (!isWalletName || !window[isWalletName]?.getInscriptions) {
+      console.warn("UniSat API is not available or walletName is undefined.");
+      return [];
+    }
+
     try {
       setHtmlArray([]);
       setHtmlInscriptions([]);
-  
-      if (!window[isWalletName]?.getInscriptions) {
-        console.error("UniSat API is not available.");
-        return [];
-      }
-  
-      console.log("Fetching UniSat inscriptions...");
-      
-      // Fetch inscriptions with a unique query to avoid cached results
+
       const res = await window[isWalletName].getInscriptions(0, 100);
-  
       if (!res || !res.list) {
         console.error("Invalid response from UniSat API");
         return [];
       }
-  
-      console.log("UniSat raw response:", res.list);
-  
+
       const processedInscriptions = await Promise.all(
         res.list.map(async (inscription: any) => {
-          if (inscription.contentType.startsWith('text/html')) {
+          if (inscription.contentType.startsWith("text/html")) {
             const brc420Data = await getBRC420(inscription.inscriptionId);
             return {
               id: inscription.inscriptionId,
@@ -116,25 +112,17 @@ const ConnectWallet = ({ className }: { className?: string }) => {
           return null;
         })
       );
-  
+
       const filteredInscriptions = processedInscriptions.filter(Boolean);
-      console.log("Processed UniSat inscriptions:", filteredInscriptions);
-  
-      // Update state in sequence to ensure UI updates correctly
       setHtmlInscriptions(filteredInscriptions);
-  
-      setTimeout(() => {
-        setHtmlArray([...filteredInscriptions]);
-        console.log("Updated htmlArray (UniSat):", filteredInscriptions);
-      }, 200); // Slight delay to ensure React processes state update
-  
+      setHtmlArray([...filteredInscriptions]);
+
+      return filteredInscriptions;
     } catch (error) {
       console.error("Error fetching UniSat inscriptions:", error);
+      return [];
     }
-    
-
   };
-  
 
   const getXverseInscriptions = async () => {
     try {
