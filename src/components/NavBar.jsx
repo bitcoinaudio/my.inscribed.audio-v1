@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom"; 
 import { Toggle } from "react-hook-theme";
 import ConnectWallet from './ConnectWallet';
@@ -18,6 +18,25 @@ const NavBar = () => {
   const [active, setActive] = useState("Home");
   const { isWalletConnected } = useWallet();
   const { isMobile } = useDeviceContext();
+  const [showNav, setShowNav] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > lastScrollY) {
+        setShowNav(false);
+      } else {
+        setShowNav(true);
+      }
+      setLastScrollY(window.scrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [lastScrollY]);
 
   const navigation = [
     ...basenavigation,
@@ -29,7 +48,7 @@ const NavBar = () => {
   // console.log("isWalletConnected NavBar", isWalletConnected);
 
   return (
-    <div className="sticky top-0 z-50 flex justify-center py-4 gap-4">
+    <div className={`sticky top-0 z-50 flex justify-center py-4 gap-4 transition-transform duration-300 ${showNav ? 'translate-y-0' : '-translate-y-full'}`}>
       <div className="navbar ">
         <div className="navbar-start">
         <Link to="https://inscribed.audio" className="btn btn-ghost font-urbanist text-lg font-semibold gap-4 lg:hidden">
