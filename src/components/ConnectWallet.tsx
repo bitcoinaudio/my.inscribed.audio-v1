@@ -170,7 +170,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
     switch (walletName) {
       case 'unisat':
-        await getUnisatInscriptions();
+        await fetchInscriptions(getUnisatInscriptions);
         break;
       case 'xverse':
         await fetchInscriptions(getXverseInscriptions);
