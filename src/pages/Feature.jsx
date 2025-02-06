@@ -3,7 +3,7 @@ import { motion } from "framer-motion"
 import { fadeIn, staggerContainer } from "../utils/motion"
 
  
-const Team = () => {
+const Feature = () => {
   return (
     <motion.div
       variants={staggerContainer}
@@ -46,4 +46,4 @@ The Ides Of March isn’t just another music NFT—it’s a revolutionary approa
   )
 }
 
-export default Team
+export default Feature
