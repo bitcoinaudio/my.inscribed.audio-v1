@@ -42,7 +42,7 @@ const NavBar = () => {
     ...basenavigation,
     ...(isWalletConnected ? [
       { name: "My Media", href: "/mymedia" },
-      // { name: "Team", href: "/team" },
+      { name: "NK-1", href: "/nk-1" },
     ] : [])
   ];
   // console.log("isWalletConnected NavBar", isWalletConnected);
