@@ -7,6 +7,7 @@ import Collections from "./pages/Collections";
 import MyMedia from "./pages/MyMedia";
 import Team from "./pages/Team";
 import Feature from "./pages/Feature";
+import NK1 from "./pages/NK-1";
 import FooterPage  from "./pages/Footer";
 
 import { LaserEyesProvider, MAINNET } from "@omnisat/lasereyes";
@@ -29,7 +30,7 @@ const App = () => {
           <Route path="/" element={[<Home />, <Feature />]} />
           <Route path="/collections" element={<Collections />} />
           <Route path="/mymedia" element={<MyMedia />} />
-          <Route path="/team" element={<Team />} />
+          <Route path="/nk-1" element={<NK1 />} />
           </Routes>
          </div>
          <FooterPage />
