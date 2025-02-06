@@ -35,7 +35,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
   const { isWalletConnected, connectWallet, disconnectWallet } = useWallet();
   const [isOpen, setIsOpen] = useState(false);
-  const [isWalletName, setIsWalletName] = useState<string | null>(null);
+  const [isWalletName, setIsWalletName] = useState('');
   const [hasWallet, setHasWallet] = useState({ unisat: false, xverse: false, [MAGIC_EDEN]: false });
   const [htmlInscriptions, setHtmlInscriptions] = useState<HtmlInscription[]>([]);
   const navigate = useNavigate();
@@ -84,16 +84,13 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   };
 
   const getUnisatInscriptions = async () => {
-    if (!isWalletName || !window[isWalletName]?.getInscriptions) {
-      console.warn("UniSat API is not available or walletName is undefined.");
-      return [];
-    }
-
+    
     try {
       setHtmlArray([]);
       setHtmlInscriptions([]);
-
-      const res = await window[isWalletName].getInscriptions(0, 100);
+      
+      const res = await window['unisat'].getInscriptions(0, 100);
+      console.log("Response from getInscriptions:", res);
       if (!res || !res.list) {
         console.error("Invalid response from UniSat API");
         return [];
@@ -152,16 +149,17 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     }
 
     setIsOpen(false);
-    setIsWalletName(walletName);
-    await connect(walletName);
+    await connect(walletName as never);
     connectWallet();
 
-    switch (walletName) {
+    switch (walletName as never) {
       case 'unisat':
-        await fetchInscriptions(getUnisatInscriptions);
+        await getUnisatInscriptions();
+        navigate('/mymedia');
         break;
       case 'xverse':
         await fetchInscriptions(getXverseInscriptions);
+        navigate('/mymedia');
         break;
     }
 
