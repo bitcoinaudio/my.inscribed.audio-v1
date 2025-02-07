@@ -219,7 +219,7 @@ export default function ConnectWallet({ className }: ConnectWalletProps) {
   // useEffect(() => {
   //   processCallbackResponse();
   // }, [processCallbackResponse]);
-	const browserUrl = 'https://dev.inscribed.audio/?inXverse=1';
+	const browserUrl = 'https://dev.inscribed.audio/';
 
   const handleConnect = async (walletName: WalletName) => {
     if (provider === walletName) {
@@ -231,14 +231,14 @@ export default function ConnectWallet({ className }: ConnectWalletProps) {
         getUnisatInscriptions();
       } else if (walletName === XVERSE) {
         const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
-        window.open(xverseUrl);
          getXverseInscriptions();
+         window.open(xverseUrl);
       } else if (walletName === MAGIC_EDEN) {
          getMagicEdenInscriptions();
       }
 
       setHtmlArray(htmlInscriptions);
-      navigate('/mymedia');
+      navigate('https://dev.inscribed.audio/mymedia');
  
     }
   };
