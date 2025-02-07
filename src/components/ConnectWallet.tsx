@@ -165,8 +165,8 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
   };
    const buttonClass = cn(
-      "btn btn-ghost text-black dark:text-white font-bold rounded-lg transition duration-300",
-      "bg-white dark:bg-gray-800 hover:bg-gray-900 hover:text-white dark:hover:bg-gray-700",
+      "btn btn-ghost text-black dark:text-white font-bold rounded-lg transition duration-300 w-full mb-2",
+      "bg-white dark:bg-gray-800 hover:bg-gray-900 hover:text-white dark:hover:bg-gray-700 w-full mb-2",
       className
     );
 
@@ -190,7 +190,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
         <div className="p-4">
           {Object.values(SUPPORTED_WALLETS).map(wallet => (
             hasWallet[wallet.name] && (
-              <Button key={wallet.name} onClick={() => handleConnect(wallet.name)} className="w-full mb-2">
+              <Button key={wallet.name} onClick={() => handleConnect(wallet.name)} className={buttonClass}>
                 <WalletIcon size={24} walletName={wallet.name} /> Connect 
               </Button>
             )
