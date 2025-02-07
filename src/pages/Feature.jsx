@@ -25,7 +25,7 @@ The Ides Of March isn’t just another music NFT—it’s a revolutionary approa
 		<div className="text-center lg:text-start">
 			<h1 className="font-urbanist text-lg font-black uppercase md:text-5xl">
 				
-					   <span className="text-black/70">The Ides of March</span>				   
+					   <span className=" ">The Ides of March</span>				   
 			</h1>
  
 			<div className="flex justify-center">

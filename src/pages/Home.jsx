@@ -32,9 +32,9 @@ const Home = () => {
         </h1>
       <h1 className="font-urbanist text-3xl font-black uppercase md:text-5xl">
          My.Inscribed.Audio</h1>
-        <h1 className="text-black/90 font-urbanist text-3xl font-black uppercase md:text-5xl"> tools to manage your onchain media</h1>
-        <h2 className="text-black/90 font-urbanist text-3xl font-black uppercase md:text-4xl"> connect your wallet to get started</h2>
-        <h2 className="text-black/90 font-urbanist text-3xl font-black uppercase md:text-lg"> Use on desktop for best experience</h2>
+        <h1 className=" font-urbanist text-3xl font-black uppercase md:text-5xl"> tools to manage your onchain media</h1>
+        <h2 className=" font-urbanist text-3xl font-black uppercase md:text-4xl"> connect your wallet to get started</h2>
+        <h2 className="  font-urbanist text-3xl font-black uppercase md:text-lg"> Use on desktop for best experience</h2>
       
       </div>
     </div>
