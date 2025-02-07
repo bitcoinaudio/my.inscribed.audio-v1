@@ -179,22 +179,22 @@ const ConnectWallet = ({ className }: { className?: string }) => {
         </Button>
       ) : (
         <DialogTrigger asChild>
-          <Button className={buttonClass}>{isWalletConnected ? "Connecting..." : "Connect Wallet"}</Button>
+          <Button className={buttonClass}>{isWalletConnected ? "Connecting..." : "Connect Mobile Wallet"}</Button>
         </DialogTrigger>
       )}
 
       <DialogContent className="bg-white dark:bg-gray-800 border-none text-black dark:text-white rounded-2xl">
         <DialogHeader>
-          <DialogTitle>Connect Desktop Wallet</DialogTitle>
+          <DialogTitle>Connect on Desktop while we work on mobile wallet connect</DialogTitle>
         </DialogHeader>
         <div className="p-4">
-          {Object.values(SUPPORTED_WALLETS).map(wallet => (
+          {/* {Object.values(SUPPORTED_WALLETS).map(wallet => (
             hasWallet[wallet.name] && (
               <Button key={wallet.name} onClick={() => handleConnect(wallet.name)} className={buttonClass}>
                 <WalletIcon size={24} walletName={wallet.name} /> Connect 
               </Button>
             )
-          ))}
+          ))} */}
         </div>
       </DialogContent>
     </Dialog>
