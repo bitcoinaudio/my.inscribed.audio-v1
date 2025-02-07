@@ -238,7 +238,7 @@ export default function ConnectWallet({ className }: ConnectWalletProps) {
       }
 
       setHtmlArray(htmlInscriptions);
-      navigate('https://dev.inscribed.audio/mymedia');
+      navigate('https://dev.inscribed.audio/');
  
     }
   };
