@@ -240,46 +240,34 @@ export default function ConnectWallet({ className }: ConnectWalletProps) {
 
     }
   };
+   const buttonClass = cn(
+        "btn btn-ghost text-black dark:text-white font-bold rounded-lg transition duration-300",
+        "bg-white dark:bg-gray-800 hover:bg-gray-900 hover:text-white dark:hover:bg-gray-700",
+        className
+      );
+  
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {address ? (
         <Button
           onClick={() => disconnect()}
-          className={cn(
-            "btn btn-ghost mb-4 text-black dark:text-white font-bold py-6 px-12 rounded-lg",
-            "transition duration-300",
-            "bg-white bg-base-100",
-            "hover:bg-gray-900 hover:text-white dark:hover:bg-gray-700",
-            className
-          )}
+          className={buttonClass}
         >
           Disconnect
         </Button>
       ) : (
         <DialogTrigger asChild>
           <Button
-            className={cn(
-              "btn btn-ghost mb-4 text-black dark:text-white font-bold py-6 px-12 rounded-lg",
-              "transition duration-300",
-              "bg-white bg-base-100",
-              "hover:bg-gray-900 hover:text-white dark:hover:bg-gray-700",
-              className
-            )}
+            className={buttonClass}
           >
             {isConnecting ? "Connecting..." : "Connect Mobile Wallet"}
           </Button>
         </DialogTrigger>
       )}
-      <DialogContent className={cn(
-        "bg-white dark:bg-gray-900 border-none",
-        "text-black dark:text-white rounded-3xl mx-auto",
-        "fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2",
-        "w-[380px] max-h-[560px]",
-        "flex flex-col overflow-hidden p-0"
-      )}>
+      <DialogContent className="bg-white dark:bg-gray-800 border-none text-black dark:text-white rounded-2xl">
         <DialogHeader className="px-6 pt-5 pb-3">
-          <DialogTitle className="text-center text-[22px] font-medium text-black dark:text-white">Connect Mobile Wallet</DialogTitle>
+          <DialogTitle className="text-center text-[22px] font-medium ">Connect Mobile Wallet</DialogTitle>
         </DialogHeader>
         <DialogDescription className="flex flex-col gap-2 w-full p-2">
 
