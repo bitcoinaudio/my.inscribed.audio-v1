@@ -3,7 +3,7 @@ import iaLogo from '/images/ia-bg3.png';
 
 const FooterPage = () => {
   return (
-<div className=" grid grid-col-2 grid-row-2  justify-center gap-4 xl:gap-16 py-4">
+<div className=" ">
 
 <footer className="footer justify-center  p-10">
   <nav>
@@ -42,7 +42,6 @@ const FooterPage = () => {
         </svg>
       </a>
     </div>
-
   </nav>
 
 </footer>
