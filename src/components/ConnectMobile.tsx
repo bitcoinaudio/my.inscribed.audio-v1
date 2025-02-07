@@ -166,6 +166,9 @@ export default function ConnectWallet({ className }: ConnectWalletProps) {
                 }));
               setHtmlInscriptions(filteredInscriptions);
               setHtmlArray(filteredInscriptions);
+              const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
+              window.open(xverseUrl);
+              navigate('https://dev.inscribed.audio/mymedia');
             }
           }
         }
@@ -230,10 +233,8 @@ export default function ConnectWallet({ className }: ConnectWalletProps) {
       if (walletName === UNISAT) {        
         getUnisatInscriptions();
       } else if (walletName === XVERSE) {
-        const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
-         getXverseInscriptions();
-         window.open(xverseUrl);
-      } else if (walletName === MAGIC_EDEN) {
+          getXverseInscriptions();
+       } else if (walletName === MAGIC_EDEN) {
          getMagicEdenInscriptions();
       }
 
