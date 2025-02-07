@@ -30,7 +30,7 @@ const mobileWallets = [UNISAT, XVERSE, MAGIC_EDEN];
 const appName = "Ides of March";  
 const nonce = Date.now().toString();
 const browserUrl = "http://localhost:3333/mymedia";
-const xversebrowserUrl = 'https://my.inscribed.audio/mymedia';
+const xversebrowserUrl = 'https://dev.inscribed.audio/mymedia';
 const unisatbrowserUrl = 'https://my.inscribed.audio/mymedia';
 const magicedenbrowserUrl = 'https://my.inscribed.audio/?inMagicEden=1';
 const mobileWalletDeepLink = {
@@ -166,8 +166,7 @@ export default function ConnectWallet({ className }: ConnectWalletProps) {
                 }));
               setHtmlInscriptions(filteredInscriptions);
               setHtmlArray(filteredInscriptions);
-              const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
-              window.open(xverseUrl);
+              
               navigate('https://dev.inscribed.audio/mymedia');
             }
           }
