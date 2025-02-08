@@ -25,8 +25,9 @@ const appName = "Ides of March";
 const nonce = Date.now().toString();
 const browserUrl = "http://localhost:3333/";
 const xversebrowserUrl = 'https://dev.inscribed.audio/';
-const unisatbrowserUrl = 'https://my.inscribed.audio/';
-const magicedenbrowserUrl = 'https://my.inscribed.audio/?inMagicEden=1';
+const unisatbrowserUrl = 'https://dev.inscribed.audio/';
+const magicedenbrowserUrl = 'https://dev.inscribed.audio/?inMagicEden=1';
+const callbackUrl = 'https://dev.inscribed.audio/myinscriptions?unisat-connected=1';
 
 const mobileWalletDeepLink = {
   unisat: `unisat://request?method=connect&from=${appName}&nonce=${nonce}`,
@@ -97,6 +98,8 @@ const WalletButton = ({deeplink, wallet, hasWallet, onConnect }: { deeplink: any
 };
 
 
+
+
 const ConnectWallet = ({ className }: { className?: string }) => {
   const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
   const { isWalletConnected, connectWallet, disconnectWallet } = useWallet();
@@ -120,51 +123,42 @@ useEffect(() => {
 
 
 
-  async function getBRC420(inscriptionId: string) {
-    try {
-      const response = await fetch(`https://ordinals.com/content/${inscriptionId}`);
-      const text = await response.text();
-      return text.trim().startsWith('/content/')
-        ? { isBRC420: true, brc420Url: `https://ordinals.com${text.trim()}` }
-        : { isBRC420: false, brc420Url: '' };
-    } catch (error) {
-      console.error("Error fetching BRC420:", error);
-      return { isBRC420: false, brc420Url: '' };
-    }
+const getBRC420 = async (inscriptionId: string) => {
+  try {
+    const response = await fetch(`https://ordinals.com/content/${inscriptionId}`);
+    const text = await response.text();
+    const isBRC420 = text.trim().startsWith('/content/');
+    return {
+      isBRC420,
+      brc420Url: isBRC420 ? `https://ordinals.com${text.trim()}` : ''
+    };
+  } catch (error) {
+    console.error("Error fetching BRC420:", error);
+    return { isBRC420: false, brc420Url: '' };
   }
+};
 
-  const fetchInscriptions = async (fetchFunction: Function) => {
+  const fetchInscriptions = async (fetchFunction: Function, transformFunction: Function) => {
     try {
       const rawInscriptions = await fetchFunction();
       const processedInscriptions = await Promise.all(
-        rawInscriptions.map(async (inscription: any) => {
-          if (inscription.contentType === "text/html;charset=utf-8" || inscription.contentType === "text/html") {
-            const brc420Data = await getBRC420(inscription.inscriptionId);
-            return {
-              id: inscription.inscriptionId,
-              isIOM: checkIOMOwnership(inscription.inscriptionId),
-              ...brc420Data,
-            };
-          }
-          return null;
-        })
+        rawInscriptions.map(transformFunction)
       );
-
       const filteredInscriptions = processedInscriptions.filter(Boolean);
       setHtmlInscriptions(filteredInscriptions);
-      setHtmlArray([...filteredInscriptions]);
+      setHtmlArray(filteredInscriptions);
     } catch (error) {
-      console.error("Error fetching UniSat total inscriptions:", error);
-      return 0;
+      console.error("Error fetching inscriptions:", error);
     }
   };
-
+  
   const getUnisatInscriptions = async () => {
     
     try {
       setHtmlArray([]);
       setHtmlInscriptions([]);
-      
+      const accounts = await window['unisat'].getAccounts();
+      console.log("Accounts from UniSat:", accounts);
       const res = await window['unisat'].getInscriptions(0, 100);
       console.log("Response from getInscriptions:", res);
       if (!res || !res.list) {
@@ -174,7 +168,7 @@ useEffect(() => {
 
       const processedInscriptions = await Promise.all(
         res.list.map(async (inscription: any) => {
-          if (inscription.contentType.startsWith("text/html")) {
+          if (inscription.contentType === "text/html;charset=utf-8" || inscription.contentType === "text/html") {
             const brc420Data = await getBRC420(inscription.inscriptionId);
             return {
               id: inscription.inscriptionId,
@@ -214,6 +208,23 @@ useEffect(() => {
     return [];
   };
 
+  const getmagicEdenInscriptions = async () => {
+    try {
+      const response = await request('wallet_connect', null);
+      if (response.status !== 'success') return [];
+
+      for (const address of response.result.addresses) {
+        if (address.addressType === 'p2tr') {
+          const inscriptions = await request('ord_getInscriptions', { offset: 0, limit: 100 });
+          return inscriptions.status === 'success' ? inscriptions.result.inscriptions : [];
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching Magic Eden inscriptions:", error);
+    }
+    return [];
+  };
+
   const handleConnect = async (walletName: WalletName) => {
     if (provider === walletName) {
       disconnectWallet();
@@ -230,11 +241,18 @@ useEffect(() => {
 
     switch (walletName as never) {
       case 'unisat':
+         window.open(mobileWalletDeepLink.unisat);
         await getUnisatInscriptions();
         // navigate('/mymedia');
         break;
       case 'xverse':
-        await fetchInscriptions(getXverseInscriptions);
+          window.open(mobileWalletDeepLink.xverse);
+        await getXverseInscriptions();
+        // navigate('/mymedia');
+        break;
+        case 'magic-eden':
+          window.open(mobileWalletDeepLink.magiceden);
+         await getmagicEdenInscriptions();
         // navigate('/mymedia');
         break;
     }
@@ -244,6 +262,16 @@ useEffect(() => {
       "btn btn-ghost text-black dark:text-white font-bold rounded-lg transition duration-300 w-full mb-2",
       "bg-white dark:bg-gray-800 hover:bg-gray-900 hover:text-white dark:hover:bg-gray-700 w-full mb-2",
       className
+    );
+
+
+    const renderWalletButton = (wallet: WalletName, deeplink: string) => (
+      <WalletButton 
+        deeplink={deeplink} 
+        wallet={wallet} 
+        hasWallet={hasWallet} 
+        onConnect={handleConnect} 
+      />
     );
 
   return (
@@ -259,35 +287,40 @@ useEffect(() => {
         </DialogTrigger>
       )}
 
-      <DialogContent className="bg-white dark:bg-gray-800 border-none text-black dark:text-white rounded-2xl">
-        <DialogHeader>
-          <DialogTitle>Connect on Desktop while we work on mobile wallet connect</DialogTitle>
-        </DialogHeader>
-        <div className="p-4">
-           {hasWallet[UNISAT] || hasWallet[XVERSE] || hasWallet[MAGIC_EDEN] ? (
-                      <>
-                        {detectMobileAppBrowser() === 'unisat' && (
-                    <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
-                        )}
-                        {detectMobileAppBrowser() === 'xverse' && (
-                    <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />
-                        )}
-                        {detectMobileAppBrowser() === 'magic-eden' && (
-                    <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
-                        <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet="unisat" hasWallet={hasWallet} onConnect={handleConnect} />
-                        <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet="xverse" hasWallet={hasWallet} onConnect={handleConnect} />
-                      </>
-                    )} 
-          
-          
-        </div>
-      </DialogContent>
-    </Dialog>
+<DialogContent className="bg-white dark:bg-gray-800 border-none text-black dark:text-white rounded-2xl">
+ 
+    <DialogHeader>
+      <DialogTitle>Connect on Desktop while we work on mobile wallet connect</DialogTitle>
+    </DialogHeader>
+
+    {/* <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
+    <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
+    <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} /> */}
+
+
+    <div className="p-4">
+      {hasWallet[UNISAT] || hasWallet[XVERSE] || hasWallet[MAGIC_EDEN] ? (
+        activeBrowser === 'unisat' ? 
+        <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
+        :
+        activeBrowser === 'xverse' ?         
+        <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />
+        :
+        activeBrowser === 'magic-eden' ?  
+        <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
+        :
+        null
+      ) : (
+        <>
+        <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
+        <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
+        <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />
+        </>
+      )}
+    </div>
+  </DialogContent>
+
+     </Dialog>
   );
 };
 
