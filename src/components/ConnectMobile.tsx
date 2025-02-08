@@ -18,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { cn } from "../lib/utils";
 import { setHtmlArray } from "../globalState";
 import idesofmarch from '../lib/collections/idesofmarch.json';
-import { detectMobileAppBrowser } from '../utils/browserCheck';
+import { detectMobileAppBrowser, isXverseBrowser } from '../utils/browserCheck';
 
 const mobileWallets = [UNISAT, XVERSE, MAGIC_EDEN];
 const appName = "Ides of March";  
@@ -317,6 +317,8 @@ const getBRC420 = async (inscriptionId: string) => {
         <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />
         </>
       )}
+      {isXverseBrowser() && 
+      <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />}
     </div>
   </DialogContent>
 
