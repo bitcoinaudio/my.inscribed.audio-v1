@@ -19,7 +19,7 @@ const MyMedia = () => {
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, amount: 0.25 }}
-      id="team"
+      id="mymedia"
       className="flex flex-col items-center justify-center"
     >
       <motion.div
