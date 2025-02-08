@@ -30,12 +30,14 @@ const magicedenbrowserUrl = 'https://dev.inscribed.audio/?inMagicEden=1';
 const callbackUrl = 'https://dev.inscribed.audio/myinscriptions?unisat-connected=1';
 const text = "sampleText"; // Define the text variable
 const type = "sampleType"; // Define the type variable
-const data = [text, type];
+const data = "[text, type]";
+const message = JSON.stringify(data);
+const walletResponse = `unisat://response?data=${data}&nonce=${nonce}`;
 
 
 const mobileWalletDeepLink = {
   // unisat: `unisat://request?method=connect&from=${appName}&nonce=${nonce}`,
-  unisat: `unisat://request?method=signMessage&data=${data}from=${appName}&nonce=${nonce}&callbackUrl=${callbackUrl}`,
+  unisat: `unisat://request?method=signMessage&data=${message}from=${appName}&nonce=${nonce}&callbackUrl=${callbackUrl}`,
   xverse: `https://connect.xverse.app/browser?url=${encodeURIComponent(xversebrowserUrl)}`,
   magiceden: `magiceden://connect?from=${appName}&nonce=${nonce}&browserUrl=${encodeURIComponent(magicedenbrowserUrl)}`,
 };
@@ -66,9 +68,9 @@ const WalletButton = ({deeplink, wallet, hasWallet, onConnect }: { deeplink: any
       onClick={isMissingWallet ? undefined : () => onConnect(wallet as WalletName)}
       variant="ghost"
       className={cn(
-        "w-full bg-white bg-base-100",
+        "w-full ",
         "hover:bg-gray-50 dark:hover:bg-gray-700",
-        "text-black dark:text-white",
+        "text-grey-500",
         "font-normal justify-between",
         "h-[60px] text-base rounded-xl px-4",
         "border border-gray-100 dark:border-gray-700",
@@ -80,7 +82,7 @@ const WalletButton = ({deeplink, wallet, hasWallet, onConnect }: { deeplink: any
         <div className="min-w-[32px] min-h-[32px] w-[32px] h-[32px] flex items-center justify-center">
           <WalletIcon size={32} walletName={wallet} className="!w-[32px] !h-[32px]" />
         </div>
-        <span className="text-lg">
+        <span className="text-lg text-grey-500 font-bold">
           {wallet.replace(/[-_]/g, " ").split(" ").map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(" ")}
         </span>
       </div>
@@ -88,12 +90,12 @@ const WalletButton = ({deeplink, wallet, hasWallet, onConnect }: { deeplink: any
         <div className="flex items-center">
           <div className="flex items-center gap-2 group-hover:hidden">
             <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-            <span className="text-sm text-gray-500 dark:text-gray-400">Installed</span>
+            <span className="text-sm ttext-grey-500">Installed</span>
           </div>
           <ChevronRight className="w-5 h-5 text-gray-400 hidden group-hover:block" />
         </div>
       ) : (
-        <a href={deeplink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-blue-500 hover:text-blue-600" onClick={(e) => e.stopPropagation()}>
+        <a href={deeplink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-grey-500 hover:text-grey-600" onClick={(e) => e.stopPropagation()}>
           <ChevronRight className="w-4 h-4" />
           <span className="text-sm">Connect</span>
         </a>
@@ -244,6 +246,7 @@ const getBRC420 = async (inscriptionId: string) => {
 
     setIsOpen(false);
     await connect(walletName as never);
+    
     connectWallet();
     const browser = detectMobileAppBrowser();
 
@@ -251,17 +254,17 @@ const getBRC420 = async (inscriptionId: string) => {
       case 'unisat':
          window.open(mobileWalletDeepLink.unisat);
         await getUnisatInscriptions();
-        // navigate('/mymedia');
+        navigate('/mymedia');
         break;
       case 'xverse':
           window.open(mobileWalletDeepLink.xverse);
         await getXverseInscriptions();
-        // navigate('/mymedia');
+        navigate('/mymedia');
         break;
         case 'magic-eden':
           window.open(mobileWalletDeepLink.magiceden);
          await getmagicEdenInscriptions();
-        // navigate('/mymedia');
+        navigate('/mymedia');
         break;
     }
 
@@ -284,7 +287,7 @@ const getBRC420 = async (inscriptionId: string) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      {address ? (
+       {address ? (
         <Button onClick={() => handleConnect(provider)} className={buttonClass}>
           <WalletIcon size={32} walletName={provider as ProviderType} className="!w-[32px] !h-[32px]" />
           Disconnect <span className="text-lg">{address ? `${address.slice(0, 5)}...${address.slice(-5)}` : ''}</span>
@@ -295,7 +298,7 @@ const getBRC420 = async (inscriptionId: string) => {
         </DialogTrigger>
       )}
 
-<DialogContent className="bg-white dark:bg-gray-800 border-none text-black dark:text-white rounded-2xl">
+<DialogContent className="bg-white/80 dark:bg-gray-800 border-none text-black dark:text-white rounded-2xl">
  
     <DialogHeader>
       <DialogTitle>Connect on Desktop while we work on mobile wallet connect</DialogTitle>
