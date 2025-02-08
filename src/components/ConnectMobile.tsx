@@ -23,9 +23,9 @@ import { detectMobileAppBrowser } from '../utils/browserCheck';
 const mobileWallets = [UNISAT, XVERSE, MAGIC_EDEN];
 const appName = "Ides of March";  
 const nonce = Date.now().toString();
-const browserUrl = "http://localhost:3333/mymedia";
-const xversebrowserUrl = 'https://dev.inscribed.audio/mymedia';
-const unisatbrowserUrl = 'https://my.inscribed.audio/mymedia';
+const browserUrl = "http://localhost:3333/";
+const xversebrowserUrl = 'https://dev.inscribed.audio/';
+const unisatbrowserUrl = 'https://my.inscribed.audio/';
 const magicedenbrowserUrl = 'https://my.inscribed.audio/?inMagicEden=1';
 
 const mobileWalletDeepLink = {
