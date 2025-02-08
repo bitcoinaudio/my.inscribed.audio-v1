@@ -21,16 +21,21 @@ import idesofmarch from '../lib/collections/idesofmarch.json';
 import { detectMobileAppBrowser, isXverseBrowser } from '../utils/browserCheck';
 
 const mobileWallets = [UNISAT, XVERSE, MAGIC_EDEN];
-const appName = "Ides of March";  
+const appName = "Inscribed Audio";  
 const nonce = Date.now().toString();
 const browserUrl = "http://localhost:3333/";
-const xversebrowserUrl = 'https://dev.inscribed.audio/';
+const xversebrowserUrl = 'https://dev.inscribed.audio//?inXverse=1';
 const unisatbrowserUrl = 'https://dev.inscribed.audio/';
 const magicedenbrowserUrl = 'https://dev.inscribed.audio/?inMagicEden=1';
 const callbackUrl = 'https://dev.inscribed.audio/myinscriptions?unisat-connected=1';
+const text = "sampleText"; // Define the text variable
+const type = "sampleType"; // Define the type variable
+const data = [text, type];
+
 
 const mobileWalletDeepLink = {
-  unisat: `unisat://request?method=connect&from=${appName}&nonce=${nonce}`,
+  // unisat: `unisat://request?method=connect&from=${appName}&nonce=${nonce}`,
+  unisat: `unisat://request?method=signMessage&data=${data}from=${appName}&nonce=${nonce}&callbackUrl=${callbackUrl}`,
   xverse: `https://connect.xverse.app/browser?url=${encodeURIComponent(xversebrowserUrl)}`,
   magiceden: `magiceden://connect?from=${appName}&nonce=${nonce}&browserUrl=${encodeURIComponent(magicedenbrowserUrl)}`,
 };
@@ -114,6 +119,8 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   }, [hasUnisat, hasXverse, hasMagicEden]);
 
   const [activeBrowser, setActiveBrowser] = useState(detectMobileAppBrowser());
+
+ 
 
 useEffect(() => {
   const browser = detectMobileAppBrowser();
@@ -238,6 +245,7 @@ const getBRC420 = async (inscriptionId: string) => {
     setIsOpen(false);
     await connect(walletName as never);
     connectWallet();
+    const browser = detectMobileAppBrowser();
 
     switch (walletName as never) {
       case 'unisat':
