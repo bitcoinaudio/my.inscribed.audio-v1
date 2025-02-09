@@ -15,6 +15,10 @@ const MimeTypeFilter: React.FC<MimeTypeFilterProps> = ({ mimeTypes, selectedMime
     onChange(selectedValues); // Pass the selected values to the parent
   };
 
+  const resetAll = () => {
+    onChange([]);
+  };
+
   return (
 
     <div className="p-4">
@@ -76,69 +80,12 @@ const MimeTypeFilter: React.FC<MimeTypeFilterProps> = ({ mimeTypes, selectedMime
             </div>
 
         ))} 
-            <button className="btn">Select All</button>
+            <button className="btn" onClick={resetAll}>reset filter</button>
  
   </div>
  
  
 </div>
-
-
-
-
-
-
-
-
-
-
-
-  {/* <label htmlFor="mimeFilter" className="block text-lg mb-2">
-        Select MIME Types
-      </label>
-        {mimeTypes.map((mime) => (
-            <div key={mime} className="flex items-center space-x-2">
-                <input
-                type="checkbox"
-                id={mime}
-                value={mime}
-                checked={selectedMimeTypes.includes(mime)}
-                onChange={(event) => {
-                    const isChecked = event.target.checked;
-                    if (isChecked) {
-                    onChange([...selectedMimeTypes, mime]);
-                    } else {
-                    onChange(selectedMimeTypes.filter((selectedMime) => selectedMime !== mime));
-                    }
-                }}
-                />
-                <label htmlFor={mime}>{mime}</label>
-            </div>
-
-        ))}   */}
-
-
-
-
-
-        {/* Dropdown to select MIME types */}
-      {/* <select
-        id="mimeFilter"
-        multiple
-        value={selectedMimeTypes}
-        onChange={handleMimeTypeChange}
-        className="w-full border rounded-md p-2 bg-white dark:bg-gray-800 text-black dark:text-white"
-      >
-        
-        {mimeTypes.map((mime) => (
-            
-          <option key={mime} value={mime}>
-            {mime}
-          </option>
-        ))}
-      </select> */}
-
-
 
     </div>
   );
