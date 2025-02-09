@@ -330,12 +330,12 @@ const getBRC420 = async (inscriptionId: string) => {
       <DialogTitle>Connect on Desktop while we work on mobile wallet connect</DialogTitle>
     </DialogHeader>
 
-    {/* <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
+    <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
     <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
-    <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} /> */}
+    <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />
 
 
-    <div className="p-4">
+    {/* <div className="p-4">
       {hasWallet[UNISAT] || hasWallet[XVERSE] || hasWallet[MAGIC_EDEN] ? (
         activeBrowser === 'unisat' ? 
         <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
@@ -356,7 +356,7 @@ const getBRC420 = async (inscriptionId: string) => {
       )}
       {browser === 'xverse' &&
       <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />}
-    </div>
+    </div> */}
   </DialogContent>
 
      </Dialog>
