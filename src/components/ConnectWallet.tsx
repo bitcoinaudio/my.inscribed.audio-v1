@@ -14,7 +14,7 @@ import {
 import { request } from "sats-connect";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { cn } from "../lib/utils";
-import { setHtmlArray } from "../globalState";
+import { setIinscriptionArray } from "../globalState";
 import idesofmarch from '../lib/collections/idesofmarch.json';
 
 type WalletName = keyof typeof SUPPORTED_WALLETS;
@@ -31,6 +31,7 @@ interface HtmlInscription {
   brc420Url: string;
 }
 
+
 const ConnectWallet = ({ className }: { className?: string }) => {
   const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
   const { isWalletConnected, connectWallet, disconnectWallet } = useWallet();
@@ -39,10 +40,13 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   const [hasWallet, setHasWallet] = useState({ unisat: false, xverse: false, [MAGIC_EDEN]: false });
   const [htmlInscriptions, setHtmlInscriptions] = useState<HtmlInscription[]>([]);
   const navigate = useNavigate();
+  const [isConnected, setisConnected] = useState(false);
 
   useEffect(() => {
     setHasWallet({ unisat: hasUnisat, xverse: hasXverse, [MAGIC_EDEN]: hasMagicEden });
   }, [hasUnisat, hasXverse, hasMagicEden]);
+
+
 
   async function getBRC420(inscriptionId: string) {
     try {
@@ -62,11 +66,12 @@ const ConnectWallet = ({ className }: { className?: string }) => {
       const rawInscriptions = await fetchFunction();
       const processedInscriptions = await Promise.all(
         rawInscriptions.map(async (inscription: any) => {
-          if (inscription.contentType === "text/html;charset=utf-8" || inscription.contentType === "text/html") {
+          if (inscription.contentType !== null) {
             const brc420Data = await getBRC420(inscription.inscriptionId);
             return {
               id: inscription.inscriptionId,
               isIOM: checkIOMOwnership(inscription.inscriptionId),
+              contentType: inscription.contentType,
               ...brc420Data,
             };
           }
@@ -76,7 +81,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
       const filteredInscriptions = processedInscriptions.filter(Boolean);
       setHtmlInscriptions(filteredInscriptions);
-      setHtmlArray([...filteredInscriptions]);
+      setIinscriptionArray([...filteredInscriptions]);
     } catch (error) {
       console.error("Error fetching UniSat total inscriptions:", error);
       return 0;
@@ -86,7 +91,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   const getUnisatInscriptions = async () => {
     
     try {
-      setHtmlArray([]);
+      setIinscriptionArray([]);
       setHtmlInscriptions([]);
       
       const res = await window['unisat'].getInscriptions(0, 100);
@@ -98,11 +103,12 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
       const processedInscriptions = await Promise.all(
         res.list.map(async (inscription: any) => {
-          if (inscription.contentType.startsWith("text/html")) {
+          if (inscription.contentType !== null) {
             const brc420Data = await getBRC420(inscription.inscriptionId);
             return {
               id: inscription.inscriptionId,
               isIOM: checkIOMOwnership(inscription.inscriptionId),
+              contentType: inscription.contentType,
               ...brc420Data,
             };
           }
@@ -112,7 +118,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
       const filteredInscriptions = processedInscriptions.filter(Boolean);
       setHtmlInscriptions(filteredInscriptions);
-      setHtmlArray([...filteredInscriptions]);
+      setIinscriptionArray([...filteredInscriptions]);
 
       return filteredInscriptions;
     } catch (error) {
@@ -142,7 +148,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     if (provider === walletName) {
       disconnectWallet();
       disconnect();
-      setHtmlArray([]);
+      setIinscriptionArray([]);
       setHtmlInscriptions([]);
       navigate('/');
       return;
@@ -151,7 +157,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     setIsOpen(false);
     await connect(walletName as never);
     connectWallet();
-
+    setisConnected(true);
     switch (walletName as never) {
       case 'unisat':
         await getUnisatInscriptions();

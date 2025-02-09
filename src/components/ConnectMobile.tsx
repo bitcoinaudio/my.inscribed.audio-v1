@@ -16,7 +16,7 @@ import {
 import { request } from "sats-connect";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { cn } from "../lib/utils";
-import { setHtmlArray } from "../globalState";
+import { setIinscriptionArray } from "../globalState";
 import idesofmarch from '../lib/collections/idesofmarch.json';
 import { detectMobileAppBrowser, isXverseBrowser } from '../utils/browserCheck';
 
@@ -155,7 +155,7 @@ const getBRC420 = async (inscriptionId: string) => {
       );
       const filteredInscriptions = processedInscriptions.filter(Boolean);
       setHtmlInscriptions(filteredInscriptions);
-      setHtmlArray(filteredInscriptions);
+      setIinscriptionArray(filteredInscriptions);
     } catch (error) {
       console.error("Error fetching inscriptions:", error);
     }
@@ -164,7 +164,7 @@ const getBRC420 = async (inscriptionId: string) => {
   const getUnisatInscriptions = async () => {
     
     try {
-      setHtmlArray([]);
+      setIinscriptionArray([]);
       setHtmlInscriptions([]);
       const accounts = await window['unisat'].getAccounts();
       console.log("Accounts from UniSat:", accounts);
@@ -191,7 +191,7 @@ const getBRC420 = async (inscriptionId: string) => {
 
       const filteredInscriptions = processedInscriptions.filter(Boolean);
       setHtmlInscriptions(filteredInscriptions);
-      setHtmlArray([...filteredInscriptions]);
+      setIinscriptionArray([...filteredInscriptions]);
 
       return filteredInscriptions;
     } catch (error) {
@@ -238,7 +238,7 @@ const getBRC420 = async (inscriptionId: string) => {
     if (provider === walletName) {
       disconnectWallet();
       disconnect();
-      setHtmlArray([]);
+      setIinscriptionArray([]);
       setHtmlInscriptions([]);
       navigate('/');
       return;
