@@ -6,10 +6,10 @@ import ordImage from "/images/ordinals.svg";
 import iomImage from "/images/idesofmarch.png";
 import MimeTypeFilter from "../components/MimeTypeFilter"; // Import the MimeTypeFilter component
 
-
 const mimeTypes = [
   "audio/ogg",
   "audio/mpeg",
+  "image/png",
   "application/json",
   "image/gif",
   "image/jpeg",
@@ -24,9 +24,13 @@ const mimeTypes = [
   // Add more MIME types as required
 ];
 
+const ITEMS_PER_PAGE = 10; // Adjust this number to change how many items per page
+
 const MyMedia = () => {
   const [localInscriptionArray, setLocalHtmlArray] = useState([...inscriptionArray]);
   const [selectedMimeTypes, setSelectedMimeTypes] = useState([]); // New state for MIME type filtering
+  const [currentPage, setCurrentPage] = useState(1); // Current page
+  const [paginatedItems, setPaginatedItems] = useState([]);
 
   useEffect(() => {
     setLocalHtmlArray([...inscriptionArray]); // Ensure a new reference is set
@@ -35,17 +39,26 @@ const MyMedia = () => {
 
   useEffect(() => {
     // Apply the filtering logic based on selected MIME types
+    let filteredArray = [...inscriptionArray];
     if (selectedMimeTypes.length > 0) {
-      setLocalHtmlArray((prevArray) =>
-        prevArray.filter((item) =>
-          selectedMimeTypes.includes(item.contentType)
-        )
+      filteredArray = filteredArray.filter((item) =>
+        selectedMimeTypes.includes(item.contentType)
       );
-    } else {
-      // If no MIME types are selected, reset to original inscriptionArray
-      setLocalHtmlArray([...inscriptionArray]);
     }
-  }, [selectedMimeTypes, inscriptionArray]); // Adding inscriptionArray to dependencies ensures it updates when the global state changes.
+    // Paginate the filtered array
+    const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
+    const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
+    const currentItems = filteredArray.slice(indexOfFirstItem, indexOfLastItem);
+    setPaginatedItems(currentItems);
+  }, [selectedMimeTypes, currentPage, inscriptionArray]); // Re-run on filtering or page change
+
+  // Change page
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Calculate total pages
+  const totalPages = Math.ceil(localInscriptionArray.length / ITEMS_PER_PAGE);
 
   return (
     <motion.div
@@ -60,17 +73,61 @@ const MyMedia = () => {
         variants={fadeIn("up", "tween", 0.2, 1)}
         className="flex flex-col items-center justify-center"
       >
-        {/* Add MimeTypeFilter Component here */}
-        <MimeTypeFilter
-          mimeTypes={mimeTypes}
-          selectedMimeTypes={selectedMimeTypes}
-          onChange={setSelectedMimeTypes} // Set selected MIME types when changed
-        />
 
-        <div id="inscriptionArray" className="flex flex-wrap  gap-2 justify-center">
-          {localInscriptionArray.map((item, index) => (
+
+
+
+<MimeTypeFilter
+                  mimeTypes={mimeTypes}
+                  selectedMimeTypes={selectedMimeTypes}
+                  onChange={setSelectedMimeTypes} // Set selected MIME types when changed
+                />
+
+                 {/* Pagination Controls */}
+                 <div className="flex justify-center mt-4"> 
+        <div className="grid grid-cols-1 gap-4 mt-4">
+          <div className="text-center">
+            <span className="text-sm font-bold">Total Items: {localInscriptionArray.length}</span>
+          </div>
+          <div className="flex justify-center items-center">
+          <span className="text-sm">
+              Page {currentPage} of {totalPages}
+            </span>
+          </div>
+          <div className="flex justify-center items-center">
+            <button
+              className="btn btn-ghost font-urbanist text-lg font-semibold gap-4"
+              onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+            
+            <input
+              type="number"
+              className="input input-bordered mx-2"
+              value={currentPage}
+              onChange={(e) => handlePageChange(Math.min(Math.max(Number(e.target.value), 1), totalPages))}
+              min="1"
+              max={totalPages}
+            />
+            <button
+              className="btn btn-ghost font-urbanist text-lg font-semibold gap-4"
+              onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+
+
+        </div>
+   
+ 
+        <div id="inscriptionArray" className="flex flex-wrap gap-4 justify-center">
+          {paginatedItems.map((item, index) => (
             <div key={index} className="card max-w-2xl transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box mt-4 gap-4">
-
               {item.contentType.startsWith("text/html") ? (
                 <div className="card-body shadow-inner">
                   <iframe
@@ -139,30 +196,11 @@ const MyMedia = () => {
                 </div>
               ) : (
                 <div className="card-body shadow-inner">
-                  {item.contentType.startsWith("text") && (
-                    <iframe
-                    key={item.id}
-                    src={item.isBRC420 ? item.brc420Url : `https://ordinals.com/content/${item.id}`}
-                    height="100%"
-                    width="100%"
-                    allowFullScreen
-                  />
-                  )}
-
-                  {item.contentType.startsWith("audio") && (
-                    <audio controls>
-                      <source src={`https://ordinals.com/content/${item.id}`} type={item.contentType} />  
-                    </audio>
-                  )}
-
-                  {item.contentType.startsWith("image") && (
-                    <div id={item.id} className="card-body shadow-inner">
+                  {item.contentType.startsWith("image/") && (
+                    <div className="card-body shadow-inner">
                       <img src={`https://ordinals.com/content/${item.id}`} alt="Inscription" />
                     </div>
                   )}
-
-
-
                   <p className="text-md font-urbanist font-medium opacity-60">
                     {item.isBRC420 ? "BRC420" : "Ordinal"}
                   </p>
@@ -220,11 +258,9 @@ const MyMedia = () => {
                   </div>
                 </div>
               )}
-
             </div>
           ))}
         </div>
-
 
       </motion.div>
     </motion.div>
