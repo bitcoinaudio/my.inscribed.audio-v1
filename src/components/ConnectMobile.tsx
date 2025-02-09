@@ -234,6 +234,26 @@ const getBRC420 = async (inscriptionId: string) => {
     return [];
   };
 
+
+  const browserUrl = 'https://dev.inscribed.audio/?inXverse=1';
+  function ConnectXverseMobile() {
+   if (hasXverse) {
+     const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
+     window.open(xverseUrl);
+     // ConnectWallet();
+     // console.log('isIOS', isIOS);
+   } else if (hasXverse)	 {
+     const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
+     window.open(xverseUrl);
+     // ConnectWallet();
+     // console.log('isAndroid', isAndroid);
+   } else {
+     console.error('Unsupported platform');
+   }
+ }
+ const browser = detectMobileAppBrowser();
+
+
   const handleConnect = async (walletName: WalletName) => {
     if (provider === walletName) {
       disconnectWallet();
@@ -248,8 +268,11 @@ const getBRC420 = async (inscriptionId: string) => {
     await connect(walletName as never);
     
     connectWallet();
-    const browser = detectMobileAppBrowser();
 
+    if(browser === 'xverse') {
+      ConnectXverseMobile();
+      return;
+    }
     switch (walletName as never) {
       case 'unisat':
          window.open(mobileWalletDeepLink.unisat);
@@ -257,7 +280,7 @@ const getBRC420 = async (inscriptionId: string) => {
         navigate('/mymedia');
         break;
       case 'xverse':
-          window.open(mobileWalletDeepLink.xverse);
+          // window.open(mobileWalletDeepLink.xverse);
         await getXverseInscriptions();
         navigate('/mymedia');
         break;
@@ -288,10 +311,13 @@ const getBRC420 = async (inscriptionId: string) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
        {address ? (
+
         <Button onClick={() => handleConnect(provider)} className={buttonClass}>
           <WalletIcon size={32} walletName={provider as ProviderType} className="!w-[32px] !h-[32px]" />
           Disconnect <span className="text-lg">{address ? `${address.slice(0, 5)}...${address.slice(-5)}` : ''}</span>
+          <span className="text-sm">{browser}</span>
         </Button>
+
       ) : (
         <DialogTrigger asChild>
           <Button className={buttonClass}>{isWalletConnected ? "Connecting..." : "Connect Mobile Wallet"}</Button>
