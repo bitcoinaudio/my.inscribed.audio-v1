@@ -235,7 +235,7 @@ const getBRC420 = async (inscriptionId: string) => {
   };
 
 
-  const browserUrl = 'https://dev.inscribed.audio/?inXverse=1';
+  const browserUrl = 'https://dev.inscribed.audio/';
   function ConnectXverseMobile() {
    if (hasXverse) {
      const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
