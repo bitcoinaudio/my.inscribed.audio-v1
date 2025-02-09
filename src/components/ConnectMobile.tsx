@@ -236,6 +236,11 @@ const getBRC420 = async (inscriptionId: string) => {
 
 
   const browserUrl = 'https://dev.inscribed.audio/';
+  const handleMobileConnect = async (walletName: WalletName) => {
+    ConnectXverseMobile();
+    getXverseInscriptions();
+    navigate('/mymedia');
+  };
   function ConnectXverseMobile() {
    if (hasXverse) {
      const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
@@ -332,7 +337,7 @@ const getBRC420 = async (inscriptionId: string) => {
 
     <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
     <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
-    <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />
+    <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleMobileConnect} />
 
 
     {/* <div className="p-4">
