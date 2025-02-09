@@ -354,7 +354,7 @@ const getBRC420 = async (inscriptionId: string) => {
         <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />
         </>
       )}
-      {isXverseBrowser() && 
+      {browser === 'xverse' &&
       <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />}
     </div>
   </DialogContent>
