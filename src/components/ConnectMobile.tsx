@@ -236,18 +236,16 @@ const getBRC420 = async (inscriptionId: string) => {
 
 
   const browserUrl = 'https://dev.inscribed.audio/';
-  const handleMobileConnect = async (walletName: WalletName) => {
+  const browser = detectMobileAppBrowser();
+
+  const handleMobileConnect = async () => {
+
     ConnectXverseMobile();
     getXverseInscriptions();
     navigate('/mymedia');
   };
   function ConnectXverseMobile() {
-   if (hasXverse) {
-     const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
-     window.open(xverseUrl);
-     // ConnectWallet();
-     // console.log('isIOS', isIOS);
-   } else if (hasXverse)	 {
+  if (activeBrowser === browser)	 {
      const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
      window.open(xverseUrl);
      // ConnectWallet();
@@ -256,7 +254,6 @@ const getBRC420 = async (inscriptionId: string) => {
      console.error('Unsupported platform');
    }
  }
- const browser = detectMobileAppBrowser();
 
 
   const handleConnect = async (walletName: WalletName) => {
