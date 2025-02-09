@@ -38,7 +38,7 @@ const walletResponse = `unisat://response?data=${data}&nonce=${nonce}`;
 const mobileWalletDeepLink = {
   // unisat: `unisat://request?method=connect&from=${appName}&nonce=${nonce}`,
   unisat: `unisat://request?method=signMessage&data=${message}from=${appName}&nonce=${nonce}&callbackUrl=${callbackUrl}`,
-  xverse: `https://connect.xverse.app/browser?url=${encodeURIComponent(xversebrowserUrl)}`,
+  xverse: `https://connect.xverse.app/`,
   magiceden: `magiceden://connect?from=${appName}&nonce=${nonce}&browserUrl=${encodeURIComponent(magicedenbrowserUrl)}`,
 };
 
