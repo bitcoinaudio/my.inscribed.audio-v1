@@ -250,22 +250,28 @@ const getBRC420 = async (inscriptionId: string) => {
       navigate('/');
       return;
     }
-    await connect(walletName as never);
-    // connectWallet();
-    // ConnectXverseMobile();
-    
+
+    try {
+     setMyMessage('Connecting Mobile Wallet');  
+    ConnectXverseMobile();    
     getXverseInscriptions();
     navigate('/mymedia');
+    } catch (error) {4
+      setMyMessage('Error connecting mobile wallet');
+      console.error("Error connecting mobile wallet:", error);
+    }
   };
   function ConnectXverseMobile() {
-  if (browser === 'xverse')	 {
-     const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
-     window.open(xverseUrl);
-     // ConnectWallet();
-     // console.log('isAndroid', isAndroid);
-   } else {
-     console.error('Unsupported platform');
-   }
+    const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
+    window.open(xverseUrl);
+  // if (browser === 'xverse')	 {
+  //    const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
+  //    window.open(xverseUrl);
+  //    // ConnectWallet();
+  //    // console.log('isAndroid', isAndroid);
+  //  } else {
+  //    console.error('Unsupported platform');
+  //  }
  }
 
 
@@ -348,7 +354,7 @@ const getBRC420 = async (inscriptionId: string) => {
     {/* <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
     <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
     <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleMobileConnect} /> */}
-    <button onClick={() => getXverseInscriptions()} className="btn btn-ghost text-black dark:text-white font-bold rounded-lg transition duration-300 w-full mb-2">Connect</button>
+    <button onClick={() => handleMobileConnect} className="btn btn-ghost text-black dark:text-white font-bold rounded-lg transition duration-300 w-full mb-2">Connect</button>
 
 
     {/* <div className="p-4">
