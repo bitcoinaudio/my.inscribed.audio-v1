@@ -24,7 +24,7 @@ const mobileWallets = [UNISAT, XVERSE, MAGIC_EDEN];
 const appName = "Inscribed Audio";  
 const nonce = Date.now().toString();
 const browserUrl = "http://localhost:3333/";
-const xversebrowserUrl = 'https://dev.inscribed.audio//?inXverse=1';
+const xversebrowserUrl = 'https://dev.inscribed.audio/?inXverse=1';
 const unisatbrowserUrl = 'https://dev.inscribed.audio/';
 const magicedenbrowserUrl = 'https://dev.inscribed.audio/?inMagicEden=1';
 const callbackUrl = 'https://dev.inscribed.audio/myinscriptions?unisat-connected=1';
@@ -38,7 +38,7 @@ const walletResponse = `unisat://response?data=${data}&nonce=${nonce}`;
 const mobileWalletDeepLink = {
   // unisat: `unisat://request?method=connect&from=${appName}&nonce=${nonce}`,
   unisat: `unisat://request?method=signMessage&data=${message}from=${appName}&nonce=${nonce}&callbackUrl=${callbackUrl}`,
-  xverse: `https://connect.xverse.app/`,
+  xverse: `https://connect.xverse.app/&browserUrl=${encodeURIComponent(xversebrowserUrl)}`,
   magiceden: `magiceden://connect?from=${appName}&nonce=${nonce}&browserUrl=${encodeURIComponent(magicedenbrowserUrl)}`,
 };
 
@@ -239,7 +239,15 @@ const getBRC420 = async (inscriptionId: string) => {
   const browser = detectMobileAppBrowser();
 
   const handleMobileConnect = async (walletName: WalletName) => {
-   
+    if (provider === walletName) {
+      disconnectWallet();
+      disconnect();
+      setIinscriptionArray([]);
+      setHtmlInscriptions([]);
+      navigate('/');
+      return;
+    }
+    await connect(walletName as never);
     connectWallet();
     ConnectXverseMobile();
     
