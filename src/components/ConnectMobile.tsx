@@ -239,16 +239,15 @@ const getBRC420 = async (inscriptionId: string) => {
   const browser = detectMobileAppBrowser();
 
   const handleMobileConnect = async (walletName: WalletName) => {
-    setIsOpen(false);
-    await connect(walletName as never);
-    
+   
     connectWallet();
-    // ConnectXverseMobile();
+    ConnectXverseMobile();
+    
     getXverseInscriptions();
     navigate('/mymedia');
   };
   function ConnectXverseMobile() {
-  if (activeBrowser === browser)	 {
+  if (browser === 'xverse')	 {
      const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
      window.open(xverseUrl);
      // ConnectWallet();
