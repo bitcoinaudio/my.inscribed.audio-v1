@@ -262,16 +262,11 @@ const getBRC420 = async (inscriptionId: string) => {
     }
   };
   function ConnectXverseMobile() {
-    const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
+    // const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
+  const xverseUrl = `https://connect.xverse.app/`;
+
     window.open(xverseUrl);
-  // if (browser === 'xverse')	 {
-  //    const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
-  //    window.open(xverseUrl);
-  //    // ConnectWallet();
-  //    // console.log('isAndroid', isAndroid);
-  //  } else {
-  //    console.error('Unsupported platform');
-  //  }
+   
  }
 
 
@@ -287,13 +282,7 @@ const getBRC420 = async (inscriptionId: string) => {
 
     setIsOpen(false);
     await connect(walletName as never);
-    
-    connectWallet();
-
-    if(browser === 'xverse') {
-      ConnectXverseMobile();
-      return;
-    }
+    connectWallet(); 
     switch (walletName as never) {
       case 'unisat':
          window.open(mobileWalletDeepLink.unisat);
@@ -333,7 +322,7 @@ const getBRC420 = async (inscriptionId: string) => {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
        {address ? (
 
-        <Button onClick={() => handleConnect(provider)} className={buttonClass}>
+        <Button onClick={() => handleMobileConnect(provider)} className={buttonClass}>
           <WalletIcon size={32} walletName={provider as ProviderType} className="!w-[32px] !h-[32px]" />
           Disconnect <span className="text-lg">{address ? `${address.slice(0, 5)}...${address.slice(-5)}` : ''}</span>
           <span className="text-sm">{myMessage}</span>
@@ -353,7 +342,7 @@ const getBRC420 = async (inscriptionId: string) => {
 
     <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
     <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
-    <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />
+    <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleMobileConnect} />
  
 
     {/* <div className="p-4">
