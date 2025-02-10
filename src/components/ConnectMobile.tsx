@@ -238,9 +238,12 @@ const getBRC420 = async (inscriptionId: string) => {
   const browserUrl = 'https://dev.inscribed.audio/';
   const browser = detectMobileAppBrowser();
 
-  const handleMobileConnect = async () => {
-
-    ConnectXverseMobile();
+  const handleMobileConnect = async (walletName: WalletName) => {
+    setIsOpen(false);
+    await connect(walletName as never);
+    
+    connectWallet();
+    // ConnectXverseMobile();
     getXverseInscriptions();
     navigate('/mymedia');
   };
