@@ -24,7 +24,7 @@ const mobileWallets = [UNISAT, XVERSE, MAGIC_EDEN];
 const appName = "Inscribed Audio";  
 const nonce = Date.now().toString();
 const browserUrl = "http://localhost:3333/";
-const xversebrowserUrl = 'https://dev.inscribed.audio/mymedia';
+const xversebrowserUrl = 'https://dev.inscribed.audio/';
 const unisatbrowserUrl = 'https://dev.inscribed.audio/';
 const magicedenbrowserUrl = 'https://dev.inscribed.audio/?inMagicEden=1';
 const callbackUrl = 'https://dev.inscribed.audio/myinscriptions?unisat-connected=1';
@@ -128,8 +128,8 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 useEffect(() => {
   const browser = detectMobileAppBrowser();
   setActiveBrowser(browser);
-  console.log(`Active Browser: ${browser}`);
-}, []);
+  setMyMessage('browser: ' + browser);
+ }, []);
 
 
 
@@ -252,10 +252,12 @@ const getBRC420 = async (inscriptionId: string) => {
     }
 
     try {
-     setMyMessage('Connecting Mobile Wallet');  
+    setMyMessage('Connecting Mobile Wallet'); 
+    await connect(walletName as never);
+ 
     ConnectXverseMobile();    
     getXverseInscriptions();
-    navigate('/mymedia');
+    // navigate('/mymedia');
     } catch (error) {4
       setMyMessage('Error connecting mobile wallet');
       console.error("Error connecting mobile wallet:", error);
