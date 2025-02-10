@@ -24,7 +24,7 @@ const mobileWallets = [UNISAT, XVERSE, MAGIC_EDEN];
 const appName = "Inscribed Audio";  
 const nonce = Date.now().toString();
 const browserUrl = "http://localhost:3333/";
-const xversebrowserUrl = 'https://dev.inscribed.audio/';
+const xversebrowserUrl = 'https://dev.inscribed.audio/mymedia';
 const unisatbrowserUrl = 'https://dev.inscribed.audio/';
 const magicedenbrowserUrl = 'https://dev.inscribed.audio/?inMagicEden=1';
 const callbackUrl = 'https://dev.inscribed.audio/myinscriptions?unisat-connected=1';
@@ -38,8 +38,8 @@ const walletResponse = `unisat://response?data=${data}&nonce=${nonce}`;
 const mobileWalletDeepLink = {
   // unisat: `unisat://request?method=connect&from=${appName}&nonce=${nonce}`,
   unisat: `unisat://request?method=signMessage&data=${message}from=${appName}&nonce=${nonce}&callbackUrl=${callbackUrl}`,
-  xverse: `https://connect.xverse.app/browser=${encodeURIComponent(xversebrowserUrl)}`,
-  magiceden: `magiceden://connect?from=${appName}&nonce=${nonce}&browserUrl=${encodeURIComponent(magicedenbrowserUrl)}`,
+  xverse: `https://connect.xverse.app/browser?url=${xversebrowserUrl}`,
+  magiceden: `magiceden://connect?from=${appName}&nonce=${nonce}&browser?url=${encodeURIComponent(magicedenbrowserUrl)}`,
 };
 
 
@@ -351,11 +351,10 @@ const getBRC420 = async (inscriptionId: string) => {
       <DialogTitle>Connect on Desktop while we work on mobile wallet connect</DialogTitle>
     </DialogHeader>
 
-    {/* <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
+    <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
     <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
-    <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleMobileConnect} /> */}
-    <button onClick={() => handleMobileConnect} className="btn btn-ghost text-black dark:text-white font-bold rounded-lg transition duration-300 w-full mb-2">Connect</button>
-
+    <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />
+ 
 
     {/* <div className="p-4">
       {hasWallet[UNISAT] || hasWallet[XVERSE] || hasWallet[MAGIC_EDEN] ? (
