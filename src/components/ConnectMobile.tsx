@@ -114,6 +114,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   const [isWalletName, setIsWalletName] = useState('');
   const [hasWallet, setHasWallet] = useState({ unisat: false, xverse: false, [MAGIC_EDEN]: false });
   const [htmlInscriptions, setHtmlInscriptions] = useState<HtmlInscription[]>([]);
+  const [myMessage, setMyMessage] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -201,6 +202,7 @@ const getBRC420 = async (inscriptionId: string) => {
   };
 
   const getXverseInscriptions = async () => {
+    setMyMessage('Fetching Xverse Inscriptions');
     try {
       const response = await request('wallet_connect', null);
       if (response.status !== 'success') return [];
@@ -239,6 +241,7 @@ const getBRC420 = async (inscriptionId: string) => {
   const browser = detectMobileAppBrowser();
 
   const handleMobileConnect = async (walletName: WalletName) => {
+
     if (provider === walletName) {
       disconnectWallet();
       disconnect();
@@ -248,8 +251,8 @@ const getBRC420 = async (inscriptionId: string) => {
       return;
     }
     await connect(walletName as never);
-    connectWallet();
-    ConnectXverseMobile();
+    // connectWallet();
+    // ConnectXverseMobile();
     
     getXverseInscriptions();
     navigate('/mymedia');
@@ -327,7 +330,7 @@ const getBRC420 = async (inscriptionId: string) => {
         <Button onClick={() => handleConnect(provider)} className={buttonClass}>
           <WalletIcon size={32} walletName={provider as ProviderType} className="!w-[32px] !h-[32px]" />
           Disconnect <span className="text-lg">{address ? `${address.slice(0, 5)}...${address.slice(-5)}` : ''}</span>
-          <span className="text-sm">{browser}</span>
+          <span className="text-sm">{myMessage}</span>
         </Button>
 
       ) : (
