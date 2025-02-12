@@ -273,16 +273,16 @@ const getBRC420 = async (inscriptionId: string) => {
 
 
   const handleConnect = async (walletName: WalletName) => {
-    if (provider === walletName) {
-      disconnectWallet();
-      disconnect();
-      setIinscriptionArray([]);
-      setHtmlInscriptions([]);
-      navigate('/');
-      return;
-    }
+    // if (provider === walletName) {
+    //   disconnectWallet();
+    //   disconnect();
+    //   setIinscriptionArray([]);
+    //   setHtmlInscriptions([]);
+    //   navigate('/');
+    //   return;
+    // }
 
-    setIsOpen(false);
+    // setIsOpen(false);
     await connect(walletName as never);
     connectWallet(); 
     switch (walletName as never) {
