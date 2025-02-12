@@ -283,8 +283,8 @@ const getBRC420 = async (inscriptionId: string) => {
     // }
 
     // setIsOpen(false);
-    await connect(walletName as never);
-    connectWallet(); 
+    // await connect(walletName as never);
+    // connectWallet(); 
     switch (walletName as never) {
       case 'unisat':
          window.open(mobileWalletDeepLink.unisat);
