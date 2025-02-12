@@ -58,7 +58,7 @@ interface HtmlInscription {
   brc420Url: string;
 }
 
-const WalletButton = ({deeplink, wallet, hasWallet, onConnect }: { deeplink: any, wallet: any, hasWallet: any, onConnect: (wallet: WalletName) => void }) => {
+const WalletButton = ({wallet, hasWallet, onConnect }: {  wallet: any, hasWallet: any, onConnect: (wallet: WalletName) => void }) => {
   const isConnected = hasWallet[wallet.name];
   const isMissingWallet = !hasWallet[wallet.name];
 
@@ -91,11 +91,15 @@ const WalletButton = ({deeplink, wallet, hasWallet, onConnect }: { deeplink: any
           <div className="flex items-center gap-2 group-hover:hidden">
             <div className="w-2 h-2 rounded-full bg-blue-500"></div>
             <span className="text-sm ttext-grey-500">Installed</span>
+            <a href={mobileWalletDeepLink.xverse} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-grey-500 hover:text-grey-600" onClick={(e) => e.stopPropagation()}>
+          <ChevronRight className="w-4 h-4" />
+          <span className="text-sm">Connect?</span>
+        </a>
           </div>
           <ChevronRight className="w-5 h-5 text-gray-400 hidden group-hover:block" />
         </div>
       ) : (
-        <a href={deeplink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-grey-500 hover:text-grey-600" onClick={(e) => e.stopPropagation()}>
+        <a href={mobileWalletDeepLink.xverse} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-grey-500 hover:text-grey-600" onClick={(e) => e.stopPropagation()}>
           <ChevronRight className="w-4 h-4" />
           <span className="text-sm">Connect</span>
         </a>
@@ -313,8 +317,7 @@ const getBRC420 = async (inscriptionId: string) => {
 
     const renderWalletButton = (wallet: WalletName, deeplink: string) => (
       <WalletButton 
-        deeplink={deeplink} 
-        wallet={wallet} 
+         wallet={wallet} 
         hasWallet={hasWallet} 
         onConnect={handleConnect} 
       />
@@ -342,9 +345,9 @@ const getBRC420 = async (inscriptionId: string) => {
       <DialogTitle>Connect on Desktop while we work on mobile wallet connect</DialogTitle>
     </DialogHeader>
 
-    <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
-    <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
-    <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleMobileConnect} />
+    <WalletButton  wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
+    <WalletButton  wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
+    <WalletButton  wallet={XVERSE} hasWallet={hasWallet} onConnect={handleMobileConnect} />
  
 
     {/* <div className="p-4">
