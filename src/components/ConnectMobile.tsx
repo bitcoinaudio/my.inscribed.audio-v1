@@ -91,10 +91,6 @@ const WalletButton = ({wallet, hasWallet, onConnect }: {  wallet: any, hasWallet
           <div className="flex items-center gap-2 group-hover:hidden">
             <div className="w-2 h-2 rounded-full bg-blue-500"></div>
             <span className="text-sm ttext-grey-500">Installed</span>
-            <a href={mobileWalletDeepLink.xverse} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-grey-500 hover:text-grey-600" onClick={(e) => e.stopPropagation()}>
-          <ChevronRight className="w-4 h-4" />
-          <span className="text-sm">Connect?</span>
-        </a>
           </div>
           <ChevronRight className="w-5 h-5 text-gray-400 hidden group-hover:block" />
         </div>
@@ -291,18 +287,15 @@ const getBRC420 = async (inscriptionId: string) => {
     // connectWallet(); 
     switch (walletName as never) {
       case 'unisat':
-         window.open(mobileWalletDeepLink.unisat);
-        await getUnisatInscriptions();
+         await getUnisatInscriptions();
         navigate('/mymedia');
         break;
       case 'xverse':
-          // window.open(mobileWalletDeepLink.xverse);
-        await getXverseInscriptions();
+         await getXverseInscriptions();
         navigate('/mymedia');
         break;
         case 'magic-eden':
-          window.open(mobileWalletDeepLink.magiceden);
-         await getmagicEdenInscriptions();
+          await getmagicEdenInscriptions();
         navigate('/mymedia');
         break;
     }
