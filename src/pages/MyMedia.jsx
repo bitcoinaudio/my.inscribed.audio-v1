@@ -190,6 +190,7 @@ const MyMedia = () => {
                             <img className="size-10" src={iomImage} alt="IOM" />
                           </a>
                         </li>
+                        
                       )}
                     </ul>
                   </div>
@@ -254,6 +255,23 @@ const MyMedia = () => {
                           </a>
                         </li>
                       )}
+
+                      {item.value === "Woman" && (
+                        <li>
+                          <a
+                            className="tooltip"
+                            data-tip="IOM"
+                            href="https://arweave.net/0AphIk6Qiuu3RwGtYL02w9weo3Cci5Xp-M0LRgZ42Gg"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <img id="image" className="size-10" src={iomImage} alt="IOM" />
+                          </a>
+                        </li>
+                      )}
+
+
+
                     </ul>
                   </div>
                 </div>
