@@ -16,13 +16,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { cn } from "../lib/utils";
 import { setIinscriptionArray } from "../globalState";
 import idesofmarch from '../lib/collections/idesofmarch.json';
+import dust from '../lib/collections/dust.json'
+import collections from '../lib/collections/collections';
+import { get } from "http";
 
 type WalletName = keyof typeof SUPPORTED_WALLETS;
 const idesOfMarchIDs = idesofmarch.map((item) => item.id);
+const dustIDs = dust.map((item) => item.id);
 
-function checkIOMOwnership(insID: string) {
-  return idesOfMarchIDs.includes(insID);
-}
+
+
 
 interface HtmlInscription {
   id: string;
@@ -46,15 +49,33 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     setHasWallet({ unisat: hasUnisat, xverse: hasXverse, [MAGIC_EDEN]: hasMagicEden });
   }, [hasUnisat, hasXverse, hasMagicEden]);
 
-
+  function checkIOMOwnership(insID: string) {
+  
+    return idesOfMarchIDs.includes(insID);
+  }
+  
+  function checkDustOwnership(insID: string) {
+    
+    return dustIDs.includes(insID);
+  }
+  
+  
+  function checkEnhancedInscription(insID: string) {
+       
+     
+     return  (dustIDs.includes(insID) || idesOfMarchIDs.includes(insID));
+  
+    }  
+  
 
   async function getBRC420(inscriptionId: string) {
     try {
-      const response = await fetch(`https://ordinals.com/content/${inscriptionId}`);
+      const response = await fetch(`https://radinals.bitcoinaudio.co/content/${inscriptionId}`);
       const text = await response.text();
       return text.trim().startsWith('/content/')
-        ? { isBRC420: true, brc420Url: `https://ordinals.com${text.trim()}` }
+        ? { isBRC420: true, brc420Url: `https://radinals.bitcoinaudio.co${text.trim()}` }
         : { isBRC420: false, brc420Url: '' };
+
     } catch (error) {
       console.error("Error fetching BRC420:", error);
       return { isBRC420: false, brc420Url: '' };
@@ -68,11 +89,16 @@ const ConnectWallet = ({ className }: { className?: string }) => {
         rawInscriptions.map(async (inscription: any) => {
           if (inscription.contentType !== null) {
             const brc420Data = await getBRC420(inscription.inscriptionId);
-            return {
+            const isenhanced = await checkEnhancedInscription(inscription.inscriptionId);
+            
+             return {
               id: inscription.inscriptionId,
               isIOM: checkIOMOwnership(inscription.inscriptionId),
+              isDust: checkDustOwnership(inscription.inscriptionId),
               contentType: inscription.contentType,
+              isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
               ...brc420Data,
+              
             };
           }
           return null;
@@ -105,11 +131,16 @@ const ConnectWallet = ({ className }: { className?: string }) => {
         res.list.map(async (inscription: any) => {
           if (inscription.contentType !== null) {
             const brc420Data = await getBRC420(inscription.inscriptionId);
+            const isenhanced = await checkEnhancedInscription(inscription.inscriptionId);
+
             return {
               id: inscription.inscriptionId,
               isIOM: checkIOMOwnership(inscription.inscriptionId),
+              isDust: checkDustOwnership(inscription.inscriptionId),
               contentType: inscription.contentType,
+              isEnhanced: isenhanced,
               ...brc420Data,
+              
             };
           }
           return null;
@@ -119,6 +150,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
       const filteredInscriptions = processedInscriptions.filter(Boolean);
       setHtmlInscriptions(filteredInscriptions);
       setIinscriptionArray([...filteredInscriptions]);
+      // console.log("Filtered inscriptions:", filteredInscriptions);
 
       return filteredInscriptions;
     } catch (error) {

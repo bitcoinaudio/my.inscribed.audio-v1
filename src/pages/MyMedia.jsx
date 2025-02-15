@@ -13,7 +13,6 @@ const mimeTypes = [
   "application/json",
   "image/gif",
   "image/jpeg",
-  "image/png",
   "image/svg+xml",
   "image/webp",
   "text/css",
@@ -132,22 +131,25 @@ const MyMedia = () => {
                 <div className="card-body shadow-inner">
                   <iframe
                     key={item.id}
-                    src={item.isBRC420 ? item.brc420Url : `https://ordinals.com/content/${item.id}`}
+                    src={item.isBRC420 ? item.brc420Url : `https://radinals.bitcoinaudio.co/content/${item.id}`}
                     height="100%"
                     width="100%"
                     allowFullScreen
                   />
-                  <h2 className="font-urbanist card-title text-3xl font-black"></h2>
+                  <h2 className="font-urbanist card-title text-3xl font-black"></h2>    
                   <p className="text-md font-urbanist font-medium opacity-60">
                     {item.isBRC420 ? "BRC420" : "Ordinal"}
+                    <hr/>
+                    {item.isEnhanced[index] ? "Enhanced" : "Basic"}
                   </p>
                   <div className="card-actions justify-center">
+
                     <ul className="menu menu-horizontal bg-base-200 rounded-box mt-1">
                       <li>
                         <a
                           className="tooltip"
                           data-tip="Details"
-                          href={`https://ordinals.com/inscription/${item.id}`}
+                          href={`https://radinals.bitcoinaudio.co/inscription/${item.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -171,7 +173,7 @@ const MyMedia = () => {
                         <a
                           className="tooltip"
                           data-tip="Ordinal"
-                          href={`https://ordinals.com/content/${item.id}`}
+                          href={`https://radinals.bitcoinaudio.co/content/${item.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -191,7 +193,10 @@ const MyMedia = () => {
                           </a>
                         </li>
                         
+                        
                       )}
+                       
+
                     </ul>
                   </div>
                 </div>
@@ -199,11 +204,14 @@ const MyMedia = () => {
                 <div className="card-body shadow-inner">
                   {item.contentType.startsWith("image/") && (
                     <div className="card-body shadow-inner">
-                      <img src={`https://ordinals.com/content/${item.id}`} alt="Inscription" />
+                      <img src={`https://radinals.bitcoinaudio.co/content/${item.id}`} alt="Inscription" />
                     </div>
                   )}
                   <p className="text-md font-urbanist font-medium opacity-60">
                     {item.isBRC420 ? "BRC420" : "Ordinal"}
+                    <hr/>
+                    {item.isEnhanced[index] ? "Enhanced" : "Basic"}
+
                   </p>
                   <div className="card-actions justify-center">
                     <ul className="menu menu-horizontal bg-base-200 rounded-box mt-1">
@@ -211,7 +219,7 @@ const MyMedia = () => {
                         <a
                           className="tooltip"
                           data-tip="Details"
-                          href={`https://ordinals.com/inscription/${item.id}`}
+                          href={`https://radinals.bitcoinaudio.co/inscription/${item.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -235,7 +243,7 @@ const MyMedia = () => {
                         <a
                           className="tooltip"
                           data-tip="Ordinal"
-                          href={`https://ordinals.com/content/${item.id}`}
+                          href={`https://radinals.bitcoinaudio.co/content/${item.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -254,23 +262,8 @@ const MyMedia = () => {
                             <img id="image" className="size-10" src={iomImage} alt="IOM" />
                           </a>
                         </li>
-                      )}
 
-                      {item.value === "Woman" && (
-                        <li>
-                          <a
-                            className="tooltip"
-                            data-tip="IOM"
-                            href="https://arweave.net/0AphIk6Qiuu3RwGtYL02w9weo3Cci5Xp-M0LRgZ42Gg"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <img id="image" className="size-10" src={iomImage} alt="IOM" />
-                          </a>
-                        </li>
-                      )}
-
-
+                      )}  
 
                     </ul>
                   </div>

@@ -1,0 +1,38 @@
+[
+    {
+        "id": "7ab25c17eafff0de350e6189cb9e3642239f2e6b580c0edf0b8640184e5a96e2i0",
+        "meta": {
+          "name": "Dust",
+          "attributes": [
+            {
+              "trait_type": "Enhanced Edition",
+              "value": "Dusty"
+            }
+          ]
+        }
+      },
+      {
+        "id": "7ddfd1ac1ef0d00c3605900459288ae130b63b72be3e1fd32b101811e87f6728i0",
+        "meta": {
+          "name": "Dust",
+          "attributes": [
+            {
+              "trait_type": "Enhanced Edition",
+              "value": "Dusty"
+            }
+          ]
+        }
+      },
+      {
+        "id": "10d06946f85c3e5518fb81432ea11bb17aa03b888ab34cc7fae8b1251fc753c6i0",
+        "meta": {
+          "name": "Dust",
+          "attributes": [
+            {
+              "trait_type": "Enhanced Edition",
+              "value": "Dusty"
+            }
+          ]
+        }
+      }
+]

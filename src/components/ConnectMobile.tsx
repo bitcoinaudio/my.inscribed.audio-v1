@@ -135,12 +135,12 @@ useEffect(() => {
 
 const getBRC420 = async (inscriptionId: string) => {
   try {
-    const response = await fetch(`https://ordinals.com/content/${inscriptionId}`);
+    const response = await fetch(`https://radinals.bitcoinaudio.co/content/${inscriptionId}`);
     const text = await response.text();
     const isBRC420 = text.trim().startsWith('/content/');
     return {
       isBRC420,
-      brc420Url: isBRC420 ? `https://ordinals.com${text.trim()}` : ''
+      brc420Url: isBRC420 ? `https://radinals.bitcoinaudio.co${text.trim()}` : ''
     };
   } catch (error) {
     console.error("Error fetching BRC420:", error);

@@ -1,5 +1,5 @@
 import React from 'react';
- 
+  
 // Define the props type for MimeTypeFilter
 interface MimeTypeFilterProps {
   mimeTypes: string[]; // List of available MIME types
@@ -60,7 +60,7 @@ const MimeTypeFilter: React.FC<MimeTypeFilterProps> = ({ mimeTypes, selectedMime
         Select MIME Types
       </label> */}
         {mimeTypes.map((mime) => (
-            <div key={mime} className="flex flex-wrap items-center space-x-2">
+            <div key={mime + 1} className="flex flex-wrap items-center space-x-2">
                 <label htmlFor={mime}>{mime}</label>
                 <input
                 type="checkbox"
@@ -80,7 +80,7 @@ const MimeTypeFilter: React.FC<MimeTypeFilterProps> = ({ mimeTypes, selectedMime
             </div>
 
         ))} 
-            <button className="btn" onClick={resetAll}>reset filter</button>
+            <button id="btn" className="btn" onClick={resetAll}>reset filter</button>
  
   </div>
  
