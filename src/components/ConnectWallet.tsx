@@ -63,7 +63,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   function checkEnhancedInscription(insID: string) {
        
      
-     return  (dustIDs.includes(insID) || idesOfMarchIDs.includes(insID));
+     return  idesOfMarchIDs.includes(insID) || dustIDs.includes(insID);
   
     }  
   
@@ -87,10 +87,8 @@ const ConnectWallet = ({ className }: { className?: string }) => {
       const rawInscriptions = await fetchFunction();
       const processedInscriptions = await Promise.all(
         rawInscriptions.map(async (inscription: any) => {
-          if (inscription.contentType !== null) {
+          if (inscription.inscriptionId !== null) {
             const brc420Data = await getBRC420(inscription.inscriptionId);
-            const isenhanced = await checkEnhancedInscription(inscription.inscriptionId);
-            
              return {
               id: inscription.inscriptionId,
               isIOM: checkIOMOwnership(inscription.inscriptionId),
@@ -129,28 +127,29 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
       const processedInscriptions = await Promise.all(
         res.list.map(async (inscription: any) => {
-          if (inscription.contentType !== null) {
+          // if (inscription.inscriptionId !== null) {
             const brc420Data = await getBRC420(inscription.inscriptionId);
-            const isenhanced = await checkEnhancedInscription(inscription.inscriptionId);
-
+            // const isenhanced = await checkEnhancedInscription(inscription.inscriptionId);
+            // console.log(inscription.inscriptionId)
             return {
               id: inscription.inscriptionId,
               isIOM: checkIOMOwnership(inscription.inscriptionId),
               isDust: checkDustOwnership(inscription.inscriptionId),
               contentType: inscription.contentType,
-              isEnhanced: isenhanced,
+              isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
               ...brc420Data,
               
             };
-          }
-          return null;
+          // }
+          // return null;
         })
       );
 
       const filteredInscriptions = processedInscriptions.filter(Boolean);
       setHtmlInscriptions(filteredInscriptions);
       setIinscriptionArray([...filteredInscriptions]);
-      // console.log("Filtered inscriptions:", filteredInscriptions);
+      // console.log(" processedInscriptions:", processedInscriptions );
+      // console.log("Filtered inscriptions:", filteredInscriptions );
 
       return filteredInscriptions;
     } catch (error) {
@@ -193,13 +192,13 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     switch (walletName as never) {
       case 'unisat':
         await getUnisatInscriptions();
-        navigate('/mymedia');
         break;
       case 'xverse':
         await fetchInscriptions(getXverseInscriptions);
-        navigate('/mymedia');
         break;
     }
+    navigate('/mymedia');
+
 
   };
    const buttonClass = cn(

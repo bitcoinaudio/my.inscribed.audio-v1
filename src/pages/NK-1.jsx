@@ -17,7 +17,7 @@ const NK1 = () => {
         className="flex flex-col items-center justify-center">
  	<div className="hero-content flex-col lg:flex-row-reverse">
 	
-			<iframe className="nk-1" src="https://bitcoinaudio.github.io/satoshi-nk-1.github.io/page2.html" title="nk-1"  allowfullscreen ></iframe>
+			<iframe className="nk-1" src="https://bitcoinaudio.github.io/satoshi-nk-1.github.io/page2.html" title="nk-1"  allowFullScreen ></iframe>
 
 	  </div>
  

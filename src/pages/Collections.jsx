@@ -26,7 +26,7 @@ const Collections = () => {
       >
         <div class="card-body shadow-inner">
           
-          <iframe src={item.ordinal} title={item.name}  height="100%" width="100%" allowfullscreen></iframe>
+          <iframe src={item.ordinal} title={item.name}  height="100%" width="100%" allowFullScreen></iframe>
          
 
           <h2 class="font-urbanist card-title text-3xl font-black ">

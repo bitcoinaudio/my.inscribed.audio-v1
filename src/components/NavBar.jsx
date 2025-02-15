@@ -45,7 +45,7 @@ const NavBar = () => {
       { name: "NK-1", href: "/nk-1" },
     ] : [])
   ];
-  // console.log("isWalletConnected NavBar", isWalletConnected);
+  //  console.log("isWalletConnected NavBar", isWalletConnected);
 
   return (
     <div className={`sticky top-0 z-50 flex justify-center py-4 gap-4 transition-transform duration-300 ${showNav ? 'translate-y-0' : '-translate-y-full'}`}>

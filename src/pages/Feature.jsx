@@ -30,7 +30,7 @@ The Ides Of March isn’t just another music NFT—it’s a revolutionary approa
  
 			<div className="flex justify-center">
  
-			<iframe className="samplerr" src="https://radinals.bitcoinaudio.coco/content/b1ade815da823de16f0dc26417c5bfb9caefc9005f0e9585b1f0072eb7e43605i0" title="ordinal"  allowfullscreen ></iframe>
+			<iframe className="samplerr" src="https://radinals.bitcoinaudio.coco/content/b1ade815da823de16f0dc26417c5bfb9caefc9005f0e9585b1f0072eb7e43605i0" title="ordinal"  allowFullScreen ></iframe>
 			</div>
 		</div>
 

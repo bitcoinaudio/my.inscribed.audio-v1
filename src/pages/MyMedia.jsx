@@ -33,7 +33,7 @@ const MyMedia = () => {
 
   useEffect(() => {
     setLocalHtmlArray([...inscriptionArray]); // Ensure a new reference is set
-    console.log("inscriptionArray updated", inscriptionArray);
+    // console.log("inscriptionArray updated", inscriptionArray);
   }, [inscriptionArray]);
 
   useEffect(() => {
@@ -72,63 +72,56 @@ const MyMedia = () => {
         variants={fadeIn("up", "tween", 0.2, 1)}
         className="flex flex-col items-center justify-center"
       >
+        <MimeTypeFilter
+          mimeTypes={mimeTypes}
+          selectedMimeTypes={selectedMimeTypes}
+          onChange={setSelectedMimeTypes} // Set selected MIME types when changed
+        />
 
+        {/* Pagination Controls */}
+        <div className="flex justify-center mt-4">
+          <div className="grid grid-cols-1 gap-4 mt-4">
+            <div className="text-center">
+              <span className="text-sm font-bold">Total Items: {localInscriptionArray.length}</span>
+            </div>
+            <div className="flex justify-center items-center">
+              <span className="text-sm">
+                Page {currentPage} of {totalPages}
+              </span>
+            </div>
+            <div className="flex justify-center items-center">
+              <button
+                className="btn btn-ghost font-urbanist text-lg font-semibold gap-4"
+                onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
 
-
-
-<MimeTypeFilter
-                  mimeTypes={mimeTypes}
-                  selectedMimeTypes={selectedMimeTypes}
-                  onChange={setSelectedMimeTypes} // Set selected MIME types when changed
-                />
-
-                 {/* Pagination Controls */}
-                 <div className="flex justify-center mt-4"> 
-        <div className="grid grid-cols-1 gap-4 mt-4">
-          <div className="text-center">
-            <span className="text-sm font-bold">Total Items: {localInscriptionArray.length}</span>
-          </div>
-          <div className="flex justify-center items-center">
-          <span className="text-sm">
-              Page {currentPage} of {totalPages}
-            </span>
-          </div>
-          <div className="flex justify-center items-center">
-            <button
-              className="btn btn-ghost font-urbanist text-lg font-semibold gap-4"
-              onClick={() => handlePageChange(Math.max(currentPage - 1, 1))}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </button>
-            
-            <input
-              type="number"
-              className="input input-bordered mx-2"
-              value={currentPage}
-              onChange={(e) => handlePageChange(Math.min(Math.max(Number(e.target.value), 1), totalPages))}
-              min="1"
-              max={totalPages}
-            />
-            <button
-              className="btn btn-ghost font-urbanist text-lg font-semibold gap-4"
-              onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </button>
+              <input
+                type="number"
+                className="input input-bordered mx-2"
+                value={currentPage}
+                onChange={(e) => handlePageChange(Math.min(Math.max(Number(e.target.value), 1), totalPages))}
+                min="1"
+                max={totalPages}
+              />
+              <button
+                className="btn btn-ghost font-urbanist text-lg font-semibold gap-4"
+                onClick={() => handlePageChange(Math.min(currentPage + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
 
-
-        </div>
-   
- 
         <div id="inscriptionArray" className="flex flex-wrap gap-4 justify-center">
           {paginatedItems.map((item, index) => (
             <div key={index} className="card max-w-2xl transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box mt-4 gap-4">
               {item.contentType.startsWith("text/html") ? (
-                <div className="card-body shadow-inner">
+                <div key={index} className="card-body shadow-inner">
                   <iframe
                     key={item.id}
                     src={item.isBRC420 ? item.brc420Url : `https://radinals.bitcoinaudio.co/content/${item.id}`}
@@ -136,14 +129,13 @@ const MyMedia = () => {
                     width="100%"
                     allowFullScreen
                   />
-                  <h2 className="font-urbanist card-title text-3xl font-black"></h2>    
+                  <h2 className="font-urbanist card-title text-3xl font-black"></h2>
                   <p className="text-md font-urbanist font-medium opacity-60">
                     {item.isBRC420 ? "BRC420" : "Ordinal"}
-                    <hr/>
-                    {item.isEnhanced[index] ? "Enhanced" : "Basic"}
+                    <hr />
+                    {item.isEnhanced ? "Enhanced" : "Basic"}
                   </p>
-                  <div className="card-actions justify-center">
-
+                  <div key={item.id} className="card-actions justify-center">
                     <ul className="menu menu-horizontal bg-base-200 rounded-box mt-1">
                       <li>
                         <a
@@ -192,16 +184,12 @@ const MyMedia = () => {
                             <img className="size-10" src={iomImage} alt="IOM" />
                           </a>
                         </li>
-                        
-                        
                       )}
-                       
-
                     </ul>
                   </div>
                 </div>
               ) : (
-                <div className="card-body shadow-inner">
+                <div key={item.id} className="card-body shadow-inner">
                   {item.contentType.startsWith("image/") && (
                     <div className="card-body shadow-inner">
                       <img src={`https://radinals.bitcoinaudio.co/content/${item.id}`} alt="Inscription" />
@@ -209,11 +197,11 @@ const MyMedia = () => {
                   )}
                   <p className="text-md font-urbanist font-medium opacity-60">
                     {item.isBRC420 ? "BRC420" : "Ordinal"}
-                    <hr/>
-                    {item.isEnhanced[index] ? "Enhanced" : "Basic"}
-
+                    <hr />
+                    {item.isEnhanced ? "Enhanced" : "Basic"}
+                    
                   </p>
-                  <div className="card-actions justify-center">
+                  <div key={item.id} className="card-actions justify-center">
                     <ul className="menu menu-horizontal bg-base-200 rounded-box mt-1">
                       <li>
                         <a
@@ -262,9 +250,7 @@ const MyMedia = () => {
                             <img id="image" className="size-10" src={iomImage} alt="IOM" />
                           </a>
                         </li>
-
-                      )}  
-
+                      )}
                     </ul>
                   </div>
                 </div>
@@ -272,7 +258,6 @@ const MyMedia = () => {
             </div>
           ))}
         </div>
-
       </motion.div>
     </motion.div>
   );

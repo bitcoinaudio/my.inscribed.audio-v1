@@ -1,11 +1,9 @@
 import React from "react";
 import { useDeviceContext } from "./utils/DeviceStore";
-import Contact from "./pages/Contact";
 import Home from "./pages/Home";
 import Collections from "./pages/Collections";
  import NavBar from "./components/NavBar";
 import MyMedia from "./pages/MyMedia";
-import Team from "./pages/Team";
 import Feature from "./pages/Feature";
 import NK1 from "./pages/NK-1";
 import FooterPage  from "./pages/Footer";
@@ -24,13 +22,13 @@ const App = () => {
         {/* <NavBar />
         <Home />
         <Feature /> */}
-         <div className="p-2 md:px-10">
+         <div id='' className="p-2 md:px-10">
           <NavBar />
           <Routes>
-          <Route path="/" element={[<Home />, <Feature />]} />
-          <Route path="/collections" element={<Collections />} />
-          <Route path="/mymedia" element={<MyMedia />} />
-          <Route path="/nk-1" element={<NK1 />} />
+          <Route key="home" path="/" element={[<Home />, <Feature />]} />
+          <Route key="collections" path="/collections" element={<Collections />} />
+          <Route key="mymedia" path="/mymedia" element={<MyMedia />} />
+          <Route key="nk-1" path="/nk-1" element={<NK1 />} />
           </Routes>
          </div>
          <FooterPage />
