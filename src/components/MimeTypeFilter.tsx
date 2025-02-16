@@ -21,45 +21,17 @@ const MimeTypeFilter: React.FC<MimeTypeFilterProps> = ({ mimeTypes, selectedMime
 
   return (
 
-    <div className="p-4">
-        <div className="navbar bg-base-100">
-  <div className="navbar-start">
-    <div className="dropdown">
-      <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            d="M4 6h16M4 12h8m-8 6h16" />
-        </svg>
-      </div>
-      <ul
-        tabIndex={0}
-        className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
-         {mimeTypes.map((mime) => (
-           <div className="form-control">
-           <label className="label cursor-pointer">
-             <span className="label-text">{mime}</span>
-             <input type="checkbox" defaultChecked className="checkbox " />
-           </label>
-         </div>
-
-        ))}     
-      </ul>
-    </div>
-    {/* <a className="btn btn-ghost text-xl">daisyUI</a> */}
+    <div className="drawer z-50">
+  <input id="my-drawer" type="checkbox" className="drawer-toggle" />
+  <div className="drawer-content">
+    {/* Page content here */}
+    <label htmlFor="my-drawer" className="btn  drawer-button">item filter</label>
   </div>
-  <div className="navbar-center hidden lg:flex">
-  {/* <label htmlFor="mimeFilter" className="block text-lg mb-2">
-        Select MIME Types
-      </label> */}
-        {mimeTypes.map((mime) => (
+  <div className="drawer-side">
+    <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay"></label>
+    <ul className="menu bg-base-200 text-base-content min-h-full w-80 p-4">
+      {/* Sidebar content here */}
+      {mimeTypes.map((mime) => (
             <div key={mime + 1} className="flex flex-wrap items-center space-x-2">
                 <label htmlFor={mime}>{mime}</label>
                 <input
@@ -81,13 +53,10 @@ const MimeTypeFilter: React.FC<MimeTypeFilterProps> = ({ mimeTypes, selectedMime
 
         ))} 
             <button id="btn" className="btn" onClick={resetAll}>reset filter</button>
- 
-  </div>
- 
- 
-</div>
 
-    </div>
+    </ul>
+  </div>
+</div>
   );
 };
 
