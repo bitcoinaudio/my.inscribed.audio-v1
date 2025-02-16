@@ -49,8 +49,11 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     setHasWallet({ unisat: hasUnisat, xverse: hasXverse, [MAGIC_EDEN]: hasMagicEden });
   }, [hasUnisat, hasXverse, hasMagicEden]);
 
+
   function checkIOMOwnership(insID: string) {
-  
+    // console.log( idesOfMarchIDs.includes(insID));
+    // console.log("idesofmarch", idesofmarch[1])
+
     return idesOfMarchIDs.includes(insID);
   }
   
@@ -59,13 +62,19 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     return dustIDs.includes(insID);
   }
   
-  
   function checkEnhancedInscription(insID: string) {
        
      
      return  idesOfMarchIDs.includes(insID) || dustIDs.includes(insID);
   
-    }  
+  } 
+  
+  function getAttrbutes(insID: string) {
+
+    const matchedItem = idesofmarch.find(item => item.id === insID);
+    return matchedItem ? matchedItem.meta.attributes : null;
+    
+  }
   
 
   async function getBRC420(inscriptionId: string) {
@@ -87,19 +96,41 @@ const ConnectWallet = ({ className }: { className?: string }) => {
       const rawInscriptions = await fetchFunction();
       const processedInscriptions = await Promise.all(
         rawInscriptions.map(async (inscription: any) => {
-          if (inscription.inscriptionId !== null) {
+          // if (inscription.inscriptionId !== null) {
             const brc420Data = await getBRC420(inscription.inscriptionId);
-             return {
-              id: inscription.inscriptionId,
-              isIOM: checkIOMOwnership(inscription.inscriptionId),
-              isDust: checkDustOwnership(inscription.inscriptionId),
-              contentType: inscription.contentType,
-              isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
-              ...brc420Data,
-              
-            };
-          }
-          return null;
+            if(checkIOMOwnership(inscription.inscriptionId) ) {
+              // 
+              // const atts  = idesofmarch[index].meta.attributes;
+              // console.log("attributes: ", atts, index)
+
+              return {
+                id: inscription.inscriptionId,
+                isIOM: checkIOMOwnership(inscription.inscriptionId),
+                isDust: checkDustOwnership(inscription.inscriptionId),
+                contentType: inscription.contentType,
+                isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
+                attributes: getAttrbutes(inscription.inscriptionId),
+                ...brc420Data,
+                
+              };
+
+            } else {
+
+              return {
+                id: inscription.inscriptionId,
+                isIOM: checkIOMOwnership(inscription.inscriptionId),
+                isDust: checkDustOwnership(inscription.inscriptionId),
+                contentType: inscription.contentType,
+                isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
+                attributes: null,
+                ...brc420Data,
+                
+              };
+
+
+            }
+          // }
+          // return null;
         })
       );
 
@@ -126,29 +157,53 @@ const ConnectWallet = ({ className }: { className?: string }) => {
       }
 
       const processedInscriptions = await Promise.all(
-        res.list.map(async (inscription: any) => {
+        res.list.map(async (inscription: any, index: any) => {
           // if (inscription.inscriptionId !== null) {
             const brc420Data = await getBRC420(inscription.inscriptionId);
-            // const isenhanced = await checkEnhancedInscription(inscription.inscriptionId);
-            // console.log(inscription.inscriptionId)
-            return {
-              id: inscription.inscriptionId,
-              isIOM: checkIOMOwnership(inscription.inscriptionId),
-              isDust: checkDustOwnership(inscription.inscriptionId),
-              contentType: inscription.contentType,
-              isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
-              ...brc420Data,
-              
-            };
-          // }
-          // return null;
+            // console.log("inscription", inscription)
+
+
+            if(checkIOMOwnership(inscription.inscriptionId) ) {
+              // 
+              // const atts  = idesofmarch[index].meta.attributes;
+              // console.log("attributes: ", atts, index)
+
+              return {
+                id: inscription.inscriptionId,
+                isIOM: checkIOMOwnership(inscription.inscriptionId),
+                isDust: checkDustOwnership(inscription.inscriptionId),
+                contentType: inscription.contentType,
+                isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
+                attributes: getAttrbutes(inscription.inscriptionId),
+                ...brc420Data,
+                
+              };
+
+            } else {
+
+              return {
+                id: inscription.inscriptionId,
+                isIOM: checkIOMOwnership(inscription.inscriptionId),
+                isDust: checkDustOwnership(inscription.inscriptionId),
+                contentType: inscription.contentType,
+                isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
+                attributes: null,
+                ...brc420Data,
+                
+              };
+
+
+            }
+           
+           
+           
         })
+        
       );
 
       const filteredInscriptions = processedInscriptions.filter(Boolean);
       setHtmlInscriptions(filteredInscriptions);
       setIinscriptionArray([...filteredInscriptions]);
-      // console.log(" processedInscriptions:", processedInscriptions );
       // console.log("Filtered inscriptions:", filteredInscriptions );
 
       return filteredInscriptions;
