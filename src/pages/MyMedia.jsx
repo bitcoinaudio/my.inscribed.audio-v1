@@ -6,42 +6,67 @@ import ordImage from "/images/ordinals.svg";
 import iomImage from "/images/idesofmarch.png";
 import woman from "/images/woman-sticker.webp";
 import MimeTypeFilter from "../components/MimeTypeFilter"; // Import the MimeTypeFilter component
+import {
+  
+  useLaserEyes,
+  
+} from "@omnisat/lasereyes";
 
-const mimeTypes = [
+
+const textTypes = [
   "application/json",
   "text/css",
   "text/javascript",
   "text/plain",
+  "text/html",
+  "text/html;charset=utf-8",
+
 ];
 
 const mediaTypes = [
   "audio/ogg",
   "audio/mpeg",
+  "video/mp4",
+];
+
+const imageTypes = [
   "image/png",
   "image/gif",
   "image/jpeg",
   "image/svg+xml",
   "image/webp",
-  "text/html",
-  "video/mp4",
-];
+
+]
+
+const modelTypes = [
+  "model/gltf+json",
+"model/gltf-binary",
+]
+
+const mimeTypes = imageTypes.concat(mediaTypes,textTypes,modelTypes)
 
 const ITEMS_PER_PAGE = 10; // Number of items per page
 
 const MyMedia = () => {
+    const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
+  
   const [selectedMimeTypes, setSelectedMimeTypes] = useState([]);
+ 
   const [currentPage, setCurrentPage] = useState(1);
 
   // Filter and paginate inscriptions
   const paginatedItems = useMemo(() => {
     let filteredArray = inscriptionArray;
 
+
+ 
     if (selectedMimeTypes.length > 0) {
       filteredArray = filteredArray.filter((item) =>
         selectedMimeTypes.includes(item.contentType)
       );
     }
-
+     
+  
     const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
     const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
 
@@ -64,12 +89,13 @@ const MyMedia = () => {
         variants={fadeIn("up", "tween", 0.2, 1)}
         className="flex flex-col items-center justify-center"
       >
-        <MimeTypeFilter
+
+ <MimeTypeFilter
           mimeTypes={mimeTypes}
-          mediaTypes={mediaTypes}
           selectedMimeTypes={selectedMimeTypes}
           onChange={setSelectedMimeTypes}
-        />
+        />  
+      
 
         {/* Pagination Controls */}
         <div className="flex justify-center mt-4">
@@ -126,21 +152,41 @@ const MyMedia = () => {
 
 // Extracted Reusable Media Card Component
 const MediaCard = ({ item }) => {
+  const isMedia = mediaTypes.includes(item.contentType);
+  const isText = textTypes.includes(item.contentType);
+  const isModel = modelTypes.includes(item.contentType);
+  const isImage = imageTypes.includes(item.contentType)
   return (
     <div className="card max-w-2xl transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box mt-4 gap-4">
       <div className="card-body shadow-inner">
         {/* Render content based on MIME type */}
-        {item.contentType.startsWith("text/html") ? (
+        {isText ? (
           <iframe
             src={item.isBRC420 ? item.brc420Url : `https://radinals.bitcoinaudio.co/content/${item.id}`}
             height="100%"
             width="100%"
             allowFullScreen
           />
-        ) : item.contentType.startsWith("image/") ? (
+        ) : isImage ? (
+          <div className="card-body shadow-inner">
           <img className="size-48" src={`https://radinals.bitcoinaudio.co/content/${item.id}`} alt="Inscription" />
-        
-        ) : null}
+        </div>        
+        ) : isModel ? (
+          <div>
+          <p>model: {item.contentType}</p>
+          <iframe
+          src={ `https://radinals.bitcoinaudio.co/preview/${item.id}`}
+          height="100%"
+          width="100%"
+          allowFullScreen
+        />
+        </div>
+        ) : isMedia ? (
+          <div>
+          <p>media: {item.contentType}</p>
+          
+        </div>
+        ) :null}
 
         {/* Metadata */}
         <p className="text-md font-urbanist font-medium opacity-60">
