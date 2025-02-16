@@ -4,6 +4,7 @@ import { fadeIn, staggerContainer } from "../utils/motion";
 import { inscriptionArray } from "../globalState";
 import ordImage from "/images/ordinals.svg";
 import iomImage from "/images/idesofmarch.png";
+import woman from "/images/woman-sticker.webp"
 import MimeTypeFilter from "../components/MimeTypeFilter"; // Import the MimeTypeFilter component
 
 const mimeTypes = [
@@ -202,6 +203,21 @@ const MyMedia = () => {
                           </a>
                         </li>
                       )}
+                    {item.attributes  && (
+
+                      <div>
+                         {Object.entries(item.attributes[0]).map(([key, value]) => (
+                          <div key={key} className="">
+                            {value === "Woman" && (
+                             <img id="image" className="w-12 h-10" src={woman} alt="Woman" />
+                            )}
+                            {/* {key}: {value} */}
+                          </div>
+                        ))}
+                      </div>
+    
+                    )}
+
                     </ul>
                   </div>
                 </div>
@@ -222,11 +238,11 @@ const MyMedia = () => {
                     <div>
                       <h3 className="font-urbanist text-xl font-bold">Attributes:</h3>
                       <ul className="list-disc list-inside">
-                        {/* {Object.entries(item.attributes).map(([key, value]) => (
+                        {Object.entries(item.attributes).map(([key, value]) => (
                           <li key={key} className="text-md font-urbanist font-medium opacity-60">
                             {key}: {value}
                           </li>
-                        ))} */}
+                        ))}
                       </ul>
                     </div>
                   )}
@@ -276,11 +292,11 @@ const MyMedia = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                           >
-                            <img id="image" className="size-10" src={iomImage} alt="IOM" />
-                          </a>
+                            <img className="size-10" src={iomImage} alt="IOM" />
+                            </a>
                         </li>
                       )}
-                      
+                         
                     </ul>
                   </div>
                 </div>

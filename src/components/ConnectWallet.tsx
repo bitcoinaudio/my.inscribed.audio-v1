@@ -99,10 +99,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
           // if (inscription.inscriptionId !== null) {
             const brc420Data = await getBRC420(inscription.inscriptionId);
             if(checkIOMOwnership(inscription.inscriptionId) ) {
-              // 
-              // const atts  = idesofmarch[index].meta.attributes;
-              // console.log("attributes: ", atts, index)
-
+             
               return {
                 id: inscription.inscriptionId,
                 isIOM: checkIOMOwnership(inscription.inscriptionId),
