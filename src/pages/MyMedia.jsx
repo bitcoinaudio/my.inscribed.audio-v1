@@ -15,6 +15,7 @@ const mimeTypes = [
   "image/jpeg",
   "image/svg+xml",
   "image/webp",
+  "model/gltf-binary",
   "text/css",
   "text/html",
   "text/javascript",
@@ -33,7 +34,8 @@ const MyMedia = () => {
 
   useEffect(() => {
     setLocalHtmlArray([...inscriptionArray]); // Ensure a new reference is set
-    // console.log("inscriptionArray updated", inscriptionArray);
+    setPaginatedItems([...localInscriptionArray])
+    console.log("inscriptionArray updated", inscriptionArray);
   }, [inscriptionArray]);
 
   useEffect(() => {
@@ -120,6 +122,7 @@ const MyMedia = () => {
         <div id="inscriptionArray" className="flex flex-wrap gap-4 justify-center">
           {paginatedItems.map((item, index) => (
             <div key={index} className="card max-w-2xl transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box mt-4 gap-4">
+
               {item.contentType.startsWith("text/html") ? (
                 <div key={index} className="card-body shadow-inner">
                   <iframe
@@ -131,11 +134,25 @@ const MyMedia = () => {
                   />
                   <h2 className="font-urbanist card-title text-3xl font-black"></h2>
                   <p className="text-md font-urbanist font-medium opacity-60">
-                    {item.isBRC420 ? "BRC420" : "Ordinal"}
+                  {item.isEnhanced ? " Enhanced " : " Basic "}
+                  {item.isBRC420 ? " BRC420 " : " Ordinal "}
                     <hr />
-                    {item.isEnhanced ? "Enhanced" : "Basic"}
+                  {item.attributes && (
+                    <div>
+                      <h3 className="font-urbanist text-xl font-bold">Attributes:</h3>
+                      <ul className="list-disc list-inside">
+                        {Object.entries(item.attributes[0]).map(([key, value]) => (
+                          <li key={key} className="text-md font-urbanist font-medium opacity-60">
+                            {key}: {value}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   </p>
-                  <div key={item.id} className="card-actions justify-center">
+
+                  <div key={index} className="card-actions justify-center">
                     <ul className="menu menu-horizontal bg-base-200 rounded-box mt-1">
                       <li>
                         <a
@@ -192,16 +209,28 @@ const MyMedia = () => {
                 <div key={item.id} className="card-body shadow-inner">
                   {item.contentType.startsWith("image/") && (
                     <div className="card-body shadow-inner">
-                      <img src={`https://radinals.bitcoinaudio.co/content/${item.id}`} alt="Inscription" />
+                      <img className="size-48" src={`https://radinals.bitcoinaudio.co/content/${item.id}`} alt="Inscription" />
                     </div>
                   )}
-                  <p className="text-md font-urbanist font-medium opacity-60">
-                    {item.isBRC420 ? "BRC420" : "Ordinal"}
-                    <hr />
-                    {item.isEnhanced ? "Enhanced" : "Basic"}
-                    
-                  </p>
+                  
                   <div key={item.id} className="card-actions justify-center">
+                  <p className="text-md font-urbanist font-medium opacity-60">
+                  {item.isEnhanced ? " Enhanced " : " Basic "}
+                  {item.isBRC420 ? " BRC420 " : " Ordinal "}
+                    <hr />
+                    {item.attributes && (
+                    <div>
+                      <h3 className="font-urbanist text-xl font-bold">Attributes:</h3>
+                      <ul className="list-disc list-inside">
+                        {/* {Object.entries(item.attributes).map(([key, value]) => (
+                          <li key={key} className="text-md font-urbanist font-medium opacity-60">
+                            {key}: {value}
+                          </li>
+                        ))} */}
+                      </ul>
+                    </div>
+                  )}
+                  </p>
                     <ul className="menu menu-horizontal bg-base-200 rounded-box mt-1">
                       <li>
                         <a
@@ -251,11 +280,13 @@ const MyMedia = () => {
                           </a>
                         </li>
                       )}
+                      
                     </ul>
                   </div>
                 </div>
               )}
             </div>
+
           ))}
         </div>
       </motion.div>
