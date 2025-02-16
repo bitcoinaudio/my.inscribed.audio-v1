@@ -7,6 +7,12 @@ import { useDeviceContext } from "../utils/DeviceStore";
 import iaLogo from '/images/ia-bg3.png';
 import { useWallet } from '../context/WalletContext';
 import "react-hook-theme/dist/styles/style.css";
+import {
+  
+  useLaserEyes,
+  
+} from "@omnisat/lasereyes";
+
 
 const basenavigation = [
   { name: "My Inscribed Audio", href: "/" },
@@ -20,6 +26,9 @@ const NavBar = () => {
   const { isMobile } = useDeviceContext();
   const [showNav, setShowNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+
+  const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,7 +49,7 @@ const NavBar = () => {
 
   const navigation = [
     ...basenavigation,
-    ...(isWalletConnected ? [
+    ...(address ? [
       { name: "My Media", href: "/mymedia" },
       { name: "NK-1", href: "/nk-1" },
     ] : [])
