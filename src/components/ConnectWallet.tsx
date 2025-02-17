@@ -25,8 +25,6 @@ const idesOfMarchIDs = idesofmarch.map((item) => item.id);
 const dustIDs = dust.map((item) => item.id);
 
 
-
-
 interface HtmlInscription {
   id: string;
   isIOM: boolean;
@@ -102,7 +100,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
         const inscriptionParts = text.split(".");
         console.log("bitmapText", inscriptionParts)
          return bitmapText
-          ? { isBitmap: true, bitmap: inscriptionParts }
+          ? { isBitmap: true, bitmap: inscriptionParts[0]+"."+inscriptionParts[1] }
           : { isBitmap: false, bitmap: '' };
       }
 
