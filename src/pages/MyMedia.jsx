@@ -173,6 +173,7 @@ const MediaCard = ({ item }) => {
               allowFullScreen
             />
           ) : (
+
             <p lassName="text-md font-urbanist font-medium opacity-60" >{item.bitmap}</p>
             
           )
@@ -189,20 +190,7 @@ const MediaCard = ({ item }) => {
           allowFullScreen
         />
         </div>
-        ) : isMedia ? (
-          <div>
-          <p>media: {item.contentType}</p>
-          
-        </div>
-        )  : isBitmap ? (
-          <div>
-        <p className="text-md font-urbanist font-medium opacity-60">
-        {item.bitmap[0] + "." +item.bitmap[1]}
-
-          </p>
-          
-        </div>
-        ) :null}
+        )   :null}
 
         {/* Metadata */}
         <p className="text-md font-urbanist font-medium opacity-60">
