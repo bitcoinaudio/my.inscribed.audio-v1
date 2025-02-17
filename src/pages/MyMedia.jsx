@@ -18,6 +18,7 @@ const textTypes = [
   "text/css",
   "text/javascript",
   "text/plain",
+  "text/plain;charset=utf-8",
   "text/html",
   "text/html;charset=utf-8",
 
@@ -158,26 +159,30 @@ const MediaCard = ({ item }) => {
   const isModel = modelTypes.includes(item.contentType);
   const isImage = imageTypes.includes(item.contentType);
   const isBitmap = item.isBitmap;
-  
+
   return (
     <div className="card max-w-2xl transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box mt-4 gap-4">
       <div className="card-body shadow-inner">
         {/* Render content based on MIME type */}
         {isText ? (
-          <iframe
-            src={item.isBRC420 ? item.brc420Url : `https://radinals.bitcoinaudio.co/content/${item.id}`}
-            height="100%"
-            width="100%"
-            allowFullScreen
-          />
+          item.contentType.startsWith("text/html" ) ? (
+            <iframe
+              src={item.isBRC420 ? item.brc420Url : `https://radinals.bitcoinaudio.co/content/${item.id}`}
+              height="100%"
+              width="100%"
+              allowFullScreen
+            />
+          ) : (
+            <p lassName="text-md font-urbanist font-medium opacity-60" >{item.bitmap}</p>
+            
+          )
         ) : isImage ? (
           <div className="card-body shadow-inner">
           <img className="size-48" src={`https://radinals.bitcoinaudio.co/content/${item.id}`} alt="Inscription" />
         </div>        
         ) : isModel ? (
           <div>
-          <p>model: {item.contentType}</p>
-          <iframe
+           <iframe
           src={ `https://radinals.bitcoinaudio.co/preview/${item.id}`}
           height="100%"
           width="100%"
