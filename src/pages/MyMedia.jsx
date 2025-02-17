@@ -43,6 +43,7 @@ const modelTypes = [
 "model/gltf-binary",
 ]
 
+
 const mimeTypes = imageTypes.concat(mediaTypes,textTypes,modelTypes)
 
 const ITEMS_PER_PAGE = 10; // Number of items per page
@@ -155,7 +156,9 @@ const MediaCard = ({ item }) => {
   const isMedia = mediaTypes.includes(item.contentType);
   const isText = textTypes.includes(item.contentType);
   const isModel = modelTypes.includes(item.contentType);
-  const isImage = imageTypes.includes(item.contentType)
+  const isImage = imageTypes.includes(item.contentType);
+  const isBitmap = item.isBitmap;
+  
   return (
     <div className="card max-w-2xl transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box mt-4 gap-4">
       <div className="card-body shadow-inner">
@@ -184,6 +187,14 @@ const MediaCard = ({ item }) => {
         ) : isMedia ? (
           <div>
           <p>media: {item.contentType}</p>
+          
+        </div>
+        )  : isBitmap ? (
+          <div>
+        <p className="text-md font-urbanist font-medium opacity-60">
+        {item.bitmap[0] + "." +item.bitmap[1]}
+
+          </p>
           
         </div>
         ) :null}

@@ -75,13 +75,14 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     return matchedItem ? matchedItem.meta.attributes : null;
     
   }
+
   
 
   async function getBRC420(inscriptionId: string) {
     try {
       const response = await fetch(`https://radinals.bitcoinaudio.co/content/${inscriptionId}`);
       const text = await response.text();
-      return text.trim().startsWith('/content/')
+       return text.trim().startsWith('/content/')
         ? { isBRC420: true, brc420Url: `https://radinals.bitcoinaudio.co${text.trim()}` }
         : { isBRC420: false, brc420Url: '' };
 
@@ -90,6 +91,29 @@ const ConnectWallet = ({ className }: { className?: string }) => {
       return { isBRC420: false, brc420Url: '' };
     }
   }
+
+  async function getBitmap(inscriptionId: string) {
+    const regexBitmap = /^(?:0|[1-9][0-9]*).bitmap$/;
+     try {
+      const response = await fetch(`https://radinals.bitcoinaudio.co/content/${inscriptionId}`);
+      const text = await response.text();
+      const bitmapText = regexBitmap.test(text)
+      if(bitmapText) {
+        const inscriptionParts = text.split(".");
+        console.log("bitmapText", inscriptionParts)
+         return bitmapText
+          ? { isBitmap: true, bitmap: inscriptionParts }
+          : { isBitmap: false, bitmap: '' };
+      }
+
+    
+
+    } catch (error) {
+      console.error("Error fetching Bitmap:", error);
+      return { isBitmap: false, bitmap: '' };
+    }
+  }
+
 
   const fetchInscriptions = async (fetchFunction: Function) => {
     try {
@@ -155,16 +179,12 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
       const processedInscriptions = await Promise.all(
         res.list.map(async (inscription: any, index: any) => {
-          // if (inscription.inscriptionId !== null) {
             const brc420Data = await getBRC420(inscription.inscriptionId);
-            // console.log("inscription", inscription)
-
+            const bmp = await getBitmap(inscription.inscriptionId);
+            console.log("bmp", bmp)
 
             if(checkIOMOwnership(inscription.inscriptionId) ) {
-              // 
-              // const atts  = idesofmarch[index].meta.attributes;
-              // console.log("attributes: ", atts, index)
-
+             
               return {
                 id: inscription.inscriptionId,
                 isIOM: checkIOMOwnership(inscription.inscriptionId),
@@ -172,6 +192,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
                 contentType: inscription.contentType,
                 isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
                 attributes: getAttrbutes(inscription.inscriptionId),
+                ...bmp,
                 ...brc420Data,
                 
               };
@@ -185,15 +206,14 @@ const ConnectWallet = ({ className }: { className?: string }) => {
                 contentType: inscription.contentType,
                 isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
                 attributes: null,
+                ...bmp,
                 ...brc420Data,
                 
               };
 
 
             }
-           
-           
-           
+                     
         })
         
       );
@@ -201,7 +221,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
       const filteredInscriptions = processedInscriptions.filter(Boolean);
       setHtmlInscriptions(filteredInscriptions);
       setIinscriptionArray([...filteredInscriptions]);
-      // console.log("Filtered inscriptions:", filteredInscriptions );
+      console.log("Filtered inscriptions:", filteredInscriptions );
 
       return filteredInscriptions;
     } catch (error) {
