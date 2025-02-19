@@ -112,44 +112,61 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     }
   }
 
+  async function checkifDelegate(inscriptionId: string) {
+
+    try {
+      const response = await fetch(`https://radinals.bitcoinaudio.co/content/f7a204741cb2b4e8949eb78942c4aed429dd91ed32faab1f410ee0c8bc45295bi0`);
+      const text = await response.text();
+      console.log(text)
+       return text
+        ? { isDelegate: true, brc420Url: `https://radinals.bitcoinaudio.co${text.trim()}` }
+        : { isDelegate: false, brc420Url: '' };
+
+    } catch (error) {
+      console.error("Error fetching BRC420:", error);
+      return { isBRC420: false, brc420Url: '' };
+    }
+  }
 
   const fetchInscriptions = async (fetchFunction: Function) => {
     try {
       const rawInscriptions = await fetchFunction();
       const processedInscriptions = await Promise.all(
         rawInscriptions.map(async (inscription: any) => {
-          // if (inscription.inscriptionId !== null) {
-            const brc420Data = await getBRC420(inscription.inscriptionId);
-            if(checkIOMOwnership(inscription.inscriptionId) ) {
-             
-              return {
-                id: inscription.inscriptionId,
-                isIOM: checkIOMOwnership(inscription.inscriptionId),
-                isDust: checkDustOwnership(inscription.inscriptionId),
-                contentType: inscription.contentType,
-                isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
-                attributes: getAttrbutes(inscription.inscriptionId),
-                ...brc420Data,
-                
-              };
+          const brc420Data = await getBRC420(inscription.inscriptionId);
+          const bmp = await getBitmap(inscription.inscriptionId);
+          console.log("bmp", bmp)
 
-            } else {
+          if(checkIOMOwnership(inscription.inscriptionId) ) {
+           
+            return {
+              id: inscription.inscriptionId,
+              isIOM: checkIOMOwnership(inscription.inscriptionId),
+              isDust: checkDustOwnership(inscription.inscriptionId),
+              contentType: inscription.contentType,
+              isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
+              attributes: getAttrbutes(inscription.inscriptionId),
+              ...bmp,
+              ...brc420Data,
+              
+            };
 
-              return {
-                id: inscription.inscriptionId,
-                isIOM: checkIOMOwnership(inscription.inscriptionId),
-                isDust: checkDustOwnership(inscription.inscriptionId),
-                contentType: inscription.contentType,
-                isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
-                attributes: null,
-                ...brc420Data,
-                
-              };
+          } else {
+
+            return {
+              id: inscription.inscriptionId,
+              isIOM: checkIOMOwnership(inscription.inscriptionId),
+              isDust: checkDustOwnership(inscription.inscriptionId),
+              contentType: inscription.contentType,
+              isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
+              attributes: null,
+              ...bmp,
+              ...brc420Data,
+              
+            };
 
 
-            }
-          // }
-          // return null;
+          }
         })
       );
 
@@ -180,7 +197,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
             const brc420Data = await getBRC420(inscription.inscriptionId);
             const bmp = await getBitmap(inscription.inscriptionId);
             console.log("bmp", bmp)
-
+            checkifDelegate(inscription.inscriptionId)
             if(checkIOMOwnership(inscription.inscriptionId) ) {
              
               return {
@@ -190,6 +207,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
                 contentType: inscription.contentType,
                 isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
                 attributes: getAttrbutes(inscription.inscriptionId),
+              
                 ...bmp,
                 ...brc420Data,
                 
