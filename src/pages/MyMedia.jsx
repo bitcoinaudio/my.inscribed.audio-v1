@@ -7,9 +7,9 @@ import iomImage from "/images/idesofmarch.png";
 import woman from "/images/woman-sticker.webp";
 import MimeTypeFilter from "../components/MimeTypeFilter"; // Import the MimeTypeFilter component
 import {
-  
+
   useLaserEyes,
-  
+
 } from "@omnisat/lasereyes";
 
 
@@ -29,6 +29,16 @@ const mediaTypes = [
   "audio/mpeg",
   "video/mp4",
 ];
+const audioTypes = [
+  "audio/ogg",
+  "audio/mpeg",
+
+]
+
+const videoTypes = [
+  "video/mp4",
+
+]
 
 const imageTypes = [
   "image/png",
@@ -41,19 +51,19 @@ const imageTypes = [
 
 const modelTypes = [
   "model/gltf+json",
-"model/gltf-binary",
+  "model/gltf-binary",
 ]
 
 
-const mimeTypes = imageTypes.concat(mediaTypes,textTypes,modelTypes)
+const mimeTypes = imageTypes.concat(mediaTypes, textTypes, modelTypes)
 
 const ITEMS_PER_PAGE = 10; // Number of items per page
 
 const MyMedia = () => {
-    const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
-  
+  const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
+
   const [selectedMimeTypes, setSelectedMimeTypes] = useState([]);
- 
+
   const [currentPage, setCurrentPage] = useState(1);
 
   // Filter and paginate inscriptions
@@ -61,14 +71,14 @@ const MyMedia = () => {
     let filteredArray = inscriptionArray;
 
 
- 
+
     if (selectedMimeTypes.length > 0) {
       filteredArray = filteredArray.filter((item) =>
         selectedMimeTypes.includes(item.contentType)
       );
     }
-     
-  
+
+
     const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
     const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
 
@@ -92,12 +102,12 @@ const MyMedia = () => {
         className="flex flex-col items-center justify-center"
       >
 
- <MimeTypeFilter
+        <MimeTypeFilter
           mimeTypes={mimeTypes}
           selectedMimeTypes={selectedMimeTypes}
           onChange={setSelectedMimeTypes}
-        />  
-      
+        />
+
 
         {/* Pagination Controls */}
         <div className="flex justify-center mt-4">
@@ -159,13 +169,14 @@ const MediaCard = ({ item }) => {
   const isModel = modelTypes.includes(item.contentType);
   const isImage = imageTypes.includes(item.contentType);
   const isBitmap = item.isBitmap;
+  const isAudio = audioTypes.includes(item.contentType);
 
   return (
     <div className="card max-w-2xl transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box mt-4 gap-4">
       <div className="card-body shadow-inner">
         {/* Render content based on MIME type */}
         {isText ? (
-          item.contentType.startsWith("text/html" ) ? (
+          item.contentType.startsWith("text/html") ? (
             <iframe
               src={item.isBRC420 ? item.brc420Url : `https://radinals.bitcoinaudio.co/content/${item.id}`}
               height="100%"
@@ -175,22 +186,38 @@ const MediaCard = ({ item }) => {
           ) : (
 
             <p lassName="text-md font-urbanist font-medium opacity-60" >{item.bitmap}</p>
-            
+
           )
         ) : isImage ? (
           <div className="card-body shadow-inner">
-          <img className="size-48" src={`https://radinals.bitcoinaudio.co/content/${item.id}`} alt="Inscription" />
-        </div>        
+            <img className="size-48" src={`https://radinals.bitcoinaudio.co/content/${item.id}`} alt="Inscription" />
+          </div>
         ) : isModel ? (
           <div>
-           <iframe
-          src={ `https://radinals.bitcoinaudio.co/preview/${item.id}`}
+            <iframe
+              src={`https://radinals.bitcoinaudio.co/preview/${item.id}`}
+              height="100%"
+              width="100%"
+              allowFullScreen
+            />
+          </div>
+        ) : isMedia ? (
+          <div>
+            <video width="320" height="240" controls>
+              <source src={`https://radinals.bitcoinaudio.co/content/${item.id}`}></source>
+            </video>
+          </div>
+        ) : isText ? (
+          <p lassName="text-md font-urbanist font-medium opacity-60" >{item.contentType}</p>
+
+        ) :   <div>
+        <iframe
+          src={`https://radinals.bitcoinaudio.co/preview/${item.id}`}
           height="100%"
           width="100%"
           allowFullScreen
         />
-        </div>
-        )   :null}
+      </div>}
 
         {/* Metadata */}
         <p className="text-md font-urbanist font-medium opacity-60">
@@ -251,21 +278,21 @@ const MediaCard = ({ item }) => {
               </li>
             )}
             {item.attributes && (
-            <div>
-               <ul className="">
-                {Object.entries(item.attributes[0] || {}).map(([key, value]) => (
-                  <div key={key} className="">
+              <div>
+                <ul className="">
+                  {Object.entries(item.attributes[0] || {}).map(([key, value]) => (
+                    <div key={key} className="">
 
-                    {value === "Woman" && (
-                    <img id="image" className="w-12 h-10" src={woman} alt="Woman" />
-                    )}
-                    
-                   </div>
-                ))}
-              </ul>
-            </div>
-          )}
-            
+                      {value === "Woman" && (
+                        <img id="image" className="w-12 h-10" src={woman} alt="Woman" />
+                      )}
+
+                    </div>
+                  ))}
+                </ul>
+              </div>
+            )}
+
           </ul>
         </div>
       </div>
