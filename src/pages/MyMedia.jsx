@@ -185,7 +185,7 @@ const MediaCard = ({ item }) => {
             />
           ) : (
 
-            <p lassName="text-md font-urbanist font-medium opacity-60" >{item.bitmap}</p>
+            <p className="text-lg font-urbanist font-medium text-orange-400 opacity-60" >{item.bitmap}</p>
 
           )
         ) : isImage ? (
@@ -210,14 +210,25 @@ const MediaCard = ({ item }) => {
         ) : isText ? (
           <p lassName="text-md font-urbanist font-medium opacity-60" >{item.contentType}</p>
 
-        ) :   <div>
-        <iframe
-          src={`https://radinals.bitcoinaudio.co/preview/${item.id}`}
-          height="100%"
-          width="100%"
-          allowFullScreen
-        />
-      </div>}
+        ) : isText ? (
+          item.contentType.startsWith("text/plain") ? (
+            <p>{item.contentType}</p>
+          ) : (
+
+            <iframe
+            src={`https://radinals.bitcoinaudio.co/content/${item.id}`}
+            height="100%"
+            width="100%"
+            allowFullScreen
+          />
+
+          )
+        )  :   <iframe
+        src={`https://radinals.bitcoinaudio.co/content/${item.id}`}
+        height="100%"
+        width="100%"
+        allowFullScreen
+      />}
 
         {/* Metadata */}
         <p className="text-md font-urbanist font-medium opacity-60">
