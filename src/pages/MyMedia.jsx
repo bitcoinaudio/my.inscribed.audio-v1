@@ -97,8 +97,8 @@ const MediaCard = React.memo(({ item }) => {
         ) : isBitmap ? (
           <div>
             <LazyIframe src={`https://ord.bitmapstr.io/block/height/${item.bitmap}`} />
-            <p className="text-lg font-urbanist font-medium text-orange-400 opacity-60">
-              {item.bitmap}
+             <p className="text-lg font-urbanist font-medium text-orange-400 opacity-60 py-4">
+              {item.bitmap + '.bitmap'}
             </p>
           </div>
         ) : (
