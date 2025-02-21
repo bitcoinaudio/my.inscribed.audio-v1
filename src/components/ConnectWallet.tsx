@@ -100,7 +100,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
         const inscriptionParts = text.split(".");
         console.log("bitmapText", inscriptionParts)
          return bitmapText
-          ? { isBitmap: true, bitmap: inscriptionParts[0] }
+          ? { isBitmap: true, bitmap: inscriptionParts[-2] }
           : { isBitmap: false, bitmap: '' };
       }
 
