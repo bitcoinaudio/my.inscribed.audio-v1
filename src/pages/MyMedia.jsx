@@ -7,6 +7,7 @@ import iomImage from "/images/idesofmarch.png";
 import woman from "/images/woman-sticker.webp";
 import MimeTypeFilter from "../components/MimeTypeFilter";
 import { useLaserEyes } from "@omnisat/lasereyes";
+import GLTFViewer from "../components/GLTFViewer";
 
 // Constants
 const ORD_SERVER = "https://radinals.bitcoinaudio.co";
@@ -113,7 +114,7 @@ const MediaCard = React.memo(({ item }) => {
           </div>
         );
       case "model":
-        return <LazyIframe src={previewUrl} />;
+        return  <GLTFViewer src={contentUrl} />
       case "video":
       case "audio":
         return (
