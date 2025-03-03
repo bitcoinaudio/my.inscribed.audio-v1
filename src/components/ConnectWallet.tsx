@@ -42,6 +42,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   const [htmlInscriptions, setHtmlInscriptions] = useState<HtmlInscription[]>([]);
   const navigate = useNavigate();
   const [isConnected, setisConnected] = useState(false);
+  const [isValidBitmap, setisValidBitmap] = useState(false);
 
   useEffect(() => {
     setHasWallet({ unisat: hasUnisat, xverse: hasXverse, [MAGIC_EDEN]: hasMagicEden });
@@ -49,9 +50,6 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
 
   function checkIOMOwnership(insID: string) {
-    // console.log( idesOfMarchIDs.includes(insID));
-    // console.log("idesofmarch", idesofmarch[1])
-
     return idesOfMarchIDs.includes(insID);
   }
   
@@ -78,7 +76,11 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
   async function getBRC420(inscriptionId: string) {
     try {
-      const response = await fetch(`https://radinals.bitcoinaudio.co/content/${inscriptionId}`);
+      const response = await fetch(`https://radinals.bitcoinaudio.co/content/${inscriptionId}`, {
+        headers: {
+          "Accept": "application/json"
+        }
+      });
       const text = await response.text();
        return text.trim().startsWith('/content/')
         ? { isBRC420: true, brc420Url: `https://radinals.bitcoinaudio.co${text.trim()}` }
@@ -90,17 +92,24 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     }
   }
 
+
+
   async function getBitmap(inscriptionId: string) {
     const regexBitmap = /^(?:0|[1-9][0-9]*).bitmap$/;
      try {
-      const response = await fetch(`https://radinals.bitcoinaudio.co/content/${inscriptionId}`);
+      const response = await fetch(`https://radinals.bitcoinaudio.co/content/${inscriptionId}`, {
+        headers: {
+          "Accept": "application/json"
+        }
+      });
       const text = await response.text();
-      const bitmapText = regexBitmap.test(text)
+      const bitmapText = regexBitmap.test(text);
+       
       if(bitmapText) {
         const inscriptionParts = text.split(".");
         console.log("bitmapText", inscriptionParts)
          return bitmapText
-          ? { isBitmap: true, bitmap: inscriptionParts[0] }
+          ? { isBitmap: true, bitmap: inscriptionParts[0], valid: isValidBitmap }
           : { isBitmap: false, bitmap: '' };
       }
 
@@ -115,16 +124,20 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   async function checkifDelegate(inscriptionId: string) {
 
     try {
-      const response = await fetch(`https://radinals.bitcoinaudio.co/content/f7a204741cb2b4e8949eb78942c4aed429dd91ed32faab1f410ee0c8bc45295bi0`);
+      const response = await fetch(`https://radinals.bitcoinaudio.co/inscription/${inscriptionId}`, {
+        headers: {
+          "Accept": "application/json"
+        }
+      });
       const text = await response.text();
-      console.log(text)
+      console.log("checkifDelegate", response)
        return text
-        ? { isDelegate: true, brc420Url: `https://radinals.bitcoinaudio.co${text.trim()}` }
-        : { isDelegate: false, brc420Url: '' };
+        ? { isDelegate: true, delegateUrl: `https://radinals.bitcoinaudio.co${text.trim()}` }
+        : { isDelegate: false, delegateUrl: '' };
 
     } catch (error) {
       console.error("Error fetching BRC420:", error);
-      return { isBRC420: false, brc420Url: '' };
+      return { isDelegate: false, delegateUrl: '' };
     }
   }
 
@@ -196,8 +209,8 @@ const ConnectWallet = ({ className }: { className?: string }) => {
         res.list.map(async (inscription: any, index: any) => {
             const brc420Data = await getBRC420(inscription.inscriptionId);
             const bmp = await getBitmap(inscription.inscriptionId);
-            console.log("bmp", bmp)
-            checkifDelegate(inscription.inscriptionId)
+            // console.log("bmp", bmp)
+            // checkifDelegate(inscription.inscriptionId)
             if(checkIOMOwnership(inscription.inscriptionId) ) {
              
               return {
@@ -207,6 +220,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
                 contentType: inscription.contentType,
                 isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
                 attributes: getAttrbutes(inscription.inscriptionId),
+                // isDelegate: checkifDelegate(inscription.inscriptionId),
               
                 ...bmp,
                 ...brc420Data,
@@ -222,6 +236,8 @@ const ConnectWallet = ({ className }: { className?: string }) => {
                 contentType: inscription.contentType,
                 isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
                 attributes: null,
+                // isDelegate: checkifDelegate(inscription.inscriptionId),
+
                 ...bmp,
                 ...brc420Data,
                 
