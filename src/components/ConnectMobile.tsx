@@ -35,7 +35,7 @@ const message = JSON.stringify(data);
 const walletResponse = `unisat://response?data=${data}&nonce=${nonce}`;
 
 
-const baseUrl = 'https://my.inscribed.audio/';
+const baseUrl = 'https://my.inscribed.audio/mymedia';
 const mobileWalletDeepLink = {
   unisat: `unisat://request?method=signMessage&data=${message}&from=${appName}&nonce=${nonce}&callbackUrl=${baseUrl}myinscriptions?unisat-connected=1`,
   xverse: `https://connect.xverse.app/browser?url=${encodeURIComponent(baseUrl)}`,
@@ -130,8 +130,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     const browser = detectMobileAppBrowser();
     console.log(browser)
     setActiveBrowser(browser);
-    setMyMessage(`browser: ${browser}`);
-  }, []);
+   }, []);
   
 
 
@@ -229,8 +228,7 @@ const getUnisatInscriptions = async () => {
   // const browserUrl = 'https://dev.inscribed.audio/';
 	const browserUrl = 'https://my.inscribed.audio/?inXverse=1';
 
-  const browser = detectMobileAppBrowser();
-
+ 
   const handleMobileConnect = async (walletName: WalletName) => {
 
     if (provider === walletName) {
@@ -308,15 +306,6 @@ const getUnisatInscriptions = async () => {
       "btn btn-ghost text-black dark:text-white font-bold rounded-lg transition duration-300 w-full mb-2",
       "bg-white dark:bg-gray-800 hover:bg-gray-900 hover:text-white dark:hover:bg-gray-700 w-full mb-2",
       className
-    );
-
-
-    const renderWalletButton = (wallet: WalletName, deeplink: string) => (
-      <WalletButton 
-         wallet={wallet} 
-        hasWallet={hasWallet} 
-        onConnect={handleConnect} 
-      />
     );
 
     return (
