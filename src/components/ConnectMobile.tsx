@@ -254,11 +254,21 @@ const getUnisatInscriptions = async () => {
       console.error("Error connecting mobile wallet:", error);
     }
   };
-  function ConnectXverseMobile() {
-    // const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
-    const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
 
-    window.open(xverseUrl);
+  function ConnectXverseMobile() {
+    const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
+    try {
+      window.open(xverseUrl);
+      setIsMobile(true);
+      setInXverseWallet(true);
+      getXverseInscriptions();
+      navigate('/mymedia');
+
+    } catch (error) {
+      alert(error)
+    }
+ 
+    // window.open(xverseUrl);
    
  }
 
