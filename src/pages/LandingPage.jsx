@@ -113,7 +113,7 @@ const LandingPage = () => {
             <img src={headphones} alt="headphones" className="rounded-t-lg" />
                 </a>
               <div className="p-4">
-                <h3 className="text-xl font-semibold text-neutral-800 dark:text-neutral-300">The Ides of March</h3>
+                <h3 className="text-xl font-bold font-black">The Ides of March</h3>
                 <p className="text-neutral-600 dark:text-neutral-400">Unique Ordinals</p>
               </div>
             </div>
@@ -122,7 +122,7 @@ const LandingPage = () => {
             <a class="tooltip" data-tip="Collect" href="https://gamma.io/ordinals/collections/ides-of-march" target="_blank">
             <img src={spartan} alt="spartan" className="rounded-t-lg" />
                 </a>              <div className="p-4">
-                <h3 className="text-xl font-semibold text-neutral-800 dark:text-neutral-300">The Ides of March</h3>
+                <h3 className="text-xl font-bold font-black">The Ides of March</h3>
                 <p className="text-neutral-600 dark:text-neutral-400">Rare Digital Asset</p>
               </div>
             </div>
@@ -131,7 +131,7 @@ const LandingPage = () => {
             <a class="tooltip" data-tip="Collect" href="https://gamma.io/ordinals/collections/ides-of-march" target="_blank">
             <img src={woman} alt="woman" className="rounded-t-lg" />
                 </a>              <div className="p-4">
-                <h3 className="text-xl font-semibold text-neutral-800 dark:text-neutral-300">The Ides of March</h3>
+                <h3 className="text-xl font-bold font-black">The Ides of March</h3>
                 <p className="text-neutral-600 dark:text-neutral-400">Historic Bitcoin Record</p>
               </div>
             </div>
