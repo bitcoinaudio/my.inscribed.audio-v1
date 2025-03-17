@@ -35,13 +35,12 @@ const message = JSON.stringify(data);
 const walletResponse = `unisat://response?data=${data}&nonce=${nonce}`;
 
 
+const baseUrl = 'http://192.168.1.221:3333/';
 const mobileWalletDeepLink = {
-  // unisat: `unisat://request?method=connect&from=${appName}&nonce=${nonce}`,
-  unisat: `unisat://request?method=signMessage&data=${message}from=${appName}&nonce=${nonce}&callbackUrl=${callbackUrl}`,
-  xverse: `https://connect.xverse.app/browser?url=${xversebrowserUrl}`,
-  magiceden: `magiceden://connect?from=${appName}&nonce=${nonce}&browser?url=${encodeURIComponent(magicedenbrowserUrl)}`,
+  unisat: `unisat://request?method=signMessage&data=${message}&from=${appName}&nonce=${nonce}&callbackUrl=${baseUrl}myinscriptions?unisat-connected=1`,
+  xverse: `https://connect.xverse.app/browser?url=${encodeURIComponent(baseUrl)}`,
+  magiceden: `magiceden://connect?from=${appName}&nonce=${nonce}&browser?url=${encodeURIComponent(baseUrl + '?inMagicEden=1')}`,
 };
-
 
 
 type WalletName = keyof typeof SUPPORTED_WALLETS;
@@ -90,7 +89,7 @@ const WalletButton = ({wallet, hasWallet, onConnect }: {  wallet: any, hasWallet
         <div className="flex items-center">
           <div className="flex items-center gap-2 group-hover:hidden">
             <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-            <span className="text-sm ttext-grey-500">Installed</span>
+            <span className="text-sm ttext-grey-500">Connect</span>
           </div>
           <ChevronRight className="w-5 h-5 text-gray-400 hidden group-hover:block" />
         </div>
@@ -116,6 +115,8 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   const [htmlInscriptions, setHtmlInscriptions] = useState<HtmlInscription[]>([]);
   const [myMessage, setMyMessage] = useState('');
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(false);
+  const [inXverseWallet, setInXverseWallet] = useState(false);
 
   useEffect(() => {
     setHasWallet({ unisat: hasUnisat, xverse: hasXverse, [MAGIC_EDEN]: hasMagicEden });
@@ -125,12 +126,13 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
  
 
-useEffect(() => {
-  const browser = detectMobileAppBrowser();
-  setActiveBrowser(browser);
-  setMyMessage('browser: ' + browser);
- }, []);
-
+  useEffect(() => {
+    const browser = detectMobileAppBrowser();
+    console.log(browser)
+    setActiveBrowser(browser);
+    setMyMessage(`browser: ${browser}`);
+  }, []);
+  
 
 
 const getBRC420 = async (inscriptionId: string) => {
@@ -148,58 +150,45 @@ const getBRC420 = async (inscriptionId: string) => {
   }
 };
 
-  const fetchInscriptions = async (fetchFunction: Function, transformFunction: Function) => {
-    try {
-      const rawInscriptions = await fetchFunction();
-      const processedInscriptions = await Promise.all(
-        rawInscriptions.map(transformFunction)
-      );
-      const filteredInscriptions = processedInscriptions.filter(Boolean);
-      setHtmlInscriptions(filteredInscriptions);
-      setIinscriptionArray(filteredInscriptions);
-    } catch (error) {
-      console.error("Error fetching inscriptions:", error);
-    }
-  };
+const fetchInscriptions = async (fetchFunction, transformFunction) => {
+  try {
+    const rawInscriptions = await fetchFunction();
+    const processedInscriptions = await Promise.all(
+      rawInscriptions.map(transformFunction)
+    );
+    const filteredInscriptions = processedInscriptions.filter(Boolean);
+
+    setHtmlInscriptions(filteredInscriptions);
+    setIinscriptionArray(filteredInscriptions);
+  } catch (error) {
+    console.error("Error fetching inscriptions:", error);
+  }
+};
   
-  const getUnisatInscriptions = async () => {
-    
-    try {
-      setIinscriptionArray([]);
-      setHtmlInscriptions([]);
-      const accounts = await window['unisat'].getAccounts();
-      console.log("Accounts from UniSat:", accounts);
-      const res = await window['unisat'].getInscriptions(0, 100);
-      console.log("Response from getInscriptions:", res);
-      if (!res || !res.list) {
-        console.error("Invalid response from UniSat API");
-        return [];
+const getUnisatInscriptions = async () => {
+  try {
+    const accounts = await window['unisat'].getAccounts();
+    console.log("Accounts from UniSat:", accounts);
+
+    const res = await window['unisat'].getInscriptions(0, 100);
+    if (!res || !res.list) throw new Error("Invalid response from UniSat API");
+
+    return res.list.map(async (inscription) => {
+      if (inscription.contentType.includes("text/html")) {
+        const brc420Data = await getBRC420(inscription.inscriptionId);
+        return {
+          id: inscription.inscriptionId,
+          isIOM: checkIOMOwnership(inscription.inscriptionId),
+          ...brc420Data,
+        };
       }
-
-      const processedInscriptions = await Promise.all(
-        res.list.map(async (inscription: any) => {
-          if (inscription.contentType === "text/html;charset=utf-8" || inscription.contentType === "text/html") {
-            const brc420Data = await getBRC420(inscription.inscriptionId);
-            return {
-              id: inscription.inscriptionId,
-              isIOM: checkIOMOwnership(inscription.inscriptionId),
-              ...brc420Data,
-            };
-          }
-          return null;
-        })
-      );
-
-      const filteredInscriptions = processedInscriptions.filter(Boolean);
-      setHtmlInscriptions(filteredInscriptions);
-      setIinscriptionArray([...filteredInscriptions]);
-
-      return filteredInscriptions;
-    } catch (error) {
-      console.error("Error fetching UniSat inscriptions:", error);
-      return [];
-    }
-  };
+      return null;
+    });
+  } catch (error) {
+    console.error("Error fetching UniSat inscriptions:", error);
+    return [];
+  }
+};
 
   const getXverseInscriptions = async () => {
     setMyMessage('Fetching Xverse Inscriptions');
@@ -237,7 +226,9 @@ const getBRC420 = async (inscriptionId: string) => {
   };
 
 
-  const browserUrl = 'https://dev.inscribed.audio/';
+  // const browserUrl = 'https://dev.inscribed.audio/';
+	const browserUrl = 'https://my.inscribed.audio/?inXverse=1';
+
   const browser = detectMobileAppBrowser();
 
   const handleMobileConnect = async (walletName: WalletName) => {
@@ -265,43 +256,45 @@ const getBRC420 = async (inscriptionId: string) => {
   };
   function ConnectXverseMobile() {
     // const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
-  const xverseUrl = `https://connect.xverse.app/`;
+    const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
 
     window.open(xverseUrl);
    
  }
 
+ const handleConnect = async (walletName) => {
+  if (walletName === provider) {
+    disconnect();
+    navigate('/');
+    return;
+  }
 
-  const handleConnect = async (walletName: WalletName) => {
-    // if (provider === walletName) {
-    //   disconnectWallet();
-    //   disconnect();
-    //   setIinscriptionArray([]);
-    //   setHtmlInscriptions([]);
-    //   navigate('/');
-    //   return;
-    // }
+  switch (walletName) {
+    case UNISAT:
+      await connect('unisat');
+      break;
+    case XVERSE:
+    
+      try {
+        window.open(`https://connect.xverse.app/browser?url=${encodeURIComponent(baseUrl)}`);
+        setIsMobile(true);
+      } catch (error) {
+        alert(error)
+      }
 
-    // setIsOpen(false);
-    // await connect(walletName as never);
-    // connectWallet(); 
-    switch (walletName as never) {
-      case 'unisat':
-         await getUnisatInscriptions();
-        navigate('/mymedia');
-        break;
-      case 'xverse':
-         await getXverseInscriptions();
-        navigate('/mymedia');
-        break;
-        case 'magic-eden':
-          await getmagicEdenInscriptions();
-        navigate('/mymedia');
-        break;
-    }
+      break;
+    case MAGIC_EDEN:
+      window.open(mobileWalletDeepLink.magiceden);
+      break;
+    default:
+      console.error("Unsupported wallet");
+  }
 
-  };
-   const buttonClass = cn(
+  navigate('/mymedia');
+};
+
+ 
+ const buttonClass = cn(
       "btn btn-ghost text-black dark:text-white font-bold rounded-lg transition duration-300 w-full mb-2",
       "bg-white dark:bg-gray-800 hover:bg-gray-900 hover:text-white dark:hover:bg-gray-700 w-full mb-2",
       className
@@ -316,59 +309,42 @@ const getBRC420 = async (inscriptionId: string) => {
       />
     );
 
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-       {address ? (
+    return (
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        {address ? (
+          <Button onClick={() => handleConnect(provider)} className={buttonClass}>
+            <WalletIcon size={32} walletName={provider as ProviderType} className="!w-[32px] !h-[32px]" />
+            Disconnect <span className="text-lg">{address ? `${address.slice(0, 5)}...${address.slice(-5)}` : ''}</span>
+            <span className="text-sm">{myMessage}</span>
+          </Button>
+        ) : (
+          <DialogTrigger asChild>
+            <Button className={buttonClass}>
+              {isWalletConnected ? "Connecting..." : "Connect Mobile Wallet"}
+            </Button>
+          </DialogTrigger>
+        )}
+    
+        <DialogContent className="bg-white/80 dark:bg-gray-800 border-none text-black dark:text-white rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Connect on Desktop while we work on mobile wallet connect</DialogTitle>
+          </DialogHeader>
+    
+          {[ 'xverse'].map((wallet) => (
+            <WalletButton key={wallet} wallet={wallet} hasWallet={hasWallet} onConnect={handleConnect} />
+          ))}
 
-        <Button onClick={() => handleMobileConnect(provider)} className={buttonClass}>
-          <WalletIcon size={32} walletName={provider as ProviderType} className="!w-[32px] !h-[32px]" />
-          Disconnect <span className="text-lg">{address ? `${address.slice(0, 5)}...${address.slice(-5)}` : ''}</span>
-          <span className="text-sm">{myMessage}</span>
-        </Button>
+            {inXverseWallet && (
+            <div className="text-center text-sm text-gray-500 dark:text-gray-400">
+              You are currently in the Xverse Wallet browser.
+              <WalletButton key={"xverse"} wallet={"xverse"} hasWallet={hasWallet} onConnect={ConnectXverseMobile} />
 
-      ) : (
-        <DialogTrigger asChild>
-          <Button className={buttonClass}>{isWalletConnected ? "Connecting..." : "Connect Mobile Wallet"}</Button>
-        </DialogTrigger>
-      )}
+            </div>
+            )}
 
-<DialogContent className="bg-white/80 dark:bg-gray-800 border-none text-black dark:text-white rounded-2xl">
- 
-    <DialogHeader>
-      <DialogTitle>Connect on Desktop while we work on mobile wallet connect</DialogTitle>
-    </DialogHeader>
-
-    <WalletButton  wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
-    <WalletButton  wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
-    <WalletButton  wallet={XVERSE} hasWallet={hasWallet} onConnect={handleMobileConnect} />
- 
-
-    {/* <div className="p-4">
-      {hasWallet[UNISAT] || hasWallet[XVERSE] || hasWallet[MAGIC_EDEN] ? (
-        activeBrowser === 'unisat' ? 
-        <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
-        :
-        activeBrowser === 'xverse' ?         
-        <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />
-        :
-        activeBrowser === 'magic-eden' ?  
-        <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
-        :
-        null
-      ) : (
-        <>
-        <WalletButton deeplink={mobileWalletDeepLink.magiceden} wallet={MAGIC_EDEN} hasWallet={hasWallet} onConnect={handleConnect} />
-        <WalletButton deeplink={mobileWalletDeepLink.unisat} wallet={UNISAT} hasWallet={hasWallet} onConnect={handleConnect} />
-        <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />
-        </>
-      )}
-      {browser === 'xverse' &&
-      <WalletButton deeplink={mobileWalletDeepLink.xverse} wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnect} />}
-    </div> */}
-  </DialogContent>
-
-     </Dialog>
-  );
-};
+        </DialogContent>
+      </Dialog>
+    );
+    };
 
 export default ConnectWallet;
