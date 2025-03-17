@@ -2,61 +2,49 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useWallet } from "../context/WalletContext";
+import { useLaserEyes, WalletIcon, XVERSE, MAGIC_EDEN, UNISAT } from "@omnisat/lasereyes";
+import { request } from "sats-connect";
 import { Button } from "./ui/button";
 import { ChevronRight } from "lucide-react";
-import {
-  MAGIC_EDEN,
-  UNISAT,
-  useLaserEyes,
-  WalletIcon,
-  XVERSE,
-  ProviderType,
-} from "@omnisat/lasereyes";
-import { request } from "sats-connect";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { cn } from "../lib/utils";
 import { setIinscriptionArray } from "../globalState";
 import idesofmarch from "../lib/collections/idesofmarch.json";
 import { detectMobileAppBrowser } from "../utils/browserCheck";
 
-// Constants
-const appName = "Inscribed Audio";
 const nonce = Date.now().toString();
-const baseUrl = "https://my.inscribed.audio/mymedia";
 const browserUrl = "https://my.inscribed.audio/?inXverse=1";
 
-// Map inscription IDs for faster lookup
 const idesOfMarchIDs = new Set(idesofmarch.map((item) => item.id));
 
-// Check Ides of March Ownership
 const checkIOMOwnership = (insID) => idesOfMarchIDs.has(insID);
 
-// Main ConnectWallet component
 const ConnectWallet = ({ className }) => {
+  const navigate = useNavigate();
   const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
-  const { disconnectWallet } = useWallet();
+
   const [isOpen, setIsOpen] = useState(false);
   const [hasWallet, setHasWallet] = useState({ unisat: false, xverse: false, [MAGIC_EDEN]: false });
-  const [myMessage, setMyMessage] = useState("");
-  const navigate = useNavigate();
-  const [activeBrowser, setActiveBrowser] = useState(detectMobileAppBrowser());
 
   useEffect(() => {
     setHasWallet({ unisat: hasUnisat, xverse: hasXverse, [MAGIC_EDEN]: hasMagicEden });
   }, [hasUnisat, hasXverse, hasMagicEden]);
 
-  // Xverse Mobile Connection
-  const connectXverseMobile = () => {
+  const handleDisconnect = () => {
+    disconnect();
+    setIinscriptionArray([]);
+    navigate("/");
+  };
+
+  const handleConnectXverseMobile = () => {
     const xverseUrl = `https://connect.xverse.app/browser?url=${encodeURIComponent(browserUrl)}`;
-    window.open(xverseUrl);
+    window.open(xverseUrl, "_blank");
     navigate("/mymedia");
   };
 
-  // Wallet Button Component
   const WalletButton = ({ wallet, hasWallet, onConnect }) => (
     <Button
-      onClick={hasWallet[wallet] ? () => onConnect(wallet) : undefined}
+      onClick={onConnect}
       variant="ghost"
       className={cn(
         "w-full hover:bg-gray-50 dark:hover:bg-gray-700",
@@ -66,38 +54,18 @@ const ConnectWallet = ({ className }) => {
     >
       <div className="flex items-center gap-3">
         <WalletIcon size={32} walletName={wallet} />
-        <span className="text-lg font-bold capitalize">
-          {wallet.replace(/[-_]/g, " ")}
-        </span>
+        <span className="text-lg font-bold capitalize">{wallet}</span>
       </div>
-      {hasWallet[wallet] ? (
-        <div className="flex items-center">
-          <div className="group-hover:hidden flex gap-2">
-            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-            <span className="text-sm">Connect</span>
-          </div>
-          <ChevronRight className="hidden group-hover:block w-5 h-5" />
-        </div>
-      ) : (
-        <ChevronRight className="w-4 h-4 text-gray-400" />
-      )}
+      <ChevronRight className="w-4 h-4 text-gray-400" />
     </Button>
   );
-
-  // Disconnect handler
-  const handleDisconnect = () => {
-    disconnectWallet();
-    disconnect();
-    setIinscriptionArray([]);
-    navigate("/");
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {address ? (
         <Button onClick={handleDisconnect} className={cn("w-full", className)}>
           <WalletIcon size={32} walletName={provider} />
-          Disconnect {address}
+          Disconnect {address.slice(0, 5)}...{address.slice(-5)}
         </Button>
       ) : (
         <DialogTrigger asChild>
@@ -109,9 +77,7 @@ const ConnectWallet = ({ className }) => {
         <DialogHeader>
           <DialogTitle>Select Wallet</DialogTitle>
         </DialogHeader>
-        {[XVERSE].map((wallet) => (
-          <WalletButton key={wallet} wallet={wallet} hasWallet={hasWallet} onConnect={connectXverseMobile} />
-        ))}
+        <WalletButton wallet={XVERSE} hasWallet={hasWallet} onConnect={handleConnectXverseMobile} />
       </DialogContent>
     </Dialog>
   );
