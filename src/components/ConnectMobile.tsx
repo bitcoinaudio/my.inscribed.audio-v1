@@ -35,7 +35,7 @@ const message = JSON.stringify(data);
 const walletResponse = `unisat://response?data=${data}&nonce=${nonce}`;
 
 
-const baseUrl = 'http://192.168.1.221:3333/';
+const baseUrl = 'https://my.inscribed.audio/';
 const mobileWalletDeepLink = {
   unisat: `unisat://request?method=signMessage&data=${message}&from=${appName}&nonce=${nonce}&callbackUrl=${baseUrl}myinscriptions?unisat-connected=1`,
   xverse: `https://connect.xverse.app/browser?url=${encodeURIComponent(baseUrl)}`,
