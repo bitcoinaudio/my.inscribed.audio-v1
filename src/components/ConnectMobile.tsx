@@ -331,7 +331,7 @@ const getUnisatInscriptions = async () => {
           </DialogHeader>
     
           {[ 'xverse'].map((wallet) => (
-            <WalletButton key={wallet} wallet={wallet} hasWallet={hasWallet} onConnect={handleConnect} />
+            <WalletButton key={wallet} wallet={wallet} hasWallet={hasWallet} onConnect={ConnectXverseMobile} />
           ))}
 
             {inXverseWallet && (
