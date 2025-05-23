@@ -28,5 +28,5 @@ npm-debug.log*
 .env.production.local
 .env
 
- 
+ openssl.cnf
 
