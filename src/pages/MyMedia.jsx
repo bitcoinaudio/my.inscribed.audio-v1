@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { fadeIn, staggerContainer } from "../utils/motion";
 import { inscriptionArray } from "../globalState";
+import beatblockImage from "/images/beatblocks.png";
 import ordImage from "/images/ordinals.svg";
 import iomImage from "/images/idesofmarch.png";
 import woman from "/images/woman-sticker.webp";
@@ -86,6 +87,7 @@ const LazyIframe = ({ src, placeholderSrc, className }) => {
 // MediaCard Component
 const MediaCard = React.memo(({ item }) => {
   const contentCategory = getContentCategory(item.contentType);
+  const isBeatBlock = item.isBeatBlock;
   const isBitmap = item.isBitmap;
   const contentUrl = item.isBRC420 ? item.brc420Url : `${ORD_SERVER}/content/${item.id}`;
   const previewUrl = `${ORD_SERVER}/preview/${item.id}`;
@@ -187,6 +189,21 @@ const MediaCard = React.memo(({ item }) => {
                   <img className="size-10" src={iomImage} alt="IOM" />
                 </a>
               </li>
+            )}
+            {item.isBeatBlock && (
+              <li>
+                <a
+                  className="tooltip"
+                  data-tip="BeatBlock.io"
+                  href={`https://www.beatblocks.io/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <svg width="120" height="35" viewBox="0 0 969 283" fill="none" xmlns="http://www.w3.org/2000/svg" class="h-6 w-auto"><path d="M137.315 32.5269V0H104.809V32.5269H83.281V0H50.7754V32.5269H0V250.473H50.7366V283H83.2422V250.473H104.77V283H137.276V250.473H188.013V32.5269H137.276H137.315ZM42.2805 208.204V158.792H145.848V208.204H42.2805ZM42.2805 124.557V74.8353H145.848V124.557H42.2805Z" fill="#FF6804"></path><path d="M281.185 150.874H239.292V192.794H281.185V206.767H225.328V81.0069H281.185V94.9802H295.149V136.9H281.185V94.9802H239.292V136.9H281.185V150.874H295.149V192.794H281.185V150.874Z" fill="white"></path><path d="M326.569 192.794H312.604V136.9H326.569V150.874H368.461V136.9H326.569V122.927H368.461V136.9H382.425V164.847H326.569V192.794H368.461V206.767H326.569V192.794ZM368.5 178.821H382.464V192.794H368.5V178.821Z" fill="white"></path><path d="M413.884 192.794H399.92V164.847H413.884V192.794H455.776V164.847H413.884V150.874H455.776V136.9H413.884V122.927H455.776V136.9H469.741V206.767H413.884V192.794Z" fill="white"></path><path d="M487.196 94.9802H501.16V122.927H515.124V136.9H501.16V192.794H515.124V206.767H501.16V192.794H487.196V94.9802Z" fill="white"></path><path d="M588.436 150.874H546.544V192.794H588.436V206.767H532.58V81.0069H588.436V94.9802H602.401V136.9H588.436V94.9802H546.544V136.9H588.436V150.874H602.401V192.794H588.436V150.874Z" fill="white"></path><path d="M619.856 81.0069H633.82V206.767H619.856V81.0069Z" fill="white"></path><path d="M651.275 136.9H665.24V192.794H651.275V136.9ZM665.24 122.927H707.132V136.9H665.24V122.927ZM665.24 192.794H707.132V206.767H665.24V192.794ZM707.132 136.9H721.096V192.794H707.132V136.9Z" fill="white"></path><path d="M738.552 136.9H752.516V192.794H738.552V136.9ZM752.516 122.927H794.409V136.9H752.516V122.927ZM752.516 192.794H794.409V206.767H752.516V192.794ZM794.409 136.9H808.373V150.874H794.409V136.9ZM794.409 178.821H808.373V192.794H794.409V178.821Z" fill="white"></path><path d="M853.795 164.847H839.831V206.767H825.867V81.0069H839.831V150.874H853.795V164.847H867.759V178.821H881.724V192.794H895.688V206.767H881.724V192.794H867.759V178.821H853.795V164.847ZM853.795 136.9H867.759V150.874H853.795V136.9ZM867.759 122.927H881.724V136.9H867.759V122.927Z" fill="white"></path><path d="M913.104 136.9H927.069V150.874H913.104V136.9ZM913.104 178.821H927.069V192.794H913.104V178.821ZM927.107 122.927H955.036V136.9H927.107V122.927ZM927.107 150.874H941.072V164.847H927.107V150.874ZM927.107 192.794H955.036V206.767H927.107V192.794ZM941.072 164.847H955.036V178.821H941.072V164.847ZM955.036 136.9H969V150.874H955.036V136.9ZM955.036 178.821H969V192.794H955.036V178.821Z" fill="white"></path></svg>
+                </a>
+              </li>
+
+              
             )}
             {item.attributes && (
               <div>

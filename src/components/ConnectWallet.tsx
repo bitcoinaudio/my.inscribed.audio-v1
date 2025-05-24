@@ -30,6 +30,7 @@ interface HtmlInscription {
   isBRC420: boolean;
   brc420Url?: string;
   isBitmap?: boolean;
+  isBeatBlock?: boolean;
   bitmap?: string;
 }
 
@@ -44,10 +45,12 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   const navigate = useNavigate();
   const [isConnected, setIsConnected] = useState(false);
   const [isValidBitmap, setIsValidBitmap] = useState(false);
+  const [isBeatBlock, setIsBeatBlock] = useState(false);
 
   // Match the original code's approach for collection lookups
   const idesOfMarchIDs = idesofmarch.map((item) => item.id);
   const dustIDs = dust.map((item) => item.id);
+  const beatblockIDs = "808f2bcdf19691342041adfa507abba33003bfb2643496bb256897a2c8dc1808i";
 
   useEffect(() => {
     setHasWallet({ unisat: hasUnisat, xverse: hasXverse, [MAGIC_EDEN]: hasMagicEden });
@@ -60,7 +63,19 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   function checkDustOwnership(insID: string) {
     return dustIDs.includes(insID);
   }
-  
+
+  function checkBeatBlockOwnership(insID: string) {
+    const beatblock808 = insID.slice(0, 65);
+      if (beatblock808 === beatblockIDs) {
+        setIsBeatBlock(true);
+            console.log("beatblock insID", insID);
+
+        return insID;
+      } else {
+        setIsBeatBlock(false);
+        return false;
+      }
+  }
   function checkEnhancedInscription(insID: string) {
     return idesOfMarchIDs.includes(insID) || dustIDs.includes(insID);
   } 
@@ -154,6 +169,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
             return {
               id: inscription.inscriptionId,
               isIOM: checkIOMOwnership(inscription.inscriptionId),
+              isBeatBlock: checkBeatBlockOwnership(inscription.inscriptionId),
               isDust: checkDustOwnership(inscription.inscriptionId),
               contentType: inscription.contentType,
               isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
