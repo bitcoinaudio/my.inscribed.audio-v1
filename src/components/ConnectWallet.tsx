@@ -1,7 +1,7 @@
 "use client";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from 'react-router-dom';
-import { useWallet } from '../context/WalletContext';  
+import { useWallet } from '../context/WalletContext';
 import { Button } from "./ui/button";
 import {
   MAGIC_EDEN,
@@ -30,10 +30,24 @@ interface HtmlInscription {
   isBRC420: boolean;
   brc420Url?: string;
   isBitmap?: boolean;
-  isBeatBlock?: boolean;
   bitmap?: string;
+  isBeatBlock?: boolean;
 }
-
+const ordSite1 = "https://radinals.bitcoinaudio.co";
+const ordSite2 = "https://ordinals.com";
+// check if ordSite1 is availbale, if not use ordSite2
+const checkOrdinalsSite = async () => {
+  try {
+    const response = await fetch(ordSite1, { method: 'HEAD' });
+    if (response.status === 200) {
+      return ordSite1;
+    }else {
+       return ordSite2;
+    }
+  } catch (error) {
+    console.error("Error checking ordinals site:", error);
+  }
+ }
 const ConnectWallet = ({ className }: { className?: string }) => {
   const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
   const { connectWallet, disconnectWallet } = useWallet();
@@ -42,216 +56,121 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   const [hasWallet, setHasWallet] = useState({ unisat: false, xverse: false, [MAGIC_EDEN]: false });
   const [htmlInscriptions, setHtmlInscriptions] = useState<HtmlInscription[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
   const [isConnected, setIsConnected] = useState(false);
-  const [isValidBitmap, setIsValidBitmap] = useState(false);
-  const [isBeatBlock, setIsBeatBlock] = useState(false);
+  const navigate = useNavigate();
 
-  // Match the original code's approach for collection lookups
-  const idesOfMarchIDs = idesofmarch.map((item) => item.id);
-  const dustIDs = dust.map((item) => item.id);
-  const beatblockIDs = "808f2bcdf19691342041adfa507abba33003bfb2643496bb256897a2c8dc1808i";
+  // Memoized constants
+  const idesOfMarchIDs = useMemo(() => idesofmarch.map(item => item.id), []);
+  const dustIDs = useMemo(() => dust.map(item => item.id), []);
+  const beatblockPrefix = "808f2bcdf19691342041adfa507abba33003bfb2643496bb256897a2c8dc1808i";
 
   useEffect(() => {
     setHasWallet({ unisat: hasUnisat, xverse: hasXverse, [MAGIC_EDEN]: hasMagicEden });
   }, [hasUnisat, hasXverse, hasMagicEden]);
 
-  function checkIOMOwnership(insID: string) {
-    return idesOfMarchIDs.includes(insID);
-  }
-  
-  function checkDustOwnership(insID: string) {
-    return dustIDs.includes(insID);
-  }
+  const checkEnhancedInscription = useCallback((id: string) => idesOfMarchIDs.includes(id) || dustIDs.includes(id), []);
+  const getAttributes = useCallback((id: string) => idesofmarch.find(item => item.id === id)?.meta?.attributes ?? null, []);
+  const isBeatBlock = useCallback((id: string) => id.startsWith(beatblockPrefix), []);
 
-  function checkBeatBlockOwnership(insID: string) {
-    const beatblock808 = insID.slice(0, 65);
-      if (beatblock808 === beatblockIDs) {
-        setIsBeatBlock(true);
-            console.log("beatblock insID", insID);
-
-        return insID;
-      } else {
-        setIsBeatBlock(false);
-        return false;
-      }
-  }
-  function checkEnhancedInscription(insID: string) {
-    return idesOfMarchIDs.includes(insID) || dustIDs.includes(insID);
-  } 
-  
-  function getAttrbutes(insID: string) {
-    const matchedItem = idesofmarch.find(item => item.id === insID);
-    return matchedItem ? matchedItem.meta.attributes : null;
-  }
-
-  async function getBRC420(inscriptionId: string) {
+  const getBRC420 = async (id: string) => {
+    const ordinalsSite = await checkOrdinalsSite();
     try {
-      const response = await fetch(`https://radinals.bitcoinaudio.co/content/${inscriptionId}`, {
-        headers: {
-          "Accept": "application/json"
-        }
-      });
-      const text = await response.text();
-      return text.trim().startsWith('/content/')
-        ? { isBRC420: true, brc420Url: `https://radinals.bitcoinaudio.co${text.trim()}` }
+      const res = await fetch(`${ordinalsSite}/content/${id}`, { headers: { Accept: "application/json" } });
+      const text = await res.text();
+      return text.startsWith("/content/")
+        ? { isBRC420: true, brc420Url: `${ordinalsSite}${text.trim()}` }
         : { isBRC420: false, brc420Url: '' };
-    } catch (error) {
-      console.error("Error fetching BRC420:", error);
+    } catch {
       return { isBRC420: false, brc420Url: '' };
-    }
-  }
-
-  async function getBitmap(inscriptionId: string) {
-    const regexBitmap = /^(?:0|[1-9][0-9]*).bitmap$/;
-    try {
-      const response = await fetch(`https://radinals.bitcoinaudio.co/content/${inscriptionId}`, {
-        headers: {
-          "Accept": "application/json"
-        }
-      });
-      const text = await response.text();
-      const bitmapText = regexBitmap.test(text);
-       
-      if(bitmapText) {
-        const inscriptionParts = text.split(".");
-        console.log("bitmapText", inscriptionParts);
-        return bitmapText
-          ? { isBitmap: true, bitmap: inscriptionParts[0], valid: isValidBitmap }
-          : { isBitmap: false, bitmap: '' };
-      }
-      return { isBitmap: false, bitmap: '' };
-    } catch (error) {
-      console.error("Error fetching Bitmap:", error);
-      return { isBitmap: false, bitmap: '' };
-    }
-  }
-
-  async function checkifDelegate(inscriptionId: string) {
-    try {
-      const response = await fetch(`https://radinals.bitcoinaudio.co/inscription/${inscriptionId}`, {
-        headers: {
-          "Accept": "application/json"
-        }
-      });
-      const text = await response.text();
-      console.log("checkifDelegate", response);
-      return text
-        ? { isDelegate: true, delegateUrl: `https://radinals.bitcoinaudio.co${text.trim()}` }
-        : { isDelegate: false, delegateUrl: '' };
-    } catch (error) {
-      console.error("Error fetching BRC420:", error);
-      return { isDelegate: false, delegateUrl: '' };
-    }
-  }
-
-  const processInscriptions = async (rawInscriptions) => {
-    try {
-      const processedInscriptions = await Promise.all(
-        rawInscriptions.map(async (inscription) => {
-          const brc420Data = await getBRC420(inscription.inscriptionId);
-          const bmp = await getBitmap(inscription.inscriptionId);
-          // console.log("bmp", bmp);
-          
-          if(checkIOMOwnership(inscription.inscriptionId)) {
-            return {
-              id: inscription.inscriptionId,
-              isIOM: checkIOMOwnership(inscription.inscriptionId),
-              isDust: checkDustOwnership(inscription.inscriptionId),
-              contentType: inscription.contentType,
-              isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
-              attributes: getAttrbutes(inscription.inscriptionId),
-              // isDelegate: checkifDelegate(inscription.inscriptionId),
-              ...bmp,
-              ...brc420Data,
-            };
-          } else {
-            return {
-              id: inscription.inscriptionId,
-              isIOM: checkIOMOwnership(inscription.inscriptionId),
-              isBeatBlock: checkBeatBlockOwnership(inscription.inscriptionId),
-              isDust: checkDustOwnership(inscription.inscriptionId),
-              contentType: inscription.contentType,
-              isEnhanced: checkEnhancedInscription(inscription.inscriptionId),
-              attributes: null,
-              // isDelegate: checkifDelegate(inscription.inscriptionId),
-              ...bmp,
-              ...brc420Data,
-            };
-          }
-        })
-      );
-
-      const filteredInscriptions = processedInscriptions.filter(Boolean);
-      setHtmlInscriptions(filteredInscriptions);
-      setIinscriptionArray([...filteredInscriptions]);
-      
-      return filteredInscriptions;
-    } catch (error) {
-      console.error("Error processing inscriptions:", error);
-      return [];
-    } finally {
-      setIsLoading(false);
     }
   };
 
+  const getBitmap = async (id: string) => {
+        const ordinalsSite = await checkOrdinalsSite();
+
+    const regex = /^(?:0|[1-9][0-9]*).bitmap$/;
+    try {
+      const res = await fetch(`${ordinalsSite}/content/${id}`, { headers: { Accept: "application/json" } });
+      const text = await res.text();
+      return regex.test(text)
+        ? { isBitmap: true, bitmap: text.split(".")[0] }
+        : { isBitmap: false, bitmap: '' };
+    } catch {
+      return { isBitmap: false, bitmap: '' };
+    }
+  };
+
+  const processInscriptions = async (raw: any[]): Promise<HtmlInscription[]> => {
+    const result = await Promise.all(
+      raw.map(async (insc) => {
+        const id = insc.inscriptionId;
+        const [brc420, bmp] = await Promise.all([getBRC420(id), getBitmap(id)]);
+
+        return {
+          id,
+          isIOM: idesOfMarchIDs.includes(id),
+          isDust: dustIDs.includes(id),
+          contentType: insc.contentType,
+          isEnhanced: checkEnhancedInscription(id),
+          attributes: getAttributes(id),
+          isBeatBlock: isBeatBlock(id),
+          ...brc420,
+          ...bmp,
+        };
+      })
+    );
+
+    const clean = result.filter(Boolean);
+    setHtmlInscriptions(clean);
+    setIinscriptionArray(clean);
+    return clean;
+  };
+
   const getUnisatInscriptions = async () => {
+    if (!window?.unisat?.getInscriptions) {
+      console.warn("UniSat wallet not available.");
+      return [];
+    }
+
     try {
       setIsLoading(true);
-      // Clear previous data - important for correct operation
-      setIinscriptionArray([]);
-      setHtmlInscriptions([]);
-      
-      const res = await window['unisat'].getInscriptions(0, 100);
-      console.log("Response from getInscriptions:", res);
-      if (!res || !res.list) {
-        console.error("Invalid response from UniSat API");
-        return [];
-      }
-
-      return await processInscriptions(res.list);
-    } catch (error) {
-      console.error("Error fetching UniSat inscriptions:", error);
-      return [];
+      const res = await window.unisat.getInscriptions(0, 100);
+      if (res?.list) return await processInscriptions(res.list);
+    } catch (e) {
+      console.error("Error fetching from UniSat:", e);
     } finally {
       setIsLoading(false);
     }
+
+    return [];
   };
 
   const getXverseInscriptions = async () => {
     try {
       setIsLoading(true);
-      // Clear previous data - important for correct operation
-      setIinscriptionArray([]);
-      setHtmlInscriptions([]);
-      
-      const response = await request('wallet_connect', null);
-      if (response.status !== 'success') return [];
-
-      for (const address of response.result.addresses) {
-        if (address.addressType === 'p2tr') {
-          const inscriptions = await request('ord_getInscriptions', { offset: 0, limit: 100 });
-          if (inscriptions.status === 'success') {
-            return await processInscriptions(inscriptions.result.inscriptions);
-          }
+      const response = await request("wallet_connect", null);
+      if (response.status === "success") {
+        const p2tr = response.result.addresses.find(addr => addr.addressType === 'p2tr');
+        if (p2tr) {
+          const res = await request("ord_getInscriptions", { offset: 0, limit: 100 });
+          if (res.status === "success") return await processInscriptions(res.result.inscriptions);
         }
       }
-      return [];
-    } catch (error) {
-      console.error("Error fetching Xverse inscriptions:", error);
-      return [];
+    } catch (e) {
+      console.error("Error fetching from Xverse:", e);
     } finally {
       setIsLoading(false);
     }
+
+    return [];
   };
 
   const handleConnect = async (walletName: WalletName) => {
-    // Disconnect case - matches original logic
     if (provider === walletName) {
       disconnectWallet();
       disconnect();
-      setIinscriptionArray([]);
       setHtmlInscriptions([]);
+      setIinscriptionArray([]);
       setIsConnected(false);
       navigate('/');
       return;
@@ -259,38 +178,32 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
     setIsOpen(false);
     setIsLoading(true);
+
     try {
-      // Connect wallet first
       await connect(walletName as never);
       connectWallet();
+      setIsWalletName(walletName);
       setIsConnected(true);
-      
-      // Then fetch inscriptions based on wallet type
-      switch (walletName) {
-        case 'unisat':
-          await getUnisatInscriptions();
-          break;
-        case 'xverse':
-          await getXverseInscriptions();
-          break;
-      }
-      
+
+      if (walletName === 'unisat') await getUnisatInscriptions();
+      else if (walletName === 'xverse') await getXverseInscriptions();
+
       navigate('/mymedia');
-    } catch (error) {
-      console.error(`Error connecting to ${walletName}:`, error);
-      // Only disconnect if connection was attempted but failed
+    } catch (err) {
+      console.error(`Connection to ${walletName} failed:`, err);
       if (isConnected) {
         disconnectWallet();
         disconnect();
         setIsConnected(false);
       }
+    } finally {
       setIsLoading(false);
     }
   };
 
   const buttonClass = cn(
     "btn btn-ghost text-black dark:text-white font-bold rounded-lg transition duration-300 w-full mb-2",
-    "bg-white dark:bg-gray-800 hover:bg-gray-900 hover:text-white dark:hover:bg-gray-700 w-full mb-2",
+    "bg-white dark:bg-gray-800 hover:bg-gray-900 hover:text-white dark:hover:bg-gray-700",
     isLoading && "opacity-50 cursor-not-allowed",
     className
   );
@@ -298,17 +211,9 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       {address ? (
-        <Button 
-          onClick={() => handleConnect(provider)} 
-          className={buttonClass}
-          disabled={isLoading}
-        >
-          <WalletIcon 
-            size={32} 
-            walletName={provider as ProviderType} 
-            className="!w-[32px] !h-[32px]" 
-          />
-          Disconnect <span className="text-lg">{address ? `${address.slice(0, 5)}...${address.slice(-5)}` : ''}</span>
+        <Button onClick={() => handleConnect(provider)} className={buttonClass} disabled={isLoading}>
+          <WalletIcon size={32} walletName={provider as ProviderType} className="!w-[32px] !h-[32px]" />
+          Disconnect <span className="text-lg">{`${address.slice(0, 5)}...${address.slice(-5)}`}</span>
         </Button>
       ) : (
         <DialogTrigger asChild>
@@ -325,13 +230,13 @@ const ConnectWallet = ({ className }: { className?: string }) => {
         <div className="p-4">
           {Object.values(SUPPORTED_WALLETS).map(wallet => (
             hasWallet[wallet.name] && (
-              <Button 
-                key={wallet.name} 
-                onClick={() => handleConnect(wallet.name)} 
+              <Button
+                key={wallet.name}
+                onClick={() => handleConnect(wallet.name)}
                 className={buttonClass}
                 disabled={isLoading}
               >
-                <WalletIcon size={24} walletName={wallet.name} /> Connect 
+                <WalletIcon size={24} walletName={wallet.name} /> Connect
               </Button>
             )
           ))}
