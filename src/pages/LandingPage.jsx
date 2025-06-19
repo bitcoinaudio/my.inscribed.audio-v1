@@ -5,6 +5,7 @@ import heroImage from "/images/ia-bg3.png"; // Replace with your hero image
 import headphones from "/images/headphones.png";
 import spartan from "/images/spartan.png";
 import woman from "/images/woman.png";
+import beatblocks from "/images/beatblocks.png";
 
 const LandingPage = () => {
   // const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
@@ -102,7 +103,7 @@ const LandingPage = () => {
       {/* Gallery Preview Section */}
       <section className="py-16 shadow-lg shadow-black rounded-lg bg-black-800/80 transition-all">
         <div className="container mx-auto text-center">
-          <h2 className="text-4xl font-bold font-black">Featured Inscriptions</h2>
+          <h2 className="text-4xl font-bold font-black">Featured Projects</h2>
           {/* <p className="text-lg text-neutral-600 dark:text-neutral-400 mt-4">
             Discover the latest digital creations on Bitcoin.
           </p> */}
@@ -119,10 +120,10 @@ const LandingPage = () => {
             </div>
 
             <div className="card max-w-2xl  transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box p-6">
-            <a class="tooltip" data-tip="Collect" href="https://gamma.io/ordinals/collections/ides-of-march" target="_blank">
-            <img src={spartan} alt="spartan" className="rounded-t-lg" />
+            <a class="tooltip" data-tip="Collect" href="https://magiceden.us/ordinals/marketplace/beatblock-genesis" target="_blank">
+            <img src={beatblocks} alt="beatblocks" className="rounded-t-lg" />
                 </a>              <div className="p-4">
-                <h3 className="text-xl font-bold font-black">The Ides of March</h3>
+                <h3 className="text-xl font-bold font-black">Beat Blocks</h3>
                 <p className="text-neutral-600 dark:text-neutral-400">Rare Digital Asset</p>
               </div>
             </div>
