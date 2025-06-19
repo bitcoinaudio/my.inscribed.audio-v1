@@ -53,6 +53,46 @@ const LandingPage = () => {
         </div>
       </section>
 
+        {/* Gallery Preview Section */}
+      <section className="py-16 shadow-lg shadow-black rounded-lg bg-black-800/80 transition-all">
+        <div className="container mx-auto text-center">
+          <h2 className="text-4xl font-bold font-black">Featured Projects</h2>
+          {/* <p className="text-lg text-neutral-600 dark:text-neutral-400 mt-4">
+            Discover the latest digital creations on Bitcoin.
+          </p> */}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+            <div className="card max-w-2xl  transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box p-6">
+            <a class="tooltip" data-tip="Collect" href="https://gamma.io/ordinals/collections/ides-of-march" target="_blank">
+            <img src={headphones} alt="headphones" className="rounded-t-lg" />
+                </a>
+              <div className="p-4">
+                <h3 className="text-xl font-bold font-black">The Ides of March</h3>
+                <p className="text-neutral-600 dark:text-neutral-400">Unique Ordinals</p>
+              </div>
+            </div>
+
+            <div className="card max-w-2xl  transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box p-6">
+            <a class="tooltip" data-tip="Collect" href="https://magiceden.us/ordinals/marketplace/beatblock-genesis" target="_blank">
+            <img src={beatblocks} alt="beatblocks" className="rounded-t-lg" />
+                </a>              <div className="p-4">
+                <h3 className="text-xl font-bold font-black">Beat Blocks</h3>
+                <p className="text-neutral-600 dark:text-neutral-400">Rare Digital Asset</p>
+              </div>
+            </div>
+
+            <div className="card max-w-2xl  transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box p-6">
+            <a class="tooltip" data-tip="Collect" href="https://gamma.io/ordinals/collections/ides-of-march" target="_blank">
+            <img src={woman} alt="woman" className="rounded-t-lg" />
+                </a>              <div className="p-4">
+                <h3 className="text-xl font-bold font-black">The Ides of March</h3>
+                <p className="text-neutral-600 dark:text-neutral-400">Historic Bitcoin Record</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-8 shadow-lg shadow-black rounded-lg bg-black-800/80 transition-all ">
         <div className="container  mx-auto text-center">
@@ -100,45 +140,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Gallery Preview Section */}
-      <section className="py-16 shadow-lg shadow-black rounded-lg bg-black-800/80 transition-all">
-        <div className="container mx-auto text-center">
-          <h2 className="text-4xl font-bold font-black">Featured Projects</h2>
-          {/* <p className="text-lg text-neutral-600 dark:text-neutral-400 mt-4">
-            Discover the latest digital creations on Bitcoin.
-          </p> */}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <div className="card max-w-2xl  transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box p-6">
-            <a class="tooltip" data-tip="Collect" href="https://gamma.io/ordinals/collections/ides-of-march" target="_blank">
-            <img src={headphones} alt="headphones" className="rounded-t-lg" />
-                </a>
-              <div className="p-4">
-                <h3 className="text-xl font-bold font-black">The Ides of March</h3>
-                <p className="text-neutral-600 dark:text-neutral-400">Unique Ordinals</p>
-              </div>
-            </div>
-
-            <div className="card max-w-2xl  transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box p-6">
-            <a class="tooltip" data-tip="Collect" href="https://magiceden.us/ordinals/marketplace/beatblock-genesis" target="_blank">
-            <img src={beatblocks} alt="beatblocks" className="rounded-t-lg" />
-                </a>              <div className="p-4">
-                <h3 className="text-xl font-bold font-black">Beat Blocks</h3>
-                <p className="text-neutral-600 dark:text-neutral-400">Rare Digital Asset</p>
-              </div>
-            </div>
-
-            <div className="card max-w-2xl  transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box p-6">
-            <a class="tooltip" data-tip="Collect" href="https://gamma.io/ordinals/collections/ides-of-march" target="_blank">
-            <img src={woman} alt="woman" className="rounded-t-lg" />
-                </a>              <div className="p-4">
-                <h3 className="text-xl font-bold font-black">The Ides of March</h3>
-                <p className="text-neutral-600 dark:text-neutral-400">Historic Bitcoin Record</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+    
 
       {/* Call to Action */}
       {/* <section className=" text-white py-16 transition-all">
