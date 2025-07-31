@@ -3,19 +3,30 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useWallet } from '../context/WalletContext';
 import { Button } from "./ui/button";
-import {
-  MAGIC_EDEN,
-  useLaserEyes,
-  WalletIcon,
-  SUPPORTED_WALLETS,
-  ProviderType,
-} from "@omnisat/lasereyes";
+
 import { request } from "sats-connect";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { cn } from "../lib/utils";
 import { setIinscriptionArray } from "../globalState";
 import idesofmarch from '../lib/collections/idesofmarch.json';
 import dust from '../lib/collections/dust.json';
+
+
+import { WalletIcon } from '@omnisat/lasereyes-react'
+import { useLaserEyes } from '@omnisat/lasereyes-react'
+import { 
+  SUPPORTED_WALLETS,
+  ProviderType,
+  UNISAT, 
+  XVERSE,
+  OYL,
+  LEATHER,
+  MAGIC_EDEN,
+  OKX,
+  PHANTOM,
+  WIZZ,
+  ORANGE
+} from '@omnisat/lasereyes-core'
 
 declare global {
   interface Window {
@@ -58,10 +69,9 @@ const checkOrdinalsSite = async () => {
  }
 const ConnectWallet = ({ className }: { className?: string }) => {
   const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
-  const { connectWallet, disconnectWallet } = useWallet();
   const [isOpen, setIsOpen] = useState(false);
   const [isWalletName, setIsWalletName] = useState('');
-  const [hasWallet, setHasWallet] = useState({ unisat: false, xverse: false, [MAGIC_EDEN]: false });
+  const [hasWallet, setHasWallet] = useState({ [UNISAT]: false, [XVERSE]: false, [MAGIC_EDEN]: false });
   const [htmlInscriptions, setHtmlInscriptions] = useState<HtmlInscription[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
@@ -73,7 +83,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   const beatblockPrefix = "808f2bcdf19691342041adfa507abba33003bfb2643496bb256897a2c8dc1808i";
 
   useEffect(() => {
-    setHasWallet({ unisat: hasUnisat, xverse: hasXverse, [MAGIC_EDEN]: hasMagicEden });
+    setHasWallet({ [UNISAT]: hasUnisat, [XVERSE]: hasXverse, [MAGIC_EDEN]: hasMagicEden });
   }, [hasUnisat, hasXverse, hasMagicEden]);
 
   const checkEnhancedInscription = useCallback((id: string) => idesOfMarchIDs.includes(id) || dustIDs.includes(id), []);
@@ -175,8 +185,8 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
   const handleConnect = async (walletName: WalletName) => {
     if (provider === walletName) {
-      disconnectWallet();
-      disconnect();
+      
+      disconnect;
       setHtmlInscriptions([]);
       setIinscriptionArray([]);
       setIsConnected(false);
@@ -189,7 +199,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
     try {
       await connect(walletName as never);
-      connectWallet();
+      connect;
       setIsWalletName(walletName);
       setIsConnected(true);
 
@@ -200,8 +210,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     } catch (err) {
       console.error(`Connection to ${walletName} failed:`, err);
       if (isConnected) {
-        disconnectWallet();
-        disconnect();
+         disconnect;
         setIsConnected(false);
       }
     } finally {
