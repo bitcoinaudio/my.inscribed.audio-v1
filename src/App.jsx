@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import { WalletProvider } from "./context/WalletContext";
-import { LaserEyesProvider, MAINNET } from "@omnisat/lasereyes";
+import { LaserEyesProvider } from '@omnisat/lasereyes-react'
+import { MAINNET } from '@omnisat/lasereyes-core'
 import { DeviceProvider } from "./utils/DeviceStore";
 
 import LandingPage from "./pages/LandingPage";

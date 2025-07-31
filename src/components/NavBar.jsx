@@ -7,11 +7,8 @@ import { useDeviceContext } from "../utils/DeviceStore";
 import iaLogo from '/images/ia-bg3.png';
 import { useWallet } from '../context/WalletContext';
 import "react-hook-theme/dist/styles/style.css";
-import {
-  
-  useLaserEyes,
-  
-} from "@omnisat/lasereyes";
+import LaserEyes from '../components/LaserEyes';
+import { useLaserEyes } from '@omnisat/lasereyes-react'
 
 
 const basenavigation = [
