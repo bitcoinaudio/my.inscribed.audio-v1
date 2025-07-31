@@ -85,9 +85,13 @@ const LazyIframe = ({ src, placeholderSrc, className }) => {
 };
 
 function openIFRAME() {
-             <LazyIframe src={`https://ord.bitmapstr.io/block/height/${item.bitmap}`} />
 
-}
+             return <LazyIframe src={contentUrl}  />
+    // window.open("https://arweave.net/Z5z6gob0q3wZobpCM_4mmce0UVd1xKhIWIQRY5PYgMo", "videoWindow", "resizable=yes,width=500,height=500");
+  };
+
+
+
 
 // MediaCard Component
 const MediaCard = React.memo(({ item }) => {
@@ -216,7 +220,13 @@ const MediaCard = React.memo(({ item }) => {
                   {Object.entries(item.attributes[0] || {}).map(([key, value]) => (
                     <div key={key} className="">
                       {value === "Woman" && (
-                        <img id="image" className="w-12 h-10" src={woman} alt="Woman" onClick={() => openIFRAME()} />
+                        <button
+                          className="tooltip"
+                          
+                          onClick={() => openIFRAME()}
+                        >
+                          <img id="image" className="w-12 h-10" src={woman} alt="Woman"  />
+                        </button>
                       )}
                     </div>
                   ))}
