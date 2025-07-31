@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../context/WalletContext';
-import { useLaserEyes } from '@omnisat/lasereyes';
-import bitcoinroyaltyimg from '../../public/images/bitcoinroyalty.png'
+import { useLaserEyes } from '@omnisat/lasereyes-react'
+
+import bitcoinroyaltyimg from '/images/bitcoinroyalty.png'
 // import { getAddress, signPsbt } from 'sats-connect';
 
 // --- Helper Components for a nicer UI ---

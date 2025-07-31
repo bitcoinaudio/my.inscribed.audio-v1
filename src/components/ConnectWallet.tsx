@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from 'react-router-dom';
-import { useWallet } from '../context/WalletContext';
+// import { useWallet } from '../context/WalletContext';
 import { Button } from "./ui/button";
 
 import { request } from "sats-connect";
@@ -13,9 +13,8 @@ import idesofmarch from '../lib/collections/idesofmarch.json';
 import dust from '../lib/collections/dust.json';
 
 
-import { WalletIcon } from '@omnisat/lasereyes-react'
-import { useLaserEyes } from '@omnisat/lasereyes-react'
-import { 
+import { WalletIcon, useLaserEyes  } from '@omnisat/lasereyes-react'
+ import { 
   LaserEyesClient,
   SUPPORTED_WALLETS,
   ProviderType,
@@ -31,6 +30,9 @@ import {
   createStores, 
   createConfig, 
 } from '@omnisat/lasereyes-core'
+
+
+
 const stores = createStores()
 const config = createConfig({ 
   
@@ -72,24 +74,13 @@ interface HtmlInscription {
   isBeatBlock?: boolean;
   isHipHopElement?: boolean;
 }
-const ordSite1 = "https://radinals.bitcoinaudio.co";
-const ordSite2 = "https://ordinals.com";
-// check if ordSite1 is availbale, if not use ordSite2
-const checkOrdinalsSite = async () => {
-  try {
-    const response = await fetch(ordSite1, { method: 'HEAD' });
-    if (response.status === 200) {
-      return ordSite1;
-    }else {
-       return ordSite2;
-    }
-  } catch (error) {
-    console.error("Error checking ordinals site:", error);
-  }
- }
+
 const ConnectWallet = ({ className }: { className?: string }) => {
+  getOrdinalsSite().then(site => {
+    console.log("Ordinals site initialized:", site);
+  });
   const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
-  const { connectWallet, disconnectWallet } = useWallet();
+  // const { connectWallet, disconnectWallet } = useWallet();
   const [isOpen, setIsOpen] = useState(false);
   const [hasWallet, setHasWallet] = useState({ [UNISAT]: false, [XVERSE]: false, [MAGIC_EDEN]: false });
   const [htmlInscriptions, setHtmlInscriptions] = useState<HtmlInscription[]>([]);
@@ -169,8 +160,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
   const handleConnect = async (walletName) => {
     if (provider === walletName) {
-      disconnectWallet();
-      disconnect();
+       disconnect();
       setHtmlInscriptions([]);
       setIinscriptionArray([]);
       navigate('/');
@@ -182,18 +172,56 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
     try {
       await connect(walletName);
-      connectWallet();
-      if (walletName === 'unisat') await getUnisatInscriptions();
+       if (walletName === 'unisat') await getUnisatInscriptions();
       else if (walletName === 'xverse') await getXverseInscriptions();
       navigate('/mymedia');
     } catch (err) {
       console.error(`Connection to ${walletName} failed:`, err);
-      disconnectWallet();
-      disconnect();
+       disconnect();
     } finally {
       setIsLoading(false);
     }
   };
+
+    // --- Wallet Connection Logic ---
+
+//   const handleConnect = async () => {
+//     try {
+//       setError('');
+//       setStatus('Connecting to wallet...');
+//       const response = await getAddress({
+//         payload: {
+//           purposes: ['ordinals', 'payment'],
+//           message: 'Connect to create your Ordinal Royalty Listing',
+//           network: {
+//             type: 'Testnet', // Use 'Mainnet' for production
+//           },
+//         },
+//         onFinish: (response) => {
+//           const ordinalsAccount = response.addresses.find(a => a.purpose === 'ordinals');
+//           const paymentAccount = response.addresses.find(a => a.purpose === 'payment');
+          
+//           if (ordinalsAccount) {
+//             setOrdinalsAddress(ordinalsAccount.address);
+//             setOrdinalsPublicKey(ordinalsAccount.publicKey);
+//           }
+//           if (paymentAccount) {
+//             setPaymentAddress(paymentAccount.address);
+//             setPaymentPublicKey(paymentAccount.publicKey);
+//           }
+//           setStatus('Wallet connected successfully!');
+//         },
+//         onCancel: () => {
+//           setError('Wallet connection cancelled.');
+//           setStatus('');
+//         },
+//       });
+//     } catch (err) {
+//       console.error(err);
+//       setError('Error connecting wallet. See console for details.');
+//       setStatus('');
+//     }
+//   };
 
   const buttonClass = cn(
     "btn btn-ghost text-black dark:text-white font-bold rounded-lg transition duration-300 w-full mb-2",
