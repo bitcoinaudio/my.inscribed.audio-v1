@@ -12,7 +12,11 @@ import GLTFViewer from "../components/GLTFViewer";
 
 // Constants
 const ORD_SERVER = "https://radinals.bitcoinaudio.co";
+const ORD_SERVER2 = "https://ordinals.com";
+
+ 
 const ITEMS_PER_PAGE = 10;
+
 
 const MIME_TYPES = {
   text: [
@@ -129,6 +133,10 @@ const MediaCard = React.memo(({ item }) => {
     }
   };
 
+  const handleImageClick = () => {
+  window.open("https://arweave.net/Z5z6gob0q3wZobpCM_4mmce0UVd1xKhIWIQRY5PYgMo", "videoWindow", "resizable=yes,width=500,height=500");
+  };
+
   return (
     <div className="card max-w-2xl transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box mt-4 gap-4">
       <div className="card-body shadow-inner">
@@ -211,7 +219,7 @@ const MediaCard = React.memo(({ item }) => {
                   {Object.entries(item.attributes[0] || {}).map(([key, value]) => (
                     <div key={key} className="">
                       {value === "Woman" && (
-                        <img id="image" className="w-12 h-10" src={woman} alt="Woman" />
+                        <img id="image" className="w-12 h-10" src={woman} alt="Woman" onClick={() => handleImageClick(woman)} />
                       )}
                     </div>
                   ))}

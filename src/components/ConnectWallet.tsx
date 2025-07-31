@@ -32,6 +32,7 @@ interface HtmlInscription {
   isBitmap?: boolean;
   bitmap?: string;
   isBeatBlock?: boolean;
+  isHipHopElement?: boolean;
 }
 const ordSite1 = "https://radinals.bitcoinaudio.co";
 const ordSite2 = "https://ordinals.com";

@@ -9,6 +9,7 @@ import LandingPage from "./pages/LandingPage";
 import Home from "./pages/Home";
 import Feature from "./pages/Feature";
 import Collections from "./pages/Collections";
+import Marketplace from "./pages/Marketplace";
 import MyMedia from "./pages/MyMedia";
 import NK1 from "./pages/NK-1";
 import NavBar from "./components/NavBar";
@@ -34,6 +35,7 @@ const App = () => {
                 <Route path="/home" element={<Home />} />
                 <Route path="/feature" element={<Feature />} />
                 <Route path="/collections" element={<Collections />} />
+                <Route path="/marketplace" element={<Marketplace />} />
                 <Route path="/mymedia" element={<MyMedia />} />
                 <Route path="/nk-1" element={<NK1 />} />
               </Routes>

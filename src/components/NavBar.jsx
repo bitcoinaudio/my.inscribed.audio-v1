@@ -17,6 +17,7 @@ import {
 const basenavigation = [
   { name: "My Inscribed Audio", href: "/" },
   { name: "Collections", href: "/collections" },
+  {name: "Marketplace", href: "/marketplace"},
   ];
 
 
