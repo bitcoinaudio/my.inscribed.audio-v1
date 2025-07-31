@@ -86,8 +86,7 @@ const LazyIframe = ({ src, placeholderSrc, className }) => {
 
 function openIFRAME() {
 
-             return <LazyIframe src={contentUrl}  />
-    // window.open("https://arweave.net/Z5z6gob0q3wZobpCM_4mmce0UVd1xKhIWIQRY5PYgMo", "videoWindow", "resizable=yes,width=500,height=500");
+     window.open("https://arweave.net/Z5z6gob0q3wZobpCM_4mmce0UVd1xKhIWIQRY5PYgMo", "videoWindow", "resizable=yes,width=500,height=500");
   };
 
 
