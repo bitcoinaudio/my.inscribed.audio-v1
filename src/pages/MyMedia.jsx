@@ -84,6 +84,11 @@ const LazyIframe = ({ src, placeholderSrc, className }) => {
   );
 };
 
+function openIFRAME() {
+             <LazyIframe src={`https://ord.bitmapstr.io/block/height/${item.bitmap}`} />
+
+}
+
 // MediaCard Component
 const MediaCard = React.memo(({ item }) => {
   const contentCategory = getContentCategory(item.contentType);
@@ -211,7 +216,7 @@ const MediaCard = React.memo(({ item }) => {
                   {Object.entries(item.attributes[0] || {}).map(([key, value]) => (
                     <div key={key} className="">
                       {value === "Woman" && (
-                        <img id="image" className="w-12 h-10" src={woman} alt="Woman" />
+                        <img id="image" className="w-12 h-10" src={woman} alt="Woman" onClick={() => openIFRAME()} />
                       )}
                     </div>
                   ))}
