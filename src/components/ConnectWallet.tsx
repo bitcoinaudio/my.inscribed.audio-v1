@@ -16,6 +16,7 @@ import dust from '../lib/collections/dust.json';
 import { WalletIcon } from '@omnisat/lasereyes-react'
 import { useLaserEyes } from '@omnisat/lasereyes-react'
 import { 
+  LaserEyesClient,
   SUPPORTED_WALLETS,
   ProviderType,
   UNISAT, 
@@ -26,9 +27,26 @@ import {
   OKX,
   PHANTOM,
   WIZZ,
-  ORANGE
+  ORANGE,
+  createStores, 
+  createConfig, 
 } from '@omnisat/lasereyes-core'
+const stores = createStores()
+const config = createConfig({ 
+  
+  // Optional: Configure data sources
+  dataSources: {
+    maestro: {
+      apiKey: 'your-maestro-api-key', // Optional for development
+    },
+  },
+})
+// Create and initialize the client
+const client = new LaserEyesClient(stores, config)
+client.initialize()
 
+// Now you can use the client
+console.log('Client initialized')
 declare global {
   interface Window {
     unisat?: {
