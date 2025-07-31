@@ -17,6 +17,14 @@ import { setIinscriptionArray } from "../globalState";
 import idesofmarch from '../lib/collections/idesofmarch.json';
 import dust from '../lib/collections/dust.json';
 
+declare global {
+  interface Window {
+    unisat?: {
+      getInscriptions: (cursor: number, size: number) => Promise<{ list: any[] }>;
+    };
+  }
+}
+
 // Types
 type WalletName = keyof typeof SUPPORTED_WALLETS;
 
@@ -210,7 +218,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      {address ? (
+      {isConnected ? (
         <Button onClick={() => handleConnect(provider)} className={buttonClass} disabled={isLoading}>
           <WalletIcon size={32} walletName={provider as ProviderType} className="!w-[32px] !h-[32px]" />
           Disconnect <span className="text-lg">{`${address.slice(0, 5)}...${address.slice(-5)}`}</span>
