@@ -4,7 +4,7 @@ import { useLaserEyes } from '@omnisat/lasereyes-react'
 import bitcoinroyaltyimg from '/images/bitcoinroyalty.png'
 import { MediaCard } from '../pages/MyMedia';
 import { getOrdinalsSite } from '../utils/inscriptions';
-import Inscribe from '../components/Inscribe';
+// import   Inscribe   from '../components/Inscribe'
 const API_BASE = 'http://127.0.0.1:3000';
 const ORD_BASE = getOrdinalsSite; 
 
@@ -221,7 +221,7 @@ export default function App() {
         <main>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 justify-between">
         <Card>
-          <Inscribe />
+          {/* <Inscribe /> */}
         </Card>
         <Card>
 
