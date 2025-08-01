@@ -7,7 +7,7 @@ import ordImage from "/images/ordinals.svg";
 import iomImage from "/images/idesofmarch.png";
 import woman from "/images/woman-sticker.webp";
 import MimeTypeFilter from "../components/MimeTypeFilter";
-import { useLaserEyes } from "@omnisat/lasereyes";
+import { useLaserEyes } from '@omnisat/lasereyes-react'
 import GLTFViewer from "../components/GLTFViewer";
 
 // Constants

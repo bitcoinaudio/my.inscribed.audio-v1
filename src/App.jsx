@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import { WalletProvider } from "./context/WalletContext";
 import { LaserEyesProvider } from '@omnisat/lasereyes-react'
-import { MAINNET, REGTEST } from '@omnisat/lasereyes-core'
+import { MAINNET, REGTEST, TESTNET } from '@omnisat/lasereyes-core'
 import { DeviceProvider } from "./utils/DeviceStore";
 
 import LandingPage from "./pages/LandingPage";
@@ -27,7 +27,7 @@ const App = () => {
   return (
     <Router>
       <WalletProvider>
-        <LaserEyesProvider config={{ network: MAINNET }}>
+        <LaserEyesProvider config={{ network: TESTNET }}>
           <DeviceProvider>
             <div className="p-2 md:px-10">
               <NavBar />
