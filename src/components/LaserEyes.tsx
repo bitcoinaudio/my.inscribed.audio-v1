@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { LaserEyesProvider } from '@omnisat/lasereyes-react'
 import { useLaserEyes } from '@omnisat/lasereyes-react'
 import { 
-  MAINNET, 
+  MAINNET,
+  REGTEST, 
   UNISAT, 
   XVERSE,
   OYL,
@@ -17,7 +18,7 @@ import {
 // Main App Component
 export default function App() {
   return (
-    <LaserEyesProvider config={{ network: MAINNET }}>
+    <LaserEyesProvider config={{ network: REGTEST }}>
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
          <WalletDemo />
       </div>

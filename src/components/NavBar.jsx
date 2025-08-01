@@ -7,14 +7,12 @@ import { useDeviceContext } from "../utils/DeviceStore";
 import iaLogo from '/images/ia-bg3.png';
 import { useWallet } from '../context/WalletContext';
 import "react-hook-theme/dist/styles/style.css";
-import LaserEyes from '../components/LaserEyes';
 import { useLaserEyes } from '@omnisat/lasereyes-react'
-
-
+import { inscriptionArray } from '../globalState';
+ 
 const basenavigation = [
   { name: "My Inscribed Audio", href: "/" },
   { name: "Collections", href: "/collections" },
-  {name: "Royalty Kit", href: "/royaltykit"},
   ];
 
 
@@ -27,6 +25,10 @@ const NavBar = () => {
 
   const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
 
+  // Check if wallet contains any IOM inscriptions
+  const hasIOMInscription = () => {
+    return inscriptionArray.some(inscription => inscription.isIOM === true);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -50,6 +52,7 @@ const NavBar = () => {
     ...(address ? [
       { name: "My Media", href: "/mymedia" },
       { name: "NK-1", href: "/nk-1" },
+      ...(hasIOMInscription() ? [{ name: "Royalty Kit", href: "/royaltykit" }] : [])
     ] : [])
   ];
   //  console.log("isWalletConnected NavBar", isWalletConnected);

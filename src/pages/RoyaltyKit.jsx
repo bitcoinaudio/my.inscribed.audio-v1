@@ -4,7 +4,7 @@ import { useLaserEyes } from '@omnisat/lasereyes-react'
 import bitcoinroyaltyimg from '/images/bitcoinroyalty.png'
 import { MediaCard } from '../pages/MyMedia';
 import { getOrdinalsSite } from '../utils/inscriptions';
-// import   Inscribe   from '../components/Inscribe'
+import   Inscribe   from '../components/Inscriber'
 const API_BASE = 'http://127.0.0.1:3000';
 const ORD_BASE = getOrdinalsSite; 
 
@@ -219,13 +219,13 @@ export default function App() {
         </header>
 
         <main>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 justify-between">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 ">
         <Card>
-          {/* <Inscribe /> */}
+          <Inscribe />
         </Card>
         <Card>
 
-                     <div className="rounded-xl max-w-xl mx-auto shadow-lg">
+                     <div className="rounded-xl  shadow-lg">
                        <h2 className="text-xl font-semibold text-red-300 mb-4 text-center">Enter Inscription Id of Royalty Asset</h2>
                        <div className="text-sm text-gray-600 dark:text-gray-300 mb-4">Server status: {serverStatus}</div>
                    {/* <Input label="Ordinal Input (txid:vout)" placeholder="abcd...:0" value={ordinalInput} onChange={e => setOrdinalInput(e.target.value)} /> */}
@@ -249,35 +249,12 @@ export default function App() {
                            {JSON.stringify(result, null, 2)}
                          </pre>
                        )}
+                                  
+                    <div className="flex justify-center">
+                       <MediaCard item={{ id: inscriptionId }}  />
+
+                    </div>
                  
-                       <hr className="my-6" />
-                 
-                       {/* <h3 className="font-semibold mb-2">Bulk Test (IDs separated by space, comma or newline)</h3> */}
-                       {/* <textarea
-                         rows={4}
-                         className="w-full mb-3 p-2 rounded bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-300"
-                         placeholder="put info here"
-                         value={inscriptionId}
-                         onChange={e => setBulkInput(e.target.value)}
-                       /> */}
-                       {/* <Button onClick={handleBulkFetch} disabled={!bulkInput.trim()}>
-                         Fetch Bulk Metadata
-                       </Button> */}
-                 
-                       {/* {bulkResults.length > 0 && (
-                         <div className="mt-4 space-y-3">
-                           {bulkResults.map((res, i) => (
-                             <div key={i} className="p-2 bg-white dark:bg-gray-800 rounded">
-                               <div className="font-mono text-sm text-blue-600 dark:text-blue-400">{res.id}</div>
-                               <pre className="text-xs overflow-auto">
-                                 {res.error ? `Error: ${res.error}` : JSON.stringify(res.data, null, 2)}
-                               </pre>
-                             </div>
-                           ))}
-                         </div>
-                       )} */}
-                 
-                       <MediaCard  item={{ id: inscriptionId }}  />
                      </div>
                  
 
@@ -336,9 +313,9 @@ export default function App() {
 
           {iswalletConnected && (
             <Card className="">
-              <h2 className="text-xl font-semibold text-red-300 mb-4 text-center">Create Your Listing</h2>
-              <p className="text-sm text-gray-400 mb-4">
-                Enter the details of the Ordinal you are selling and the funding UTXO from the buyer.
+              <h2 className="text-xl font-semibold text-red-300 mb-4 text-center">Your Listing</h2>
+              <p className="text-sm text-gray-400 mb-4 text-center">
+                Your Royalty Enabled Ordinal Listing will appear here once created.
               </p>
               <img src={`${bitcoinroyaltyimg}`} alt="Ordinal" className="h-96 w-96 w-full h-auto rounded-md mb-4" />
 

@@ -64,7 +64,7 @@ const LazyIframe = ({ src, placeholderSrc, className }) => {
           observer.disconnect();
         }
       },
-      { rootMargin: "100px" } // Preload 100px before entering viewport
+      { rootMargin: "10px" } // Preload 100px before entering viewport
     );
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
@@ -146,7 +146,7 @@ export const MediaCard = React.memo(({ item }) => {
   };
 
   return (
-    <div className="card max-w-2xl transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box mt-4 gap-4 justify-center">
+    <div className="card transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box mt-4 gap-4 ">
       <div className="card-body shadow-inner">
         {renderContent()}
         
