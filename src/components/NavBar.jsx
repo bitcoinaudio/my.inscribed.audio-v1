@@ -14,7 +14,7 @@ import { useLaserEyes } from '@omnisat/lasereyes-react'
 const basenavigation = [
   { name: "My Inscribed Audio", href: "/" },
   { name: "Collections", href: "/collections" },
-  {name: "Marketplace", href: "/marketplace"},
+  {name: "Royalty Kit", href: "/royaltykit"},
   ];
 
 

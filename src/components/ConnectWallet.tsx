@@ -76,9 +76,7 @@ interface HtmlInscription {
 }
 
 const ConnectWallet = ({ className }: { className?: string }) => {
-  getOrdinalsSite().then(site => {
-    console.log("Ordinals site initialized:", site);
-  });
+
   const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
   // const { connectWallet, disconnectWallet } = useWallet();
   const [isOpen, setIsOpen] = useState(false);
@@ -174,7 +172,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
       await connect(walletName);
        if (walletName === 'unisat') await getUnisatInscriptions();
       else if (walletName === 'xverse') await getXverseInscriptions();
-      navigate('/mymedia');
+      // navigate('/mymedia');
     } catch (err) {
       console.error(`Connection to ${walletName} failed:`, err);
        disconnect();

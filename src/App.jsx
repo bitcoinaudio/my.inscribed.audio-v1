@@ -3,14 +3,14 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import { WalletProvider } from "./context/WalletContext";
 import { LaserEyesProvider } from '@omnisat/lasereyes-react'
-import { MAINNET } from '@omnisat/lasereyes-core'
+import { MAINNET, REGTEST } from '@omnisat/lasereyes-core'
 import { DeviceProvider } from "./utils/DeviceStore";
 
 import LandingPage from "./pages/LandingPage";
 import Home from "./pages/Home";
 import Feature from "./pages/Feature";
 import Collections from "./pages/Collections";
-import Marketplace from "./pages/Marketplace";
+import RoyaltyKit from "./pages/RoyaltyKit";
 import MyMedia from "./pages/MyMedia";
 import NK1 from "./pages/NK-1";
 import NavBar from "./components/NavBar";
@@ -36,7 +36,7 @@ const App = () => {
                 <Route path="/home" element={<Home />} />
                 <Route path="/feature" element={<Feature />} />
                 <Route path="/collections" element={<Collections />} />
-                <Route path="/marketplace" element={<Marketplace />} />
+                <Route path="/marketplace" element={<RoyaltyKit />} />
                 <Route path="/mymedia" element={<MyMedia />} />
                 <Route path="/nk-1" element={<NK1 />} />
               </Routes>

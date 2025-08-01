@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../context/WalletContext';
 import { useLaserEyes } from '@omnisat/lasereyes-react'
-
 import bitcoinroyaltyimg from '/images/bitcoinroyalty.png'
-// import { getAddress, signPsbt } from 'sats-connect';
-
-// --- Helper Components for a nicer UI ---
-
+import { MediaCard } from '../pages/MyMedia';
+const API_BASE = 'http://127.0.0.1:3000';
+ 
 const Card = ({ children, className = '' }) => (
-  <div className={`bg-gray-800/50 border border-gray-700 rounded-xl shadow-lg p-6 backdrop-blur-sm ${className}`}>
+  <div className={` border border-gray-700 rounded-xl shadow-lg p-6 backdrop-blur-sm ${className}`}>
     {children}
   </div>
 );
 
-const Input = ({ label, placeholder, value, onChange, type = 'text' }) => (
+export const Input = ({ label, placeholder, value, onChange, type = 'text' }) => (
   <div>
     <label className="block text-sm font-medium text-gray-300 mb-1">{label}</label>
     <input
@@ -65,57 +63,54 @@ export default function App() {
 
   // State for the transaction process
   const [status, setStatus] = useState('');
-  const [error, setError] = useState('');
   const [txId, setTxId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const isConnected = paymentAddress && ordinalsAddress;
   const iswalletConnected = useWallet();
   const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
+
+    const [inscriptionId, setInscriptionId] = useState('');
+    const [result, setResult] = useState(null);
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [serverStatus, setServerStatus] = useState('checking...');
+    
+  
+    useEffect(() => {
+      const checkServer = async () => {
+        try {
+          const ping = await fetch(`${API_BASE}/api/inscription/ping`);
+          setServerStatus(ping.ok ? '✅ API online' : `❌ Error ${ping.status}`);
+        } catch {
+          setServerStatus('❌ API unreachable');
+        }
+      };
+      checkServer();
+    }, []);
+  
+    const handleFetch = async () => {
+      if (!inscriptionId) return;
+      setLoading(true);
+      setError(null);
+      setResult(null);
+  
+      try {
+        const res = await fetch(`${API_BASE}/api/inscription/${inscriptionId}`);
+       const insID = inscriptionId;
+        // console.log("Response:", res, "Ord site", (await OrdinalsSite).toString());
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        const json = await res.json();
+        setResult(json);
+      } catch (err) {
+        setError(err.message || 'Unknown error');
+      } finally {
+        setLoading(false);
+      }
+    };
   
 
-  // --- Wallet Connection Logic ---
-
-//   const handleConnect = async () => {
-//     try {
-//       setError('');
-//       setStatus('Connecting to wallet...');
-//       const response = await getAddress({
-//         payload: {
-//           purposes: ['ordinals', 'payment'],
-//           message: 'Connect to create your Ordinal Royalty Listing',
-//           network: {
-//             type: 'Testnet', // Use 'Mainnet' for production
-//           },
-//         },
-//         onFinish: (response) => {
-//           const ordinalsAccount = response.addresses.find(a => a.purpose === 'ordinals');
-//           const paymentAccount = response.addresses.find(a => a.purpose === 'payment');
-          
-//           if (ordinalsAccount) {
-//             setOrdinalsAddress(ordinalsAccount.address);
-//             setOrdinalsPublicKey(ordinalsAccount.publicKey);
-//           }
-//           if (paymentAccount) {
-//             setPaymentAddress(paymentAccount.address);
-//             setPaymentPublicKey(paymentAccount.publicKey);
-//           }
-//           setStatus('Wallet connected successfully!');
-//         },
-//         onCancel: () => {
-//           setError('Wallet connection cancelled.');
-//           setStatus('');
-//         },
-//       });
-//     } catch (err) {
-//       console.error(err);
-//       setError('Error connecting wallet. See console for details.');
-//       setStatus('');
-//     }
-//   };
-
   // --- PSBT Creation and Signing Logic ---
-
   const handleCreateListing = async () => {
     if (!iswalletConnected) {
       setError("Please connect your wallet first.");
@@ -212,41 +207,92 @@ export default function App() {
     }
   };
 
-
   return (
-    <div className="bg-gray-600 rounded-xl shadow-lg min-h-screen text-white font-sans flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl mx-auto">
+    <div className="">
+      <div className="">
         <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-red-400">Ordinal Royalty Marketplace</h1>
+          <h1 className="text-4xl font-bold text-red-400">Bitcoin Royalty Kit</h1>
           <p className="text-gray-400 mt-2">Create and purchase royalty-enforced Ordinal listings.</p>
         </header>
 
         <main>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 justify-between">
+        <Card>
+
+                     <div className="  rounded-xl max-w-xl mx-auto shadow-lg">
+                       <h2 className="text-xl font-semibold text-red-300 mb-4 text-center">Enter Inscription Id of Royalty Asset</h2>
+                       <div className="text-sm text-gray-600 dark:text-gray-300 mb-4">Server status: {serverStatus}</div>
+                   {/* <Input label="Ordinal Input (txid:vout)" placeholder="abcd...:0" value={ordinalInput} onChange={e => setOrdinalInput(e.target.value)} /> */}
+                 
+                       {/* <input
+                         type="text"
+                         className="w-full mb-3 p-2 rounded bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-300"
+                         placeholder="Enter inscription ID..."
+                         value={inscriptionId}
+                         onChange={e => setInscriptionId(e.target.value)}
+                       /> */}
+                       <Input label="Inscription Image URL" placeholder="Enter inscription ID..." value={inscriptionId} onChange={e => setInscriptionId(e.target.value)}  />
+                       <br />
+                       <Button onClick={handleFetch} disabled={loading || !inscriptionId}>
+                         {loading ? 'Loading...' : 'Fetch Metadata'}
+                       </Button>
+                 
+                       {error && <div className="text-red-500 mt-3">Error: {error}</div>}
+                       {result && (
+                         <pre className="mt-3 bg-white dark:bg-gray-800 p-3 rounded text-sm overflow-auto">
+                           {JSON.stringify(result, null, 2)}
+                         </pre>
+                       )}
+                 
+                       <hr className="my-6" />
+                 
+                       {/* <h3 className="font-semibold mb-2">Bulk Test (IDs separated by space, comma or newline)</h3> */}
+                       {/* <textarea
+                         rows={4}
+                         className="w-full mb-3 p-2 rounded bg-white dark:bg-gray-800 text-black dark:text-white border border-gray-300"
+                         placeholder="put info here"
+                         value={inscriptionId}
+                         onChange={e => setBulkInput(e.target.value)}
+                       /> */}
+                       {/* <Button onClick={handleBulkFetch} disabled={!bulkInput.trim()}>
+                         Fetch Bulk Metadata
+                       </Button> */}
+                 
+                       {/* {bulkResults.length > 0 && (
+                         <div className="mt-4 space-y-3">
+                           {bulkResults.map((res, i) => (
+                             <div key={i} className="p-2 bg-white dark:bg-gray-800 rounded">
+                               <div className="font-mono text-sm text-blue-600 dark:text-blue-400">{res.id}</div>
+                               <pre className="text-xs overflow-auto">
+                                 {res.error ? `Error: ${res.error}` : JSON.stringify(res.data, null, 2)}
+                               </pre>
+                             </div>
+                           ))}
+                         </div>
+                       )} */}
+                 
+                       <MediaCard  item={{ id: inscriptionId }}  />
+                     </div>
+                 
+
+        </Card>
+
           <Card>
+
             {!iswalletConnected ? (
               <div className="text-center">
                 <p className="mb-4 text-gray-300">Connect your wallet to get started.</p>
-                {/* <Button onClick={handleConnect}>Connect Wallet</Button> */}
+                <Button onClick={handleConnect}>Connect Wallet</Button>
               </div>
             ) : (
               <div>
-                <h2 className="text-xl font-semibold text-red-300 mb-4">Wallet Connected</h2>
+                <h2 className="text-xl font-semibold text-red-300 mb-4 text-center">{iswalletConnected? 'Wallet Connected' : 'Wallet Not Connected'}</h2>
                 <div className="text-xs space-y-2 text-gray-400">
                   <p><strong>Ordinals Address:</strong> {address}</p>
                   <p><strong>Payment Address:</strong> {address}</p>
+                  <br />
                 </div>
-              </div>
-            )}
-          </Card>
-
-          {iswalletConnected && (
-            <Card className="mt-6">
-              <h2 className="text-xl font-semibold text-red-300 mb-4">Create Your Listing</h2>
-              <p className="text-sm text-gray-400 mb-4">
-                Enter the details of the Ordinal you are selling and the funding UTXO from the buyer.
-              </p>
-              <img src={`${bitcoinroyaltyimg}`} alt="Ordinal" className="h-96 w-96 w-full h-auto rounded-md mb-4" />
-              <div className="space-y-4">
+                 <div className="space-y-4">
                 <Input label="Ordinal Input (txid:vout)" placeholder="abcd...:0" value={ordinalInput} onChange={e => setOrdinalInput(e.target.value)} />
                 <Input label="Ordinal Value (sats)" placeholder="777" value={ordinalValue} onChange={e => setOrdinalValue(e.target.value)} type="number"/>
                 <Input label="Buyer's Funding Input (txid:vout)" placeholder="efgh...:1" value={fundingInput} onChange={e => setFundingInput(e.target.value)} />
@@ -257,10 +303,7 @@ export default function App() {
                   {isLoading ? 'Processing...' : 'Create Listing & Sign'}
                 </Button>
               </div>
-            </Card>
-          )}
-
-          {(status || error || txId) && (
+               {(status || error || txId) && (
             <Card className="mt-6">
               <h2 className="text-xl font-semibold text-red-300 mb-2">Transaction Status</h2>
               {status && <StatusMessage message={status} />}
@@ -280,6 +323,25 @@ export default function App() {
               )}
             </Card>
           )}
+              </div>
+              
+            )}
+          </Card>
+
+          {iswalletConnected && (
+            <Card className="">
+              <h2 className="text-xl font-semibold text-red-300 mb-4 text-center">Create Your Listing</h2>
+              <p className="text-sm text-gray-400 mb-4">
+                Enter the details of the Ordinal you are selling and the funding UTXO from the buyer.
+              </p>
+              <img src={`${bitcoinroyaltyimg}`} alt="Ordinal" className="h-96 w-96 w-full h-auto rounded-md mb-4" />
+
+            </Card>
+          )}
+
+         
+                </div>
+
         </main>
       </div>
     </div>
