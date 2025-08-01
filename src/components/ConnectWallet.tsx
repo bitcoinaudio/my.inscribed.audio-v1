@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from 'react-router-dom';
-// import { useWallet } from '../context/WalletContext';
 import { Button } from "./ui/button";
 
 import { request } from "sats-connect";
@@ -180,8 +179,6 @@ const ConnectWallet = ({ className }: { className?: string }) => {
       setIsLoading(false);
     }
   };
-
-    // --- Wallet Connection Logic ---
 
 //   const handleConnect = async () => {
 //     try {

@@ -6,7 +6,7 @@ import { UploadCloud } from 'lucide-react';
 // --- Reusable UI Components (can be moved to their own files) ---
 
 const Card = ({ children, className = '' }) => (
-  <div className={` border border-gray-700 rounded-xl shadow-lg p-6 backdrop-blur-sm ${className}`}>
+  <div className={`border border-gray-700 rounded-xl shadow-lg p-6 backdrop-blur-sm ${className}`}>
     {children}
   </div>
 );
@@ -23,6 +23,7 @@ export const Input = ({ label, placeholder, value, onChange, type = 'text' }) =>
     />
   </div>
 );
+
 
 const Button = ({ children, onClick, disabled = false, className = '' }) => (
   <button
@@ -67,6 +68,7 @@ export default function Inscribe() {
   const [fundingOutpoint, setFundingOutpoint] = useState('');
   const [fundingValue, setFundingValue] = useState('');
   const [royaltyAmount, setRoyaltyAmount] = useState('');
+  const [enableRoyalty, setEnableRoyalty] = useState(false);
 
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
@@ -98,8 +100,25 @@ export default function Inscribe() {
 
   const handleInscribe = async () => {
     const walletAddress = paymentAddress || address;
-    if (!file || !walletAddress || !fundingOutpoint || !fundingValue || !royaltyAmount) {
-      setError('Please fill all fields and select a file.');
+    
+    // Enhanced validation
+    if (!file) {
+      setError('Please select a file to inscribe.');
+      return;
+    }
+    
+    if (!walletAddress) {
+      setError('Please connect your wallet.');
+      return;
+    }
+    
+    if (!fundingOutpoint || !fundingValue) {
+      setError('Please provide funding UTXO details.');
+      return;
+    }
+    
+    if (enableRoyalty && (!royaltyAmount || parseInt(royaltyAmount) <= 0)) {
+      setError('Please specify a valid royalty amount.');
       return;
     }
     
@@ -112,6 +131,7 @@ export default function Inscribe() {
     formData.append('funding_outpoint', fundingOutpoint);
     formData.append('funding_value', fundingValue);
     formData.append('royalty_amount', royaltyAmount);
+    formData.append('enable_royalty', enableRoyalty.toString());
     // In a real app, you'd get the user's name/ID after they log in.
     // We'll use a hardcoded name that matches a key file on the server.
     formData.append('inscriber_name', 'alice');
@@ -128,7 +148,7 @@ export default function Inscribe() {
         throw new Error(errData.error || `HTTP error! status: ${response.status}`);
       }
 
-      const { reveal_psbt_base64, commit_tx_hex } = await response.json();
+      const { reveal_psbt_base64, commit_tx_hex, inscription_id } = await response.json();
       setStatus('Transactions created. Please check your wallet to sign.');
 
       // In a real-world scenario, you would first broadcast the commit_tx_hex,
@@ -159,7 +179,13 @@ export default function Inscribe() {
         
         const txid = await broadcastResponse.text();
         setTxId(txid);
-        setStatus('Inscription complete!');
+        
+        // If royalty was enabled, show success message
+        if (enableRoyalty) {
+          setStatus('Inscription complete with royalty enabled!');
+        } else {
+          setStatus('Inscription complete!');
+        }
         
       } catch (signError: any) {
         if (signError.message?.includes('user reject') || signError.message?.includes('cancelled')) {
@@ -179,7 +205,7 @@ export default function Inscribe() {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full  ">
       <h2 className="text-xl font-semibold text-red-300 mb-4 text-center">Create New Inscription</h2>
       
       {!connected ? (
@@ -211,7 +237,7 @@ export default function Inscribe() {
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="bg-gray-900/50 border border-gray-600 rounded-lg p-4">
+          <div className=" border border-gray-600 rounded-lg p-4 w-full bg-gray-600 border border-gray-600 rounded-md px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500">
             <h3 className="text-sm font-medium text-gray-300 mb-2">Connected Wallet</h3>
             <p className="text-xs text-gray-400 break-all">{paymentAddress || address}</p>
           </div>
@@ -239,10 +265,34 @@ export default function Inscribe() {
 
           <Input label="Funding UTXO (txid:vout)" placeholder="abcd...:0" value={fundingOutpoint} onChange={e => setFundingOutpoint(e.target.value)} />
           <Input label="Funding UTXO Value (sats)" placeholder="20000" value={fundingValue} onChange={e => setFundingValue(e.target.value)} type="number"/>
-          <Input label="Inscription Price / Royalty (sats)" placeholder="5000" value={royaltyAmount} onChange={e => setRoyaltyAmount(e.target.value)} type="number"/>
+          
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="enableRoyalty"
+                checked={enableRoyalty}
+                onChange={(e) => setEnableRoyalty(e.target.checked)}
+                className="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500"
+              />
+              <label htmlFor="enableRoyalty" className="text-sm font-medium text-gray-300">
+                Make this a royalty asset
+              </label>
+            </div>
+            
+            {enableRoyalty && (
+              <Input 
+                label="Royalty Fee (sats)" 
+                placeholder="5000" 
+                value={royaltyAmount} 
+                onChange={e => setRoyaltyAmount(e.target.value)} 
+                type="number"
+              />
+            )}
+          </div>
           
           <Button onClick={handleInscribe} disabled={isLoading || !file}>
-            {isLoading ? 'Inscribing...' : 'Inscribe File'}
+            {isLoading ? 'Inscribing...' : enableRoyalty ? 'Inscribe with Royalty' : 'Inscribe File'}
           </Button>
         </div>
       )}
