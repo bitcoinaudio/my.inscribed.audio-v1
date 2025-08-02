@@ -279,30 +279,30 @@ export default function App() {
     setIsLoading(true);
     setError('');
     setTxId('');
-    setStatus('Finding inscription UTXO...');
+    setStatus('Fetching inscription details from ord server...');
     
     try {
-      // Find the UTXO for the selected inscription
-      console.log("🔍 Finding inscription UTXO...");
-      const inscriptionUtxo = await findInscriptionUtxo(selectedInscription.id);
+      // Get authoritative inscription details from ord server
+      console.log("� Getting inscription details from ord server...");
+      const inscriptionDetails = await getInscriptionDetails(selectedInscription.id);
       setStatus('Finding funding UTXO...');
       
       // Find a funding UTXO (exclude the inscription UTXO)
       console.log("💰 Finding funding UTXO...");
-      const fundingUtxo = await findFundingUtxo(inscriptionUtxo.outpoint);
+      const fundingUtxo = await findFundingUtxo(inscriptionDetails.outpoint);
       
-      // Populate the PSBT creation fields
-      console.log("📝 Populating PSBT fields...");
-      setOrdinalInput(inscriptionUtxo.outpoint);
-      setOrdinalValue(inscriptionUtxo.value.toString());
+      // Populate the PSBT creation fields with real data from ord server
+      console.log("📝 Populating PSBT fields with ord server data...");
+      setOrdinalInput(inscriptionDetails.outpoint);
+      setOrdinalValue(inscriptionDetails.value.toString()); // Authoritative value from ord server
       setFundingInput(fundingUtxo.outpoint);
       setFundingValue(fundingUtxo.value.toString());
       setRoyaltyAmount(royaltyFee);
       
-      setStatus('UTXO information populated. Creating royalty asset...');
-      console.log("✅ Populated PSBT fields:", {
-        ordinalInput: inscriptionUtxo.outpoint,
-        ordinalValue: inscriptionUtxo.value,
+      setStatus('UTXO information populated from ord server. Creating royalty asset...');
+      console.log("✅ Populated PSBT fields with ord server data:", {
+        ordinalInput: inscriptionDetails.outpoint,
+        ordinalValue: inscriptionDetails.value, // This is the authoritative value
         fundingInput: fundingUtxo.outpoint,
         fundingValue: fundingUtxo.value,
         royaltyAmount: royaltyFee,
@@ -311,7 +311,7 @@ export default function App() {
 
       // Close the modal and keep the form populated for user to proceed
       setShowConfirmModal(false);
-      setStatus('✅ Inscription UTXO found and PSBT fields populated. You can now create the transaction.');
+      setStatus('✅ Inscription details fetched from ord server and PSBT fields populated. You can now create the transaction.');
 
     } catch (err) {
       console.error("❌ Error in royalty confirmation:", err);
@@ -330,38 +330,43 @@ export default function App() {
 
   const totalPages = Math.ceil(inscriptionArray.length / ITEMS_PER_PAGE);
 
-  // Test function to simulate PSBT field population with mock data
-  const testPsbtPopulation = () => {
-    console.log("🧪 Testing PSBT population with mock data...");
+  // Test function to simulate PSBT field population with real inscription data
+  const testPsbtPopulation = async () => {
+    console.log("🧪 Testing PSBT population with real inscription data...");
     
-    // Mock inscription and UTXO data for testing
-    const mockInscriptionId = "b1ade815da823de16f0dc26417c5bfb9caefc9005f0e9585b1f0072eb7e43605i1536";
-    const mockInscriptionUtxo = {
-      outpoint: "854016975dd6918b553bd2f4f6022d7f65d06f2d8f630882087c241ea754c6d0:0",
-      value: 330
-    };
-    const mockFundingUtxo = {
-      outpoint: "531d2ec0b6178dddaaf8ea22808109aa42f534113f09c5432bc5a03e8f50f14d:0", 
-      value: 50000
-    };
-    const mockRoyaltyFee = "2000";
-    
-    // Populate the fields
-    setOrdinalInput(mockInscriptionUtxo.outpoint);
-    setOrdinalValue(mockInscriptionUtxo.value.toString());
-    setFundingInput(mockFundingUtxo.outpoint);
-    setFundingValue(mockFundingUtxo.value.toString());
-    setRoyaltyAmount(mockRoyaltyFee);
-    
-    console.log("✅ Mock PSBT fields populated:", {
-      ordinalInput: mockInscriptionUtxo.outpoint,
-      ordinalValue: mockInscriptionUtxo.value,
-      fundingInput: mockFundingUtxo.outpoint,
-      fundingValue: mockFundingUtxo.value,
-      royaltyAmount: mockRoyaltyFee
-    });
-    
-    setStatus("Mock PSBT fields populated successfully!");
+    try {
+      // Use a real inscription ID from your server
+      const mockInscriptionId = "b1ade815da823de16f0dc26417c5bfb9caefc9005f0e9585b1f0072eb7e43605i1536";
+      
+      console.log("📋 Fetching inscription details...");
+      const inscriptionDetails = await getInscriptionDetails(mockInscriptionId);
+      
+      console.log("💰 Finding funding UTXO...");
+      const fundingUtxo = await findFundingUtxo(inscriptionDetails.outpoint);
+      
+      const mockRoyaltyFee = "2000";
+      
+      // Populate the fields with real data
+      setOrdinalInput(inscriptionDetails.outpoint);
+      setOrdinalValue(inscriptionDetails.value.toString()); // Real value from ord server
+      setFundingInput(fundingUtxo.outpoint);
+      setFundingValue(fundingUtxo.value.toString());
+      setRoyaltyAmount(mockRoyaltyFee);
+      
+      console.log("✅ Real inscription PSBT fields populated:", {
+        ordinalInput: inscriptionDetails.outpoint,
+        ordinalValue: inscriptionDetails.value, // This is the authoritative value
+        fundingInput: fundingUtxo.outpoint,
+        fundingValue: fundingUtxo.value,
+        royaltyAmount: mockRoyaltyFee
+      });
+      
+      setStatus("Real inscription PSBT fields populated successfully!");
+      
+    } catch (error) {
+      console.error("❌ Error in test PSBT population:", error);
+      setError(`Test failed: ${error.message}`);
+    }
   };
 
   // Helper function to test wallet connection and UTXOs
@@ -388,12 +393,69 @@ export default function App() {
     }
   };
 
-  // Helper function to find UTXO for inscription
+  // Helper function to get inscription details from ord server
+  const getInscriptionDetails = async (inscriptionId) => {
+    console.log("� Fetching inscription details from ord server:", inscriptionId);
+    
+    try {
+      const response = await fetch(`https://radinals.bitcoinaudio.co/inscription/${inscriptionId}`, {
+        headers: {
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch inscription details: HTTP ${response.status}`);
+      }
+      
+      const html = await response.text();
+      
+      // Parse the value from the HTML response
+      const valueMatch = html.match(/<dt>value<\/dt>\s*<dd>(\d+)<\/dd>/);
+      if (!valueMatch) {
+        throw new Error("Could not find value in inscription response");
+      }
+      
+      const value = parseInt(valueMatch[1], 10);
+      
+      // Parse the current location (outpoint) from the HTML response
+      const outputMatch = html.match(/<dt>output<\/dt>\s*<dd><a[^>]*href=\/output\/([a-f0-9]{64}):(\d+)/);
+      if (!outputMatch) {
+        throw new Error("Could not find output location in inscription response");
+      }
+      
+      const txid = outputMatch[1];
+      const vout = parseInt(outputMatch[2], 10);
+      
+      console.log("✅ Inscription details fetched:", { 
+        inscriptionId, 
+        value, 
+        outpoint: `${txid}:${vout}` 
+      });
+      
+      return {
+        inscriptionId,
+        value,
+        outpoint: `${txid}:${vout}`,
+        txid,
+        vout
+      };
+      
+    } catch (error) {
+      console.error("❌ Error fetching inscription details:", error);
+      throw error;
+    }
+  };
+
+  // Helper function to find UTXO for inscription using ord server data
   const findInscriptionUtxo = async (inscriptionId) => {
     console.log("🔍 Finding UTXO for inscription:", inscriptionId);
     
     try {
-      // Get all UTXOs from the wallet
+      // Get inscription details from ord server first
+      const inscriptionDetails = await getInscriptionDetails(inscriptionId);
+      
+      // Verify the UTXO exists in the wallet
       const utxos = await getUtxos(laserEyesPaymentAddress || paymentAddress);
       console.log("📦 Available UTXOs:", utxos);
       
@@ -401,47 +463,34 @@ export default function App() {
         throw new Error("No UTXOs found in wallet. Please ensure your wallet has funds.");
       }
       
-      // Find the UTXO that contains this inscription
-      // The inscription ID format is usually 64-char-txid + 'i' + inscription_number
-      // Example: abcd1234...i0
-      const inscriptionMatch = inscriptionId.match(/^([a-f0-9]{64})i(\d+)$/);
-      if (inscriptionMatch) {
-        const txid = inscriptionMatch[1];
-        const inscriptionNumber = inscriptionMatch[2];
-        console.log("🎯 Parsed inscription - TXID:", txid, "Number:", inscriptionNumber);
+      // Find the specific UTXO that matches the inscription's current location
+      const matchingUtxo = utxos.find(utxo => 
+        utxo.txid === inscriptionDetails.txid && 
+        utxo.vout === inscriptionDetails.vout
+      );
+      
+      if (matchingUtxo) {
+        console.log("✅ Found exact matching UTXO for inscription:", matchingUtxo);
+        console.log("🔍 Ord server value:", inscriptionDetails.value, "UTXO value:", matchingUtxo.value);
         
-        // Try to find UTXO by matching txid - inscription usually has vout 0
-        const potentialUtxo = utxos.find(utxo => utxo.txid === txid);
-        if (potentialUtxo) {
-          console.log("✅ Found matching UTXO for inscription:", potentialUtxo);
-          return {
-            outpoint: `${potentialUtxo.txid}:${potentialUtxo.vout}`,
-            value: potentialUtxo.value
-          };
-        }
-      }
-      
-      // Fallback: try to find by common ordinal values (330 sats or dust limit 546)
-      const ordinalUtxo = utxos.find(utxo => utxo.value === 330 || utxo.value === 546);
-      if (ordinalUtxo) {
-        console.log("⚡ Found potential ordinal UTXO by value:", ordinalUtxo);
+        // Use the value from the ord server as it's the authoritative source
         return {
-          outpoint: `${ordinalUtxo.txid}:${ordinalUtxo.vout}`,
-          value: ordinalUtxo.value
+          outpoint: inscriptionDetails.outpoint,
+          value: inscriptionDetails.value,
+          utxoValue: matchingUtxo.value
         };
       }
       
-      // Last resort: use the smallest UTXO as it's likely the ordinal
-      const sortedUtxos = [...utxos].sort((a, b) => a.value - b.value);
-      if (sortedUtxos.length > 0) {
-        console.log("🔄 Using smallest UTXO as inscription:", sortedUtxos[0]);
-        return {
-          outpoint: `${sortedUtxos[0].txid}:${sortedUtxos[0].vout}`,
-          value: sortedUtxos[0].value
-        };
-      }
+      // If exact match not found, warn but still return ord server data
+      console.warn("⚠️ Inscription UTXO not found in wallet, but ord server shows it exists");
+      console.warn("This might mean the inscription has been transferred or the wallet UTXOs are not up to date");
       
-      throw new Error("Could not find suitable UTXO for inscription");
+      return {
+        outpoint: inscriptionDetails.outpoint,
+        value: inscriptionDetails.value,
+        utxoValue: null
+      };
+      
     } catch (error) {
       console.error("❌ Error finding inscription UTXO:", error);
       throw error;
@@ -514,20 +563,19 @@ export default function App() {
     setTxId('');
     setStatus('Preparing transaction...');
 
-    // In a real app, the seller (current_owner) and buyer (new_owner) would be different users.
-    // For this demo, we'll assume the connected user is both, providing both UTXOs.
-    // The `royalty_key` would be the original creator. We'll use a hardcoded "alice" for this example.
+    // Prepare the request payload for the backend
     const requestPayload = {
       ordinal_input: ordinalInput,
-      ordinal_value: parseInt(ordinalValue, 10),
+      ordinal_value: parseInt(ordinalValue, 10), // This comes from ord server /inscription/<ID> endpoint
       funding_input: fundingInput,
       funding_value: parseInt(fundingValue, 10),
-      // For the initial sale, current_owner is the royalty_key holder.
-      current_owner: "alice", // This should be derived from the wallet or user session
-      royalty_key: "alice",
-      new_owner: "bob", // The buyer - in a real app this would be different
+      current_owner: address, // The current owner of the inscription (royalty_key holder)
+      royalty_key: address,   // The address that will receive royalties (same as current owner initially)
+      new_owner: "",          // Unknown - will be filled when buyer signs the PSBT
       royalty_amount: parseInt(royaltyAmount, 10),
     };
+
+    console.log("📤 PSBT payload being sent to backend:", requestPayload);
 
     try {
       // 1. Call our Rust backend to create the PSBT
