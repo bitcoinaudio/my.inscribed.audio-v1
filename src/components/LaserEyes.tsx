@@ -18,7 +18,7 @@ import {
 // Main App Component
 export default function App() {
   return (
-    <LaserEyesProvider config={{ network: REGTEST }}>
+    <LaserEyesProvider config={{ network: MAINNET }}>
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
          <WalletDemo />
       </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
-
+import { MediaCard } from '../pages/MyMedia';
+ 
 interface RoyaltyConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -63,7 +64,7 @@ export default function RoyaltyConfirmModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-xl p-6 max-w-md w-full mx-4">
+      <div className="bg-gray-800 border border-gray-700 rounded-xl shadow-xl p-6  mx-4">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-red-300">Create Royalty Asset</h2>
           <button
@@ -74,18 +75,26 @@ export default function RoyaltyConfirmModal({
           </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="mb-4">
+          <p className="text-sm text-gray-400">
+            Inscription: <span className="text-white font-mono">{shortId}</span>
+          </p>
+        </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ">
           <div className="text-center">
-            {inscriptionPreview && (
+            {inscriptionPreview ? (
               <img 
                 src={inscriptionPreview} 
                 alt="Inscription preview" 
                 className="w-24 h-24 mx-auto rounded-md mb-2 object-cover"
               />
+            ) : (
+              <div className="w-24 h-24 mx-auto rounded-md mb-2 bg-gray-600 flex items-center justify-center">
+                <span className="text-xs text-gray-400">Inscription</span>
+              </div>
             )}
-            <p className="text-sm text-gray-400">
-              Inscription: <span className="text-white font-mono">{shortId}</span>
-            </p>
+            <p className="text-xs text-gray-400 mt-2 font-mono break-all">{shortId}</p>
           </div>
 
           <div className="bg-gray-700 rounded-lg p-4">
@@ -95,19 +104,22 @@ export default function RoyaltyConfirmModal({
               <li>• Future sales will automatically include the royalty fee</li>
               <li>• You'll receive royalties from all secondary sales</li>
             </ul>
+            
+            <div className="mt-4">
+              <Input
+                label="Royalty Fee (sats)"
+                placeholder="5000"
+                value={royaltyFee}
+                onChange={(e) => setRoyaltyFee(e.target.value)}
+                type="number"
+              />
+              <div className="text-xs text-gray-400 mt-1">
+                Estimated fee: ~{Math.round(parseInt(royaltyFee || '0') / 100000000 * 100000) / 1000}k sats
+              </div>
+            </div>
           </div>
 
-          <Input
-            label="Royalty Fee (sats)"
-            placeholder="5000"
-            value={royaltyFee}
-            onChange={(e) => setRoyaltyFee(e.target.value)}
-            type="number"
-          />
-
-          <div className="text-xs text-gray-400">
-            Estimated fee: ~{Math.round(parseInt(royaltyFee || '0') / 100000000 * 100000) / 1000}k sats
-          </div>
+          
 
           <div className="flex space-x-3 pt-4">
             <Button 

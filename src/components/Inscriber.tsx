@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useLaserEyes } from '@omnisat/lasereyes-react';
 import { REGTEST, TESTNET, UNISAT, XVERSE, MAGIC_EDEN } from '@omnisat/lasereyes-core';
 import { UploadCloud } from 'lucide-react';
-
 // --- Reusable UI Components (can be moved to their own files) ---
 
 const Card = ({ children, className = '' }) => (

@@ -27,7 +27,7 @@ const App = () => {
   return (
     <Router>
       <WalletProvider>
-        <LaserEyesProvider config={{ network: REGTEST }}>
+        <LaserEyesProvider config={{ network: MAINNET }}>
           <DeviceProvider>
             <div className="p-2 md:px-10">
               <NavBar />
