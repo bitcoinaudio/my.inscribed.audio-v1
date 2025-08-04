@@ -13,6 +13,7 @@ import { inscriptionArray } from '../globalState';
 const basenavigation = [
   { name: "My Inscribed Audio", href: "/" },
   { name: "Collections", href: "/collections" },
+  { name: "Marketplace Demo", href: "/marketplace" },
   ];
 
 

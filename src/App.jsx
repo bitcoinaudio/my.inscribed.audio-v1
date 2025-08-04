@@ -11,6 +11,7 @@ import Home from "./pages/Home";
 import Feature from "./pages/Feature";
 import Collections from "./pages/Collections";
 import RoyaltyKit from "./pages/RoyaltyKit";
+import MarketplaceDemo from "./pages/MarketplaceDemo";
 import MyMedia from "./pages/MyMedia";
 import NK1 from "./pages/NK-1";
 import NavBar from "./components/NavBar";
@@ -37,6 +38,7 @@ const App = () => {
                 <Route path="/feature" element={<Feature />} />
                 <Route path="/collections" element={<Collections />} />
                 <Route path="/royaltykit" element={<RoyaltyKit />} />
+                <Route path="/marketplace" element={<MarketplaceDemo />} />
                 <Route path="/mymedia" element={<MyMedia />} />
                 <Route path="/nk-1" element={<NK1 />} />
               </Routes>

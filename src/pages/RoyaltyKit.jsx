@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../context/WalletContext';
 import { useLaserEyes } from '@omnisat/lasereyes-react'
-import bitcoinroyaltyimg from '/images/bitcoinroyalty.png'
+import { Link } from 'react-router-dom';
+import bitcoinroyaltyimg from '/images/bitcoinroyalty2.jpg'
 import { MediaCard } from '../pages/MyMedia';
 import { getOrdinalsSite } from '../utils/inscriptions';
 import { inscriptionArray } from '../globalState';
 import Inscribe from '../components/Inscriber'
 import RoyaltyConfirmModal from '../components/RoyaltyConfirmModal';
 import InscriptionCard from '../components/InscriptionCard';
+import RoyaltyCard from '../components/RoyaltyCard';
 const API_BASE = 'http://127.0.0.1:3000';
 const ORD_BASE = getOrdinalsSite;
 
@@ -211,6 +213,7 @@ export default function App() {
   const [selectedInscription, setSelectedInscription] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [listingCreated, setListingCreated] = useState(false);
   const ITEMS_PER_PAGE = 6;
 
 
@@ -621,6 +624,7 @@ export default function App() {
         const txid = await broadcastResponse.text();
         setTxId(txid);
         setStatus('Transaction broadcasted successfully!');
+        setListingCreated(true); // Mark listing as created
         
       } catch (signError) {
         if (signError.message?.includes('user reject') || signError.message?.includes('cancelled')) {
@@ -638,6 +642,21 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Reset listing function
+  const resetListing = () => {
+    setSelectedInscription(null);
+    setOrdinalInput('');
+    setOrdinalValue('');
+    setFundingInput('');
+    setFundingValue('');
+    setRoyaltyAmount('');
+    setListingCreated(false);
+    setTxId('');
+    setStatus('');
+    setError('');
+    setInscriptionId('');
   };
 
   return (
@@ -814,12 +833,69 @@ export default function App() {
 
             {connected && (
               <Card className="">
-                <h2 className="text-xl font-semibold text-red-300 mb-4 text-center">Your Listing</h2>
-                <p className="text-sm text-gray-400 mb-4 text-center">
-                  Your Royalty Enabled Ordinal Listing will appear here once created.
-                </p>
-                <img src={`${bitcoinroyaltyimg}`} alt="Ordinal" className="h-96 w-96 w-full h-auto rounded-md mb-4" />
+                <h2 className="text-xl font-semibold text-red-300 mb-4 text-center">Your Royalty Listing</h2>
+                
+                {(selectedInscription || (ordinalInput && inscriptionId)) && (listingCreated || ordinalInput) ? (
+                  <div className="flex justify-center">
+                    <RoyaltyCard
+                      inscription={selectedInscription || { id: inscriptionId, contentType: 'unknown' }}
+                      royaltyAmount={royaltyAmount ? parseInt(royaltyAmount) : null}
+                      royaltyKey={address}
+                      artist="You"
+                      description="Your royalty-enabled ordinal inscription ready for marketplace listing"
+                      psbtData={ordinalInput && ordinalValue && fundingInput && fundingValue ? {
+                        ordinalInput,
+                        ordinalValue: parseInt(ordinalValue),
+                        fundingInput,
+                        fundingValue: parseInt(fundingValue)
+                      } : null}
+                      isListing={true}
+                      showPurchaseButton={false}
+                    />
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-400 py-8">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-700 rounded-lg flex items-center justify-center">
+                      <span className="text-2xl">🏪</span>
+                    </div>
+                    <p>No royalty listing created yet.</p>
+                    <p className="text-sm mt-2">Select an inscription and create a PSBT to see your listing preview.</p>
+                  </div>
+                )}
 
+                {/* Success actions */}
+                {listingCreated && txId && (
+                  <div className="mt-6 p-4 bg-green-900/20 border border-green-600 rounded-lg">
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold text-green-400 mb-2">🎉 Listing Created Successfully!</h3>
+                      <p className="text-sm text-gray-300 mb-4">
+                        Your royalty-enabled listing is now ready for the marketplace.
+                      </p>
+                      <div className="flex flex-col gap-2">
+                        <a
+                          href={`https://mempool.space/testnet/tx/${txId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-md transition-colors"
+                        >
+                          View Transaction 📋
+                        </a>
+                        <Button
+                          onClick={resetListing}
+                          className="!bg-gray-600 !hover:bg-gray-700 !text-sm !py-2"
+                        >
+                          Create New Listing 🆕
+                        </Button>
+                        <Link
+                          to="/marketplace"
+                          className="inline-block bg-yellow-600 hover:bg-yellow-700 text-black text-sm px-4 py-2 rounded-md transition-colors text-center font-semibold"
+                        >
+                          View Marketplace Demo 🏪
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </Card>
             )}
 

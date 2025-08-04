@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Royalty Ordinal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .title-font {
+            font-family: 'Playfair Display', serif;
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-2xl w-full bg-gray-900/50 backdrop-blur-sm rounded-2xl shadow-2xl shadow-yellow-500/10 border border-gray-700 overflow-hidden">
+        <div class="p-8">
+            <h1 class="title-font text-4xl md:text-5xl font-bold text-center text-yellow-400">Bitcoin Royalty</h1>
+            <p class="text-center text-gray-400 mt-2">Ordinal Inscription by Alice</p>
+        </div>
+        
+        <!-- Image of the Ordinal Asset -->
+        <div class="px-8 py-4">
+            <img 
+                src="public/images/bitcoinroyalty.jpg" 
+                alt="A glorious crown of diamonds and rubies with a Bitcoin symbol as the crest."
+                class="w-full h-auto rounded-lg object-cover border-2 border-gray-600 shadow-lg"
+                onerror="this.onerror=null;this.src='https://placehold.co/600x600/000000/FFFFFF?text=Image+Not+Found';"
+            >
+        </div>
+
+        <div class="p-8">
+            <h2 class="text-2xl font-bold text-gray-200">Asset Details</h2>
+            <div class="mt-4 text-gray-300 space-y-2">
+                <p><strong class="text-yellow-500">Description:</strong> A glorious crown of diamonds and rubies. The crest is the Bitcoin symbol, signifying Bitcoin Royalty.</p>
+                <p><strong class="text-yellow-500">Artist:</strong> Alice</p>
+                <p><strong class="text-yellow-500">Royalty Key Holder:</strong> Alice</p>
+                <p><strong class="text-yellow-500">Royalty Script:</strong> Native Bitcoin Miniscript (2-of-2 Multisig)</p>
+            </div>
+        </div>
+        <footer class="bg-black/50 text-center p-4 text-xs text-gray-500 border-t border-gray-800">
+            <p>This Ordinal's transfer is subject to a native royalty enforcement script.</p>
+        </footer>
+    </div>
+</body>
+</html>
