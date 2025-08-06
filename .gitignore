@@ -31,3 +31,4 @@ npm-debug.log*
  openssl.cnf
 
 .vscode/settings.json
+openssl.cnf
