@@ -39,8 +39,14 @@
 		"vite": "^5.2.10"
 	},
 	"scripts": {
-		"dev": "vite",
-		"build": "vite build",
+		"dev": "vite --mode testnet4",
+		"dev:mainnet": "vite --mode mainnet",
+		"dev:testnet4": "vite --mode testnet4",
+		"dev:regtest": "vite --mode regtest",
+		"build": "vite build --mode testnet4",
+		"build:mainnet": "vite build --mode mainnet",
+		"build:testnet4": "vite build --mode testnet4",
+		"build:regtest": "vite build --mode regtest",
 		"preview": "vite preview"
 	}
 }

@@ -1,4 +1,38 @@
-# Regtest End-to-End Testing Setup Guide
+# Bitcoin Network Testing Setup Guide
+
+## Network Options
+
+This project now supports multiple Bitcoin networks:
+
+- **Testnet4** (Default) - Latest Bitcoin testnet
+- **Mainnet** - Live Bitcoin network (use with caution!)
+- **Testnet** - Legacy Bitcoin testnet
+- **Regtest** - Local development network
+- **Signet** - Bitcoin signet test network
+
+## Quick Start
+
+### Backend (Rust)
+```powershell
+# Start on testnet4 (default)
+.\start-backend.ps1
+
+# Start on specific network
+.\start-backend.ps1 mainnet
+.\start-backend.ps1 testnet4
+.\start-backend.ps1 regtest
+```
+
+### Frontend (React)
+```powershell
+# Start on testnet4 (default)
+.\start-frontend.ps1
+
+# Start on specific network
+.\start-frontend.ps1 mainnet
+.\start-frontend.ps1 testnet4
+.\start-frontend.ps1 regtest
+```
 
 ## Prerequisites
 

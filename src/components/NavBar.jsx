@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Toggle } from "react-hook-theme";
 import ConnectWallet from './ConnectWallet';
 import ConnectMobile from './ConnectMobile';
+import NetworkSwitcher from './NetworkSwitcher';
 import { useDeviceContext } from "../utils/DeviceStore";
 import iaLogo from '/images/ia-bg3.png';
 import { useWallet } from '../context/WalletContext';
@@ -120,11 +121,20 @@ const NavBar = () => {
         </div>
 
         <div className="navbar-end h-10 scale-75">
-          <div className="flex flex-col gap-4">
-          {isMobile ? <ConnectMobile /> : <ConnectWallet />}
-          </div>
+          <div className="flex items-center gap-2">
+            {/* Network Switcher */}
+            <div className="hidden lg:block">
+              <NetworkSwitcher />
+            </div>
+            
+            {/* Wallet Connection */}
+            <div className="flex flex-col gap-4">
+              {isMobile ? <ConnectMobile /> : <ConnectWallet />}
+            </div>
 
-          <Toggle />
+            {/* Theme Toggle */}
+            <Toggle />
+          </div>
         </div>
       </div>
     </div>
