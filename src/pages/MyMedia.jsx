@@ -9,6 +9,7 @@ import woman from "/images/woman-sticker.webp";
 import MimeTypeFilter from "../components/MimeTypeFilter";
 import { useLaserEyes } from "@omnisat/lasereyes";
 import GLTFViewer from "../components/GLTFViewer";
+import { Dialog, DialogContent, DialogTrigger } from "../components/ui/dialog";
 
 // Constants
 const ORD_SERVER = "https://radinals.bitcoinaudio.co";
@@ -84,10 +85,57 @@ const LazyIframe = ({ src, placeholderSrc, className }) => {
   );
 };
 
-function openIFRAME() {
+// Cross-browser compatible window.open function
+const openMusicPlayer = () => {
+  const url = "https://arweave.net/o_yJ-NsYZTbbiexDhywUjtuvnr2kdEck7JD1zaTZfeY";
+  const windowName = "musicPlayer_" + Date.now(); // Unique name to avoid conflicts
+  
+  // Enhanced window features for better cross-browser compatibility
+  const windowFeatures = [
+    "width=800",
+    "height=600", 
+    "resizable=yes",
+    "scrollbars=yes",
+    "location=no",
+    "toolbar=no",
+    "menubar=no",
+    "status=no",
+    "directories=no",
+    "personalbar=no",
+    "titlebar=no",
+    "addressbar=no"
+  ].join(",");
 
-     window.open("https://arweave.net/Z5z6gob0q3wZobpCM_4mmce0UVd1xKhIWIQRY5PYgMo", "videoWindow", "resizable=yes,width=500,height=500");
-  };
+  try {
+    const popup = window.open(url, windowName, windowFeatures);
+    
+    // Handle popup blocker
+    if (!popup) {
+      // Fallback: try without window features (some browsers are less restrictive)
+      const fallbackPopup = window.open(url, windowName);
+      if (!fallbackPopup) {
+        // Final fallback: open in new tab
+        window.open(url, "_blank", "noopener,noreferrer");
+      } else {
+        fallbackPopup.focus();
+      }
+    } else {
+      // Focus the popup window
+      popup.focus();
+      
+      // Optional: Add error handling for cross-origin restrictions
+      try {
+        popup.document.title = "Music Player";
+      } catch (e) {
+        // Cross-origin restriction - ignore
+      }
+    }
+  } catch (error) {
+    console.warn("Window.open failed, falling back to new tab:", error);
+    // Ultimate fallback: new tab
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+};
 
 
 
@@ -221,10 +269,9 @@ const MediaCard = React.memo(({ item }) => {
                       {value === "Woman" && (
                         <button
                           className="tooltip"
-                          
-                          onClick={() => openIFRAME()}
+                          onClick={openMusicPlayer}
                         >
-                          <img id="image" className="w-12 h-10" src={woman} alt="Woman"  />
+                          <img id="image" className="w-12 h-10" src={woman} alt="Woman" />
                         </button>
                       )}
                     </div>
