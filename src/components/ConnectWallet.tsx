@@ -76,10 +76,10 @@ interface HtmlInscription {
 
 const ConnectWallet = ({ className }: { className?: string }) => {
 
-  const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
+  const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden, hasLeather } = useLaserEyes();
   // const { connectWallet, disconnectWallet } = useWallet();
   const [isOpen, setIsOpen] = useState(false);
-  const [hasWallet, setHasWallet] = useState({ [UNISAT]: false, [XVERSE]: false, [MAGIC_EDEN]: false });
+  const [hasWallet, setHasWallet] = useState({ [UNISAT]: false, [XVERSE]: false, [MAGIC_EDEN]: false, [LEATHER]: false });
   const [htmlInscriptions, setHtmlInscriptions] = useState<HtmlInscription[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [walletLoading, setWalletLoading] = useState<string | null>(null);
@@ -89,8 +89,8 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   const dustIDs = useMemo(() => new Set(dust.map(item => item.id)), []);
 
   useEffect(() => {
-    setHasWallet({ [UNISAT]: hasUnisat, [XVERSE]: hasXverse, [MAGIC_EDEN]: hasMagicEden });
-  }, [hasUnisat, hasXverse, hasMagicEden]);
+    setHasWallet({ [UNISAT]: hasUnisat, [XVERSE]: hasXverse, [MAGIC_EDEN]: hasMagicEden, [LEATHER]: hasLeather });
+  }, [hasUnisat, hasXverse, hasMagicEden, hasLeather]);
 
   const processInscriptions = async (raw) => {
     const results = await Promise.all(raw.map(async (insc) => {
@@ -155,6 +155,28 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     }
   };
 
+  const getLeatherInscriptions = async () => {
+    try {
+      setWalletLoading('leather');
+      const response = await request("wallet_connect", null);
+      if (response.status === 'success') {
+        const p2tr = response.result.addresses?.find(addr => addr.addressType === 'p2tr');
+        if (p2tr) {
+          const res = await request("ord_getInscriptions", { offset: 0, limit: 100 });
+          if (res.status === 'success') {
+            return res.result.inscriptions ? await processInscriptions(res.result.inscriptions) : [];
+          }
+        }
+      }
+      return [];
+    } catch (e) {
+      console.error("Leather error:", e);
+      return [];
+    } finally {
+      setWalletLoading(null);
+    }
+  };
+
   const handleConnect = async (walletName) => {
     if (provider === walletName) {
        disconnect();
@@ -171,6 +193,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
       await connect(walletName);
        if (walletName === 'unisat') await getUnisatInscriptions();
       else if (walletName === 'xverse') await getXverseInscriptions();
+      else if (walletName === 'leather') await getLeatherInscriptions();
       // navigate('/mymedia');
     } catch (err) {
       console.error(`Connection to ${walletName} failed:`, err);

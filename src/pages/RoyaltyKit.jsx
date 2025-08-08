@@ -214,6 +214,7 @@ export default function App() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [listingCreated, setListingCreated] = useState(false);
+  const [activeTab, setActiveTab] = useState('select'); // 'select' or 'inscribe'
   const ITEMS_PER_PAGE = 6;
 
 
@@ -265,6 +266,26 @@ export default function App() {
     console.log("🎯 Inscription selected:", inscription);
     setSelectedInscription(inscription);
     setShowConfirmModal(true);
+  };
+
+  // Handle successful inscription creation
+  const handleInscriptionCreated = (newInscriptionId) => {
+    console.log("🎯 New inscription created:", newInscriptionId);
+    // Create a mock inscription object for the newly created inscription
+    const newInscription = {
+      id: newInscriptionId,
+      contentType: 'unknown', // We might not know the content type immediately
+      isEnhanced: false,
+      isBRC420: false,
+      isBitmap: false,
+      isBeatBlock: false,
+      isIOM: false,
+      isDust: false
+    };
+    setSelectedInscription(newInscription);
+    setShowConfirmModal(true);
+    // Switch back to select tab to show the new inscription
+    setActiveTab('select');
   };
 
   // Handle confirming royalty creation
@@ -672,86 +693,120 @@ export default function App() {
        
         <main>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 ">
-               {/* <Inscribe /> */}
              <Card>
-
               <div className="">
-                <h2 className="text-xl font-semibold text-red-300 mb-4 text-center">Select Your Inscription</h2>
-                <div className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  Server status: {serverStatus} | Total inscriptions: {inscriptionArray.length}
-                </div>
+                <h2 className="text-xl font-semibold text-red-300 mb-4 text-center">Get Your Inscription</h2>
                 
-                {inscriptionArray.length === 0 ? (
-                  <div className="text-center text-gray-400 py-8">
-                    <p>No inscriptions found.</p>
-                    <p className="text-sm mt-2">Connect your wallet to load your inscriptions.</p>
+                {/* Tab Navigation */}
+                <div className="flex mb-6 bg-gray-800 rounded-lg p-1">
+                  <button
+                    onClick={() => setActiveTab('select')}
+                    className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                      activeTab === 'select'
+                        ? 'bg-red-600 text-white'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    📋 Select Existing
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('inscribe')}
+                    className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                      activeTab === 'inscribe'
+                        ? 'bg-red-600 text-white'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    ✨ Inscribe New
+                  </button>
+                </div>
+
+                {/* Tab Content */}
+                {activeTab === 'select' ? (
+                  <div>
+                    <div className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                      Server status: {serverStatus} | Total inscriptions: {inscriptionArray.length}
+                    </div>
+                    
+                    {inscriptionArray.length === 0 ? (
+                      <div className="text-center text-gray-400 py-8">
+                        <p>No inscriptions found.</p>
+                        <p className="text-sm mt-2">Connect your wallet to load your inscriptions.</p>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Pagination Controls */}
+                        <div className="flex justify-center items-center gap-4 mb-4">
+                          <Button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="!w-auto !px-3 !py-1 !text-sm"
+                          >
+                            ←
+                          </Button>
+                          <span className="text-sm text-gray-400">
+                            {currentPage} of {totalPages}
+                          </span>
+                          <Button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="!w-auto !px-3 !py-1 !text-sm"
+                          >
+                            →
+                          </Button>
+                        </div>
+
+                        {/* Inscription Carousel */}
+                        <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+                          {paginatedInscriptions.map((inscription) => (
+                            <InscriptionCard
+                              key={inscription.id}
+                              inscription={inscription}
+                              onSelect={handleSelectInscription}
+                              disabled={isLoading}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Legacy manual input section */}
+                    <div className="mt-6 pt-4 border-t border-gray-600">
+                      <h3 className="text-lg font-medium text-gray-300 mb-3">Or enter manually:</h3>
+                      <Input label="Inscription ID" placeholder="Enter inscription ID..." value={inscriptionId} onChange={e => setInscriptionId(e.target.value)} />
+                      <br />
+                      <Button onClick={handleFetch} disabled={loading || !inscriptionId}>
+                        {loading ? 'Loading...' : 'Fetch Metadata'}
+                      </Button>
+
+                      {error && <div className="text-red-500 mt-3">Error: {error}</div>}
+                      {result && (
+                        <pre className="mt-3 bg-white dark:bg-gray-800 p-3 rounded text-sm overflow-auto">
+                          {JSON.stringify(result, null, 2)}
+                        </pre>
+                      )}
+
+                      {inscriptionId && (
+                        <div className="flex justify-center mt-4">
+                          <div className="carousel carousel-vertical rounded-box h-48">
+                            <div className="carousel-item h-full">                    
+                              <MediaCard item={{ id: inscriptionId }} />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ) : (
-                  <>
-                    {/* Pagination Controls */}
-                    <div className="flex justify-center items-center gap-4 mb-4">
-                      <Button
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="!w-auto !px-3 !py-1 !text-sm"
-                      >
-                        ←
-                      </Button>
-                      <span className="text-sm text-gray-400">
-                        {currentPage} of {totalPages}
-                      </span>
-                      <Button
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                        className="!w-auto !px-3 !py-1 !text-sm"
-                      >
-                        →
-                      </Button>
+                  <div>
+                    <div className="text-center text-gray-400 mb-4">
+                      <p className="text-sm">Create a new inscription and immediately set up royalties</p>
                     </div>
-
-                    {/* Inscription Carousel */}
-                    <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
-                      {paginatedInscriptions.map((inscription) => (
-                        <InscriptionCard
-                          key={inscription.id}
-                          inscription={inscription}
-                          onSelect={handleSelectInscription}
-                          disabled={isLoading}
-                        />
-                      ))}
-                    </div>
-                  </>
+                    <Inscribe onInscriptionCreated={handleInscriptionCreated} />
+                  </div>
                 )}
 
-                {/* Legacy manual input section */}
-                <div className="mt-6 pt-4 border-t border-gray-600">
-                  <h3 className="text-lg font-medium text-gray-300 mb-3">Or enter manually:</h3>
-                  <Input label="Inscription ID" placeholder="Enter inscription ID..." value={inscriptionId} onChange={e => setInscriptionId(e.target.value)} />
-                  <br />
-                  <Button onClick={handleFetch} disabled={loading || !inscriptionId}>
-                    {loading ? 'Loading...' : 'Fetch Metadata'}
-                  </Button>
-
-                  {error && <div className="text-red-500 mt-3">Error: {error}</div>}
-                  {result && (
-                    <pre className="mt-3 bg-white dark:bg-gray-800 p-3 rounded text-sm overflow-auto">
-                      {JSON.stringify(result, null, 2)}
-                    </pre>
-                  )}
-
-                  {inscriptionId && (
-                    <div className="flex justify-center mt-4">
-                      <div className="carousel carousel-vertical rounded-box h-48">
-                        <div className="carousel-item h-full">                    
-                          <MediaCard item={{ id: inscriptionId }} />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
               </div>
-
 
             </Card>
 

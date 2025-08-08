@@ -48,7 +48,11 @@ const StatusMessage = ({ message, isError = false }) => (
 
 // --- Inscription Component ---
 
-export default function Inscribe() {
+interface InscribeProps {
+  onInscriptionCreated?: (inscriptionId: string) => void;
+}
+
+export default function Inscribe({ onInscriptionCreated }: InscribeProps = {}) {
   const { 
     connected, 
     address, 
@@ -178,6 +182,14 @@ export default function Inscribe() {
         
         const txid = await broadcastResponse.text();
         setTxId(txid);
+        
+        // Create the inscription ID (txid + i0 for first inscription)
+        const inscriptionId = `${txid}i0`;
+        
+        // Call the callback if provided
+        if (onInscriptionCreated) {
+          onInscriptionCreated(inscriptionId);
+        }
         
         // If royalty was enabled, show success message
         if (enableRoyalty) {
