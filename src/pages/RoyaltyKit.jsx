@@ -10,8 +10,80 @@ import Inscribe from '../components/Inscriber'
 import RoyaltyConfirmModal from '../components/RoyaltyConfirmModal';
 import InscriptionCard from '../components/InscriptionCard';
 import RoyaltyCard from '../components/RoyaltyCard';
-const API_BASE = 'http://127.0.0.1:3000';
+const BORES_BASE = import.meta.env.VITE_BORES_API_URL || 'http://127.0.0.1:3000';
+const LEGACY_ROYALTY_BASE = import.meta.env.VITE_ROYALTY_API_URL || BORES_BASE;
+const BORES_KEY_ID = import.meta.env.VITE_BORES_KEY_ID || '';
+const BORES_SHARED_SECRET = import.meta.env.VITE_BORES_SHARED_SECRET || '';
+const CREATION_FEE_SATS = parseInt(import.meta.env.VITE_ROYALTY_CREATION_FEE_SATS || '0', 10);
+const CREATION_FEE_ADDRESS = import.meta.env.VITE_ROYALTY_CREATION_ADDRESS || '';
+const BTCPAY_INVOICE_URL = import.meta.env.VITE_BTCPAY_INVOICE_URL || '';
 const ORD_BASE = getOrdinalsSite;
+
+const bytesToHex = (bytes) => Array.from(new Uint8Array(bytes)).map((b) => b.toString(16).padStart(2, '0')).join('');
+
+const sha256Hex = async (input) => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+  const hash = await crypto.subtle.digest('SHA-256', data);
+  return bytesToHex(hash);
+};
+
+const hmacSha256Hex = async (secret, message) => {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(message));
+  return bytesToHex(signature);
+};
+
+const createBoresHeaders = async (method, path, body) => {
+  const headers = { 'Content-Type': 'application/json' };
+  if (!BORES_KEY_ID || !BORES_SHARED_SECRET || !crypto?.subtle) {
+    return headers;
+  }
+
+  const timestamp = `${Date.now()}`;
+  const bodyHash = await sha256Hex(body || '');
+  const signingString = `${timestamp}.${method}.${path}.${bodyHash}`;
+  const signature = await hmacSha256Hex(BORES_SHARED_SECRET, signingString);
+
+  return {
+    ...headers,
+    'X-BORES-KEY-ID': BORES_KEY_ID,
+    'X-BORES-TIMESTAMP': timestamp,
+    'X-BORES-SIGNATURE': signature,
+  };
+};
+
+const callBoresApi = async (method, path, body = null) => {
+  const bodyStr = body ? JSON.stringify(body) : '';
+  const headers = await createBoresHeaders(method, path, bodyStr);
+  const response = await fetch(`${BORES_BASE}${path}`, {
+    method,
+    headers,
+    body: bodyStr || undefined,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `BORES request failed (${response.status})`);
+  }
+
+  return response.json();
+};
+
+const parseOutpoint = (outpoint) => {
+  const [txid, voutRaw] = outpoint.split(':');
+  if (!txid || voutRaw === undefined) {
+    throw new Error(`Invalid outpoint: ${outpoint}`);
+  }
+  return { txid, vout: parseInt(voutRaw, 10) };
+};
 
 const Card = ({ children, className = '' }) => (
   <div className={`border border-gray-700 rounded-xl shadow-lg p-6 backdrop-blur-sm ${className}`}>
@@ -66,6 +138,8 @@ export default function App() {
   const [fundingInput, setFundingInput] = useState('');
   const [fundingValue, setFundingValue] = useState('');
   const [royaltyAmount, setRoyaltyAmount] = useState('');
+  const [royaltyBps, setRoyaltyBps] = useState('500');
+  const [saleAmountSats, setSaleAmountSats] = useState('');
 
   // State for the transaction process
   const [status, setStatus] = useState('');
@@ -208,6 +282,11 @@ export default function App() {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [serverStatus, setServerStatus] = useState('checking...');
+  const [boresPolicyId, setBoresPolicyId] = useState('');
+  const [btcpayInvoiceUrl, setBtcpayInvoiceUrl] = useState(BTCPAY_INVOICE_URL);
+  const [btcpayInvoiceId, setBtcpayInvoiceId] = useState('');
+  const [btcpayInvoiceLoading, setBtcpayInvoiceLoading] = useState(false);
+  const [btcpayInvoiceError, setBtcpayInvoiceError] = useState('');
 
   // New state for royalty workflow
   const [selectedInscription, setSelectedInscription] = useState(null);
@@ -220,14 +299,106 @@ export default function App() {
   useEffect(() => {
     const checkServer = async () => {
       try {
-        const ping = await fetch(`${API_BASE}/api/ping`);
-        setServerStatus(ping.ok ? '✅ API online' : `❌ Error ${ping.status}`);
+        const ping = await fetch(`${BORES_BASE}/health`);
+        setServerStatus(ping.ok ? '✅ BORES online' : `❌ Error ${ping.status}`);
       } catch {
-        setServerStatus('❌ API unreachable');
+        setServerStatus('❌ BORES unreachable');
       }
     };
     checkServer();
   }, []);
+
+  const ensureBoresPolicy = async () => {
+    if (boresPolicyId) return boresPolicyId;
+
+    const royaltyRecipientAddress = address || laserEyesPaymentAddress || paymentAddress;
+    if (!royaltyRecipientAddress) {
+      throw new Error('Missing wallet address for BORES policy creation');
+    }
+
+    const parsedRoyaltyBps = parseInt(royaltyBps, 10);
+    if (Number.isNaN(parsedRoyaltyBps)) {
+      throw new Error('Invalid royalty bps');
+    }
+
+    const payload = {
+      scheme: 'taproot_2of2_miniscript',
+      royalty_bps: parsedRoyaltyBps,
+      royalty_recipient: {
+        type: 'address',
+        address: royaltyRecipientAddress,
+      },
+      creator: {
+        display_name: 'RoyaltyKit User',
+        wallet_address_hint: royaltyRecipientAddress,
+      },
+      metadata: {
+        description: inscriptionId ? `RoyaltyKit inscription ${inscriptionId}` : 'RoyaltyKit listing',
+      },
+    };
+
+    const response = await callBoresApi('POST', '/v1/policies', payload);
+    setBoresPolicyId(response.policy_id);
+    return response.policy_id;
+  };
+
+  const quoteRoyaltyAmount = async (policyId, amountSats) => {
+    if (!amountSats) return null;
+    const payload = {
+      policy_id: policyId,
+      sale_amount: { amount: parseInt(amountSats, 10), currency: 'SATS' },
+    };
+    return callBoresApi('POST', '/v1/royalties/quote', payload);
+  };
+
+  const validateBoresPsbt = async (policyId, psbtBase64) => {
+    const payload = {
+      policy_id: policyId,
+      network: (network || 'mainnet').toLowerCase(),
+      psbt_base64: psbtBase64,
+    };
+    return callBoresApi('POST', '/v1/validate', payload);
+  };
+
+  const requestBtcpayInvoice = async () => {
+    if (CREATION_FEE_SATS <= 0) {
+      setBtcpayInvoiceError('Creation fee is not configured.');
+      return null;
+    }
+
+    setBtcpayInvoiceLoading(true);
+    setBtcpayInvoiceError('');
+
+    try {
+      const response = await callBoresApi('POST', '/v1/btcpay/invoices', {
+        amount_sats: CREATION_FEE_SATS,
+        description: 'Royalty asset creation fee',
+        metadata: {
+          inscription_id: selectedInscription?.id || inscriptionId || undefined,
+          source: 'royaltykit',
+        },
+      });
+
+      setBtcpayInvoiceUrl(response.checkout_link);
+      setBtcpayInvoiceId(response.invoice_id);
+      return response.checkout_link;
+    } catch (error) {
+      setBtcpayInvoiceError(error.message || 'Failed to create BTCPay invoice.');
+      return null;
+    } finally {
+      setBtcpayInvoiceLoading(false);
+    }
+  };
+
+  const checkBtcpayInvoiceStatus = async () => {
+    if (!btcpayInvoiceId) return null;
+    try {
+      const response = await callBoresApi('GET', `/v1/btcpay/invoices/${btcpayInvoiceId}`);
+      return response.status;
+    } catch (error) {
+      return null;
+    }
+  };
 
   const handleFetch = async () => {
     if (!inscriptionId) return;
@@ -268,11 +439,12 @@ export default function App() {
   };
 
   // Handle confirming royalty creation
-  const handleConfirmRoyalty = async (royaltyFee) => {
+  const handleConfirmRoyalty = async (royaltyFee, paymentMethod) => {
     console.log("🎯 Starting royalty confirmation process...");
     console.log("Selected inscription:", selectedInscription);
     console.log("Royalty fee:", royaltyFee);
     console.log("Connected:", connected);
+    console.log("Payment method:", paymentMethod);
     
     if (!selectedInscription || !connected) {
       setError("Please connect your wallet first.");
@@ -302,7 +474,7 @@ export default function App() {
       setFundingValue(fundingUtxo.value.toString());
       setRoyaltyAmount(royaltyFee);
       
-      setStatus('UTXO information populated from ord server. Creating royalty asset...');
+      setStatus(`UTXO information populated from ord server. Payment confirmed via ${paymentMethod || 'wallet'}. Creating royalty asset...`);
       console.log("✅ Populated PSBT fields with ord server data:", {
         ordinalInput: inscriptionDetails.outpoint,
         ordinalValue: inscriptionDetails.value, // This is the authoritative value
@@ -314,7 +486,15 @@ export default function App() {
 
       // Close the modal and keep the form populated for user to proceed
       setShowConfirmModal(false);
-      setStatus('✅ Inscription details fetched from ord server and PSBT fields populated. You can now create the transaction.');
+      setStatus('✅ Inscription details fetched from ord server and PSBT fields populated. Creating BORES policy...');
+
+      try {
+        const policyId = await ensureBoresPolicy();
+        setStatus(`✅ BORES policy ready: ${policyId}`);
+      } catch (policyError) {
+        console.warn('BORES policy creation failed:', policyError);
+        setStatus('⚠️ BORES policy creation failed. You can still create the PSBT, but royalties may not validate.');
+      }
 
     } catch (err) {
       console.error("❌ Error in royalty confirmation:", err);
@@ -566,7 +746,27 @@ export default function App() {
     setTxId('');
     setStatus('Preparing transaction...');
 
-    // Prepare the request payload for the backend
+    let policyId = '';
+    let quotedRoyalty = null;
+
+    try {
+      policyId = await ensureBoresPolicy();
+      if (saleAmountSats) {
+        quotedRoyalty = await quoteRoyaltyAmount(policyId, saleAmountSats);
+      }
+    } catch (policyError) {
+      console.warn('BORES policy/quote failed:', policyError);
+    }
+
+    const resolvedRoyaltyAmount = quotedRoyalty?.royalty_amount?.amount
+      ? `${quotedRoyalty.royalty_amount.amount}`
+      : royaltyAmount;
+
+    if (quotedRoyalty?.royalty_amount?.amount) {
+      setRoyaltyAmount(`${quotedRoyalty.royalty_amount.amount}`);
+    }
+
+    // Prepare the request payload for the legacy backend
     const requestPayload = {
       ordinal_input: ordinalInput,
       ordinal_value: parseInt(ordinalValue, 10), // This comes from ord server /inscription/<ID> endpoint
@@ -575,27 +775,95 @@ export default function App() {
       current_owner: address, // The current owner of the inscription (royalty_key holder)
       royalty_key: address,   // The address that will receive royalties (same as current owner initially)
       new_owner: "",          // Unknown - will be filled when buyer signs the PSBT
-      royalty_amount: parseInt(royaltyAmount, 10),
+      royalty_amount: parseInt(resolvedRoyaltyAmount, 10),
     };
 
     console.log("📤 PSBT payload being sent to backend:", requestPayload);
 
     try {
-      // 1. Call our Rust backend to create the PSBT
-      setStatus('Calling backend to create PSBT...');
-      const response = await fetch(`${API_BASE}/api/create-psbt`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestPayload),
-      });
+      // 1. Try BORES ordinal-transfer endpoint
+      let psbt_base64 = null;
+      if (policyId) {
+        try {
+          const ordinalOutpoint = parseOutpoint(ordinalInput);
+          const fundingOutpoint = parseOutpoint(fundingInput);
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || `HTTP error! status: ${response.status}`);
+          const boresPayload = {
+            network: (network || 'mainnet').toLowerCase(),
+            policy_id: policyId,
+            inscription: {
+              inscription_id: selectedInscription?.id || inscriptionId || undefined,
+              utxo: ordinalOutpoint,
+              value_sats: parseInt(ordinalValue, 10),
+            },
+            new_owner: {
+              type: 'address',
+              address: address,
+            },
+            royalty_payment: {
+              amount_sats: parseInt(resolvedRoyaltyAmount, 10),
+              recipient: {
+                type: 'address',
+                address: address,
+              },
+            },
+            fee: {
+              max_fee_sats: 3000,
+              fee_rate_sat_vb: 10,
+            },
+            inputs: [
+              {
+                txid: fundingOutpoint.txid,
+                vout: fundingOutpoint.vout,
+                value_sats: parseInt(fundingValue, 10),
+                address: address,
+              },
+            ],
+            change: {
+              address: address,
+              min_change_sats: 546,
+            },
+            current_owner_address: address,
+          };
+
+          setStatus('Calling BORES to create PSBT...');
+          const boresResponse = await callBoresApi('POST', '/v1/psbt/ordinal-transfer', boresPayload);
+          psbt_base64 = boresResponse.psbt_base64;
+        } catch (boresError) {
+          console.warn('BORES PSBT creation failed, falling back to legacy:', boresError);
+        }
       }
 
-      const { psbt_base64 } = await response.json();
+      // 2. Fallback to legacy endpoint if needed
+      if (!psbt_base64) {
+        setStatus('Calling legacy backend to create PSBT...');
+        const response = await fetch(`${LEGACY_ROYALTY_BASE}/api/create-psbt`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestPayload),
+        });
+
+        if (!response.ok) {
+          const errData = await response.json();
+          throw new Error(errData.error || `HTTP error! status: ${response.status}`);
+        }
+
+        const legacyResponse = await response.json();
+        psbt_base64 = legacyResponse.psbt_base64;
+      }
+
       setStatus('PSBT created! Please check your wallet to sign.');
+
+      if (policyId && psbt_base64) {
+        try {
+          const validation = await validateBoresPsbt(policyId, psbt_base64);
+          if (!validation.ok) {
+            setStatus(`⚠️ BORES validation failed: ${validation.message || 'Unknown validation error'}`);
+          }
+        } catch (validationError) {
+          console.warn('BORES validation error:', validationError);
+        }
+      }
 
       // 2. Ask the user's wallet to sign the PSBT using LaserEyes
       setStatus('Please sign the transaction in your wallet...');
@@ -652,11 +920,16 @@ export default function App() {
     setFundingInput('');
     setFundingValue('');
     setRoyaltyAmount('');
+    setSaleAmountSats('');
     setListingCreated(false);
     setTxId('');
     setStatus('');
     setError('');
     setInscriptionId('');
+    setBoresPolicyId('');
+    setBtcpayInvoiceUrl(BTCPAY_INVOICE_URL);
+    setBtcpayInvoiceId('');
+    setBtcpayInvoiceError('');
   };
 
   return (
@@ -768,6 +1041,7 @@ export default function App() {
                   <div className="text-xs space-y-2 text-gray-400 mb-4">
                     <p><strong>Ordinals Address:</strong> {address}</p>
                     <p><strong>Payment Address:</strong> {address}</p>
+                    <p><strong>BORES Policy:</strong> {boresPolicyId || 'Not created yet'}</p>
                     <p className="text-yellow-400 mt-2">
                       💡 Select an inscription from the carousel above to auto-populate these fields
                     </p>
@@ -792,6 +1066,8 @@ export default function App() {
                     <Input label="Ordinal Value (sats)" placeholder="777" value={ordinalValue} onChange={e => setOrdinalValue(e.target.value)} type="number" />
                     <Input label="Buyer's Funding Input (txid:vout)" placeholder="efgh...:1" value={fundingInput} onChange={e => setFundingInput(e.target.value)} />
                     <Input label="Funding Value (sats)" placeholder="10000" value={fundingValue} onChange={e => setFundingValue(e.target.value)} type="number" />
+                    <Input label="Sale Amount (sats)" placeholder="50000" value={saleAmountSats} onChange={e => setSaleAmountSats(e.target.value)} type="number" />
+                    <Input label="Royalty (bps)" placeholder="500" value={royaltyBps} onChange={e => setRoyaltyBps(e.target.value)} type="number" />
                     <Input label="Royalty Amount (sats)" placeholder="2000" value={royaltyAmount} onChange={e => setRoyaltyAmount(e.target.value)} type="number" />
 
                     {ordinalInput && ordinalValue && fundingInput && fundingValue && royaltyAmount && (
@@ -917,6 +1193,14 @@ export default function App() {
         inscriptionPreview={selectedInscription?.contentType?.startsWith('image/') 
           ? `https://radinals.bitcoinaudio.co/content/${selectedInscription?.id}` 
           : undefined}
+        creationFeeSats={CREATION_FEE_SATS}
+        creationFeeAddress={CREATION_FEE_ADDRESS}
+        btcpayInvoiceUrl={btcpayInvoiceUrl}
+        btcpayInvoiceId={btcpayInvoiceId}
+        btcpayInvoiceLoading={btcpayInvoiceLoading}
+        btcpayInvoiceError={btcpayInvoiceError}
+        onRequestBtcpayInvoice={requestBtcpayInvoice}
+        onCheckBtcpayStatus={checkBtcpayInvoiceStatus}
       />
     </div>
   );
