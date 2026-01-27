@@ -10,10 +10,11 @@ import Inscribe from '../components/Inscriber'
 import RoyaltyConfirmModal from '../components/RoyaltyConfirmModal';
 import InscriptionCard from '../components/InscriptionCard';
 import RoyaltyCard from '../components/RoyaltyCard';
-const BORES_BASE = import.meta.env.VITE_BORES_API_URL || 'http://127.0.0.1:3000';
+const BORES_BASE = import.meta.env.VITE_BORES_API_URL || '/bores-api';
 const LEGACY_ROYALTY_BASE = import.meta.env.VITE_ROYALTY_API_URL || BORES_BASE;
 const BORES_KEY_ID = import.meta.env.VITE_BORES_KEY_ID || '';
 const BORES_SHARED_SECRET = import.meta.env.VITE_BORES_SHARED_SECRET || '';
+const BORES_NETWORK = (import.meta.env.VITE_BITCOIN_NETWORK || import.meta.env.VITE_BORES_NETWORK || '').toLowerCase();
 const CREATION_FEE_SATS = parseInt(import.meta.env.VITE_ROYALTY_CREATION_FEE_SATS || '0', 10);
 const CREATION_FEE_ADDRESS = import.meta.env.VITE_ROYALTY_CREATION_ADDRESS || '';
 const BTCPAY_INVOICE_URL = import.meta.env.VITE_BTCPAY_INVOICE_URL || '';
@@ -43,7 +44,11 @@ const hmacSha256Hex = async (secret, message) => {
 
 const createBoresHeaders = async (method, path, body) => {
   const headers = { 'Content-Type': 'application/json' };
+  const requiresAuth = path.startsWith('/v1/');
   if (!BORES_KEY_ID || !BORES_SHARED_SECRET || !crypto?.subtle) {
+    if (requiresAuth) {
+      throw new Error('BORES HMAC credentials are missing. Set VITE_BORES_KEY_ID and VITE_BORES_SHARED_SECRET.');
+    }
     return headers;
   }
 
@@ -147,6 +152,8 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
 
   const isConnected = paymentAddress && ordinalsAddress;
+  const boresAuthReady = Boolean(BORES_KEY_ID && BORES_SHARED_SECRET && crypto?.subtle);
+  const boresAuthStatus = boresAuthReady ? '✅ BORES auth ready' : '⚠️ BORES auth missing';
   const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden, signPsbt, connected, paymentAddress: laserEyesPaymentAddress, network } = useLaserEyes();
 
   // Add missing handleConnect function
@@ -354,7 +361,7 @@ export default function App() {
   const validateBoresPsbt = async (policyId, psbtBase64) => {
     const payload = {
       policy_id: policyId,
-      network: (network || 'mainnet').toLowerCase(),
+      network: BORES_NETWORK || (network || 'mainnet').toLowerCase(),
       psbt_base64: psbtBase64,
     };
     return callBoresApi('POST', '/v1/validate', payload);
@@ -756,6 +763,10 @@ export default function App() {
       }
     } catch (policyError) {
       console.warn('BORES policy/quote failed:', policyError);
+      setError(policyError.message || 'BORES policy creation failed.');
+      setStatus('');
+      setIsLoading(false);
+      return;
     }
 
     const resolvedRoyaltyAmount = quotedRoyalty?.royalty_amount?.amount
@@ -766,91 +777,58 @@ export default function App() {
       setRoyaltyAmount(`${quotedRoyalty.royalty_amount.amount}`);
     }
 
-    // Prepare the request payload for the legacy backend
-    const requestPayload = {
-      ordinal_input: ordinalInput,
-      ordinal_value: parseInt(ordinalValue, 10), // This comes from ord server /inscription/<ID> endpoint
-      funding_input: fundingInput,
-      funding_value: parseInt(fundingValue, 10),
-      current_owner: address, // The current owner of the inscription (royalty_key holder)
-      royalty_key: address,   // The address that will receive royalties (same as current owner initially)
-      new_owner: "",          // Unknown - will be filled when buyer signs the PSBT
-      royalty_amount: parseInt(resolvedRoyaltyAmount, 10),
-    };
-
-    console.log("📤 PSBT payload being sent to backend:", requestPayload);
+    if (!policyId) {
+      setError('Missing BORES policy. Cannot create PSBT.');
+      setStatus('');
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      // 1. Try BORES ordinal-transfer endpoint
-      let psbt_base64 = null;
-      if (policyId) {
-        try {
-          const ordinalOutpoint = parseOutpoint(ordinalInput);
-          const fundingOutpoint = parseOutpoint(fundingInput);
+      const ordinalOutpoint = parseOutpoint(ordinalInput);
+      const fundingOutpoint = parseOutpoint(fundingInput);
 
-          const boresPayload = {
-            network: (network || 'mainnet').toLowerCase(),
-            policy_id: policyId,
-            inscription: {
-              inscription_id: selectedInscription?.id || inscriptionId || undefined,
-              utxo: ordinalOutpoint,
-              value_sats: parseInt(ordinalValue, 10),
-            },
-            new_owner: {
-              type: 'address',
-              address: address,
-            },
-            royalty_payment: {
-              amount_sats: parseInt(resolvedRoyaltyAmount, 10),
-              recipient: {
-                type: 'address',
-                address: address,
-              },
-            },
-            fee: {
-              max_fee_sats: 3000,
-              fee_rate_sat_vb: 10,
-            },
-            inputs: [
-              {
-                txid: fundingOutpoint.txid,
-                vout: fundingOutpoint.vout,
-                value_sats: parseInt(fundingValue, 10),
-                address: address,
-              },
-            ],
-            change: {
-              address: address,
-              min_change_sats: 546,
-            },
-            current_owner_address: address,
-          };
+      const boresPayload = {
+        network: BORES_NETWORK || (network || 'mainnet').toLowerCase(),
+        policy_id: policyId,
+        inscription: {
+          inscription_id: selectedInscription?.id || inscriptionId || undefined,
+          utxo: ordinalOutpoint,
+          value_sats: parseInt(ordinalValue, 10),
+        },
+        new_owner: {
+          type: 'address',
+          address: address,
+        },
+        royalty_payment: {
+          amount_sats: parseInt(resolvedRoyaltyAmount, 10),
+          recipient: {
+            type: 'address',
+            address: address,
+          },
+        },
+        fee: {
+          max_fee_sats: 3000,
+          fee_rate_sat_vb: 10,
+        },
+        inputs: [
+          {
+            txid: fundingOutpoint.txid,
+            vout: fundingOutpoint.vout,
+            value_sats: parseInt(fundingValue, 10),
+            address: address,
+          },
+        ],
+        change: {
+          address: address,
+          min_change_sats: 546,
+        },
+        current_owner_address: address,
+      };
 
-          setStatus('Calling BORES to create PSBT...');
-          const boresResponse = await callBoresApi('POST', '/v1/psbt/ordinal-transfer', boresPayload);
-          psbt_base64 = boresResponse.psbt_base64;
-        } catch (boresError) {
-          console.warn('BORES PSBT creation failed, falling back to legacy:', boresError);
-        }
-      }
-
-      // 2. Fallback to legacy endpoint if needed
-      if (!psbt_base64) {
-        setStatus('Calling legacy backend to create PSBT...');
-        const response = await fetch(`${LEGACY_ROYALTY_BASE}/api/create-psbt`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestPayload),
-        });
-
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.error || `HTTP error! status: ${response.status}`);
-        }
-
-        const legacyResponse = await response.json();
-        psbt_base64 = legacyResponse.psbt_base64;
-      }
+      setStatus('Calling BORES to create PSBT...');
+      const boresResponse = await callBoresApi('POST', '/v1/psbt/ordinal-transfer', boresPayload);
+      const psbt_base64 = boresResponse.psbt_base64;
 
       setStatus('PSBT created! Please check your wallet to sign.');
 
@@ -858,10 +836,17 @@ export default function App() {
         try {
           const validation = await validateBoresPsbt(policyId, psbt_base64);
           if (!validation.ok) {
-            setStatus(`⚠️ BORES validation failed: ${validation.message || 'Unknown validation error'}`);
+            setError(`BORES validation failed: ${validation.message || 'Unknown validation error'}`);
+            setStatus('');
+            setIsLoading(false);
+            return;
           }
         } catch (validationError) {
           console.warn('BORES validation error:', validationError);
+          setError(`BORES validation failed: ${validationError.message || 'Unknown validation error'}`);
+          setStatus('');
+          setIsLoading(false);
+          return;
         }
       }
 
@@ -951,7 +936,7 @@ export default function App() {
               <div className="">
                 <h2 className="text-xl font-semibold text-red-300 mb-4 text-center">Select Your Inscription</h2>
                 <div className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                  Server status: {serverStatus} | Total inscriptions: {inscriptionArray.length}
+                  Server status: {serverStatus} | {boresAuthStatus} | Total inscriptions: {inscriptionArray.length}
                 </div>
                 
                 {inscriptionArray.length === 0 ? (

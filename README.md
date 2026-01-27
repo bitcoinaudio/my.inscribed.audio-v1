@@ -190,12 +190,17 @@ Featured collection: [The Ides of March](https://gamma.io/ordinals/collections/i
 
 ## 🔧 Configuration
 
-### Environment Variables
+### Environment Variables (Vite)
 ```bash
-# .env.local
-NEXT_PUBLIC_ROYALTY_API_URL=http://127.0.0.1:3000
-NEXT_PUBLIC_ORD_SERVER_URL=https://radinals.bitcoinaudio.co
-NEXT_PUBLIC_BITCOIN_NETWORK=regtest
+# .env
+# BORES (policy + validate) API
+VITE_BORES_API_URL=https://royalty.bitcoinaudio.co
+VITE_BORES_KEY_ID=beatfeed-v1
+VITE_BORES_SHARED_SECRET=your_hmac_secret_here
+VITE_BITCOIN_NETWORK=mainnet
+
+# Legacy PSBT fallback (kept for now)
+VITE_ROYALTY_API_URL=https://royalty.bitcoinaudio.co
 ```
 
 ### Wallet Configuration

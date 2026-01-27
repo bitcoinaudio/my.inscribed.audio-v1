@@ -11,6 +11,14 @@ export default defineConfig({
   // },
     host: true,
     port: 3333,
+    proxy: {
+      '/bores-api': {
+        target: 'https://royalty.bitcoinaudio.co',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/bores-api/, ''),
+      },
+    },
   },
   plugins: [react()],
 })
