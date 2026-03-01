@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import { WalletProvider } from "./context/WalletContext";
@@ -12,14 +12,24 @@ import MyMedia from "./pages/MyMedia";
 import NK1 from "./pages/NK-1";
 import NavBar from "./components/NavBar";
 import FooterPage from "./pages/Footer";
+import { applyThemeConfig, loadAdminThemeConfig } from "./utils/themeConfig";
 
 const App = () => {
-  // Load theme from localStorage
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  React.useEffect(() => {
+    let active = true;
 
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
+    const run = async () => {
+      const config = await loadAdminThemeConfig();
+      if (!active || !config) return;
+      applyThemeConfig(config);
+    };
+
+    run();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <Router>

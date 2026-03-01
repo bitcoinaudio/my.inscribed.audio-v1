@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
-import { Toggle } from "react-hook-theme";
 import ConnectWallet from './ConnectWallet';
 import ConnectMobile from './ConnectMobile';
 import { useDeviceContext } from "../utils/DeviceStore";
 import iaLogo from '/images/ia-bg3.png';
 import { useWallet } from '../context/WalletContext';
-import "react-hook-theme/dist/styles/style.css";
+import { applyThemeConfig, loadAdminThemeConfig, resolveInitialTheme } from "../utils/themeConfig";
 
 
 const basenavigation = [
@@ -20,6 +19,7 @@ const NavBar = () => {
   const { isMobile } = useDeviceContext();
   const [showNav, setShowNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [theme, setTheme] = useState(() => (localStorage.getItem("theme") === "light" ? "light" : "dark"));
 
 
   useEffect(() => {
@@ -39,6 +39,35 @@ const NavBar = () => {
     };
   }, [lastScrollY]);
 
+  useEffect(() => {
+    const themeName = theme === "light" ? "baa-light" : "baa-dark";
+    document.documentElement.setAttribute("data-theme", themeName);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  useEffect(() => {
+    let active = true;
+
+    const run = async () => {
+      const config = await loadAdminThemeConfig();
+      if (!active || !config) return;
+
+      applyThemeConfig(config);
+      const nextTheme = resolveInitialTheme(config);
+      setTheme(nextTheme);
+
+      if (config.allowUserOverride === false) {
+        localStorage.setItem("theme", nextTheme);
+      }
+    };
+
+    run();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const navigation = [
     ...basenavigation,
     ...(isWalletConnected && hasContent ? [{ name: "My Media", href: "/mymedia" }] : []),
@@ -46,13 +75,17 @@ const NavBar = () => {
   ];
 
   const navLinkClass = ({ isActive }) =>
-    `btn btn-ghost font-urbanist text-sm font-light ${isActive ? "bg-base-300" : ""}`;
+    `btn btn-ghost font-urbanist text-sm font-light ${isActive ? "bg-base-100 border border-base-300 text-primary" : "text-base-content/75"}`;
+
+  const toggleTheme = () => {
+    setTheme((current) => (current === "light" ? "dark" : "light"));
+  };
 
   //  console.log("isWalletConnected NavBar", isWalletConnected);
 
   return (
-    <div className={`sticky top-0 z-50 flex justify-center py-4 gap-4 transition-transform duration-300 ${showNav ? 'translate-y-0' : '-translate-y-full'}`}>
-      <div className="navbar ">
+    <div className={`sticky top-0 z-50 flex justify-center py-4 transition-transform duration-300 ${showNav ? 'translate-y-0' : '-translate-y-full'}`}>
+      <div className="navbar w-full max-w-7xl rounded-box border border-base-300 bg-base-200/95 px-3 backdrop-blur">
         <div className="navbar-start">
         <a href="https://inscribed.audio" className="btn btn-ghost font-urbanist text-lg font-semibold gap-4 lg:hidden">
            <img src={iaLogo} alt="inscribed audio" className="w-10 h-10" />
@@ -91,7 +124,7 @@ const NavBar = () => {
          
         </div>
         {/* Desktop Menu */}
-        <div className="navbar-center ml-10 hidden lg:flex">
+        <div className="navbar-center ml-4 hidden lg:flex">
             <a href="https://inscribed.audio" className="btn btn-ghost font-urbanist text-lg font-semibold gap-4 ">
            <img src={iaLogo} alt="inscribed audio" className="w-10 h-10" /><span className="text-sm font-semibold">Inscribed.Audio</span>
           </a>
@@ -109,15 +142,17 @@ const NavBar = () => {
           ))}
         </div>
 
-        <div className="navbar-end h-10 scale-75">
-          <div className="flex flex-col gap-4">
+        <div className="navbar-end h-10 gap-2 md:scale-90">
+          <div className="flex flex-col gap-1">
           {isMobile ? <ConnectMobile /> : <ConnectWallet />}
           {isWalletConnected && !hasContent ? (
             <span className="text-[10px] text-base-content/70 text-center">No ordinals found in connected wallet</span>
           ) : null}
           </div>
 
-          <Toggle />
+          <button className="btn btn-sm btn-outline" onClick={toggleTheme} aria-label="Toggle theme mode">
+            {theme === "light" ? "Dark" : "Light"}
+          </button>
         </div>
       </div>
     </div>

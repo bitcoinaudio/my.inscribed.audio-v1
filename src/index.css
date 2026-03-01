@@ -1,22 +1,42 @@
-@import url("https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
   
 :root {
-	--font-body: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+	--font-body: "Orbitron", Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
 		Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 	--font-mono: 'Fira Mono', monospace;
-	--color-bg-0: #181818d5;
-	--color-bg-1: hsl(60, 2%, 24%);
-	--color-bg-2:hsl(0deg 0% 0% / 45%);
-	--color-theme-1: #757575;
-	--color-theme-2: #a6a640;
-	--color-text: #818181;
+	--theme-dark-bg: #050505;
+	--theme-dark-surface: #101010;
+	--theme-dark-border: #191919;
+	--theme-dark-accent: #f7931a;
+	--theme-dark-text: #f2ece3;
+	--theme-light-bg: #fff8ef;
+	--theme-light-surface: #f6e9da;
+	--theme-light-border: #edddc8;
+	--theme-light-accent: #101010;
+	--theme-light-text: #111111;
+	--site-accent: #f7931a;
+	--color-bg-0: var(--theme-dark-bg);
+	--color-bg-1: var(--theme-dark-surface);
+	--color-bg-2: var(--theme-dark-border);
+	--color-theme-1: var(--site-accent);
+	--color-theme-2: var(--theme-dark-accent);
+	--color-text: var(--theme-dark-text);
 	--column-width: 42rem;
 	--column-margin-top: 4rem;
 	font-family: var(--font-body);
 	color: var(--color-text);
+}
+
+[data-theme="baa-light"] {
+	--color-bg-0: var(--theme-light-bg);
+	--color-bg-1: var(--theme-light-surface);
+	--color-bg-2: var(--theme-light-border);
+	--color-theme-1: var(--theme-light-accent);
+	--color-theme-2: var(--site-accent);
+	--color-text: var(--theme-light-text);
 }
 
 body {
@@ -44,6 +64,7 @@ a {
 }
 
 a:hover {
+	color: var(--color-theme-2);
 	text-decoration: underline;
 }
 

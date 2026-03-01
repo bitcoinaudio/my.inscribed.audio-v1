@@ -1,13 +1,11 @@
 import React from "react";
-import iaLogo from '/images/ia-bg3.png';
-
 const FooterPage = () => {
   return (
-<div className=" ">
+<div className="mt-12 border-t border-base-300 bg-base-200">
 
-<footer className="footer justify-center  p-10">
+<footer className="footer justify-center p-10">
   <nav>
-     <div className="grid grid-flow-col gap-4">
+     <div className="grid grid-flow-col gap-6">
       <a href="https://x.com/InscribedAudio" target="_blank" rel="noreferrer">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -45,7 +43,7 @@ const FooterPage = () => {
   </nav>
 
 </footer>
-<p className="text-center text-sm ">© 2025 Inscribed Audio</p>
+<p className="pb-6 text-center text-sm text-base-content/60">© 2026 Inscribed Audio</p>
 
 </div>
 

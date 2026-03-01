@@ -1,92 +1,75 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import heroImage from "/images/ia-bg3.png"; // Replace with your hero image
+import heroImage from "/images/ia-bg3.png";
 import headphones from "/images/headphones.png";
-import spartan from "/images/spartan.png";
 import woman from "/images/woman.png";
 import beatblocks from "/images/beatblocks.png";
 
 const LandingPage = () => {
-  // const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
-
-  // useEffect(() => {
-  //   const updateTheme = () => {
-  //     setTheme(localStorage.getItem("theme") || "light");
-  //   };
-
-  //   window.addEventListener("storage", updateTheme);
-  //   return () => window.removeEventListener("storage", updateTheme);
-  // }, []);
-  
   return (
-    <div className="min-h-screen  transition-all flex flex-wrap gap-4 justify-center">
+    <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-6 pb-10">
       {/* Hero Section */}
-      <section className="hero shadow-lg shadow-black rounded-lg bg-black-800/80 mt-2 text-neutral-600 dark:text-neutral-400 dark:from-neutral-800 dark:to-neutral-900 transition-all">
-        <div className="hero-content flex-col lg:flex lg:flex-row gap-8">
+      <section className="hero mt-2 rounded-box border border-base-300 bg-base-200 shadow-xl shadow-black/20 transition-all">
+        <div className="hero-content flex-col gap-8 lg:flex-row">
           <img
             src={heroImage}
-            className="size-1/3"
+            className="w-40 rounded-box border border-base-300 bg-base-100 p-2 md:w-56"
             alt="Hero Banner"
           />
-          <div>
+          <div className="text-center">
             <motion.h1
-              className="font-urbanist text-2xl font-black uppercase md:text-5xl"
+              className="font-urbanist text-3xl font-black uppercase md:text-5xl"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1 }}
             >
               my.inscribed.audio
             </motion.h1>
-            <p className="font-urbanist text-3xl text-center font-black   md:text-lg">
-              Enjoy your digital assets in an enhanced way!
+            <p className="mt-3 text-lg font-semibold text-base-content/70 md:text-xl">
+              Same BitcoinAudio world, a dedicated Ordinals gallery scene.
             </p>
-            {/* <Link to="/mymedia">
-              <button className="btn py-2 text-lg">Explore Now</button>
-            </Link> */}
           </div>
           <img
             src={heroImage}
-            className="size-1/3 "
+            className="hidden w-40 rounded-box border border-base-300 bg-base-100 p-2 md:block md:w-56"
             alt="Hero Banner"
           />
         </div>
       </section>
 
-        {/* Gallery Preview Section */}
-      <section className="py-16 shadow-lg shadow-black rounded-lg bg-black-800/80 transition-all">
+      {/* Gallery Preview Section */}
+      <section className="rounded-box border border-base-300 bg-base-200 px-6 py-14 shadow-xl shadow-black/20 transition-all">
         <div className="container mx-auto text-center">
-          <h2 className="text-4xl font-bold font-black">Featured Projects</h2>
-          {/* <p className="text-lg text-neutral-600 dark:text-neutral-400 mt-4">
-            Discover the latest digital creations on Bitcoin.
-          </p> */}
+          <h2 className="text-4xl font-black">Featured Projects</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <div className="card max-w-2xl  transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box p-6">
-            <a class="tooltip" data-tip="Collect" href="https://gamma.io/ordinals/collections/ides-of-march" target="_blank">
-            <img src={headphones} alt="headphones" className="rounded-t-lg" />
+          <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="card rounded-box border border-base-300 bg-base-100 p-6 transition duration-300 hover:-translate-y-1 hover:border-primary/50">
+              <a className="tooltip" data-tip="Collect" href="https://gamma.io/ordinals/collections/ides-of-march" target="_blank" rel="noreferrer">
+                <img src={headphones} alt="headphones" className="rounded-box" />
                 </a>
               <div className="p-4">
-                <h3 className="text-xl font-bold font-black">The Ides of March</h3>
-                <p className="text-neutral-600 dark:text-neutral-400">Unique Ordinals</p>
+                <h3 className="text-xl font-black">The Ides of March</h3>
+                <p className="text-base-content/60">Unique Ordinals</p>
               </div>
             </div>
 
-            <div className="card max-w-2xl  transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box p-6">
-            <a class="tooltip" data-tip="Collect" href="https://magiceden.us/ordinals/marketplace/beatblock-genesis" target="_blank">
-            <img src={beatblocks} alt="beatblocks" className="rounded-t-lg" />
-                </a>              <div className="p-4">
-                <h3 className="text-xl font-bold font-black">Beat Blocks</h3>
-                <p className="text-neutral-600 dark:text-neutral-400">Rare Digital Asset</p>
+            <div className="card rounded-box border border-base-300 bg-base-100 p-6 transition duration-300 hover:-translate-y-1 hover:border-primary/50">
+              <a className="tooltip" data-tip="Collect" href="https://magiceden.us/ordinals/marketplace/beatblock-genesis" target="_blank" rel="noreferrer">
+                <img src={beatblocks} alt="beatblocks" className="rounded-box" />
+              </a>
+              <div className="p-4">
+                <h3 className="text-xl font-black">Beat Blocks</h3>
+                <p className="text-base-content/60">Rare Digital Asset</p>
               </div>
             </div>
 
-            <div className="card max-w-2xl  transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box p-6">
-            <a class="tooltip" data-tip="Collect" href="https://gamma.io/ordinals/collections/ides-of-march" target="_blank">
-            <img src={woman} alt="woman" className="rounded-t-lg" />
-                </a>              <div className="p-4">
-                <h3 className="text-xl font-bold font-black">The Ides of March</h3>
-                <p className="text-neutral-600 dark:text-neutral-400">Historic Bitcoin Record</p>
+            <div className="card rounded-box border border-base-300 bg-base-100 p-6 transition duration-300 hover:-translate-y-1 hover:border-primary/50">
+              <a className="tooltip" data-tip="Collect" href="https://gamma.io/ordinals/collections/ides-of-march" target="_blank" rel="noreferrer">
+                <img src={woman} alt="woman" className="rounded-box" />
+              </a>
+              <div className="p-4">
+                <h3 className="text-xl font-black">The Ides of March</h3>
+                <p className="text-base-content/60">Historic Bitcoin Record</p>
               </div>
             </div>
           </div>
@@ -94,32 +77,32 @@ const LandingPage = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-8 shadow-lg shadow-black rounded-lg bg-black-800/80 transition-all ">
-        <div className="container  mx-auto text-center">
+      <section className="rounded-box border border-base-300 bg-base-200 px-6 py-10 shadow-xl shadow-black/20 transition-all">
+        <div className="container mx-auto text-center">
           <h2 className="text-4xl font-bold font-black">Inscribed Audio</h2>
-          <p className="text-lg text-neutral-600 dark:text-neutral-400 mt-4">
+          <p className="mt-4 text-lg text-base-content/60">
             Built on Bitcoin, optimized for creativity.
           </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+          <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-3">
             {/* Feature Card 1 */}
-            <div className="card max-w-2xl  transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box p-6">
-              <h3 className="text-2xl font-bold font-black  ">Immutable Data</h3>
-              <p className="text-neutral-600 dark:text-neutral-400 mt-2">
+            <div className="card rounded-box border border-base-300 bg-base-100 p-6 transition duration-300 hover:-translate-y-1 hover:border-primary/50">
+              <h3 className="text-2xl font-black">Immutable Data</h3>
+              <p className="mt-2 text-base-content/60">
                 Permanently stored on Bitcoin for longevity and security.
               </p>
             </div>
 
             {/* Feature Card 2 */}
-            <div className="card max-w-2xl  transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box p-6">
-              <h3 className="text-2xl font-bold font-black ">Ordinals</h3>
-              <p className="text-neutral-600 dark:text-neutral-400 mt-2">
+            <div className="card rounded-box border border-base-300 bg-base-100 p-6 transition duration-300 hover:-translate-y-1 hover:border-primary/50">
+              <h3 className="text-2xl font-black">Ordinals</h3>
+              <p className="mt-2 text-base-content/60">
               Support for all mime types.
               </p>
             </div>
 
             {/* Feature Card 3 */}
-            <div className="card max-w-2xl  transition duration-300 hover:-translate-y-1 bg-base-200 rounded-box p-6 grid grid-cols-1 justify-items-center">
+            <div className="card grid grid-cols-1 justify-items-center rounded-box border border-base-300 bg-base-100 p-6 transition duration-300 hover:-translate-y-1 hover:border-primary/50">
               <h3 className="text-2xl font-bold font-black">Decentralized & Open</h3>
               <a href="https://github.com/bitcoinaudio/my.inscribed.audio-v1" target="_blank" rel="noreferrer">Don't trust? Verify.</a>
               <a href="https://github.com/bitcoinaudio/my.inscribed.audio-v1" target="_blank" rel="noreferrer">
@@ -134,28 +117,10 @@ const LandingPage = () => {
                 </svg>
               </a>
 
-             
              </div>
           </div>
         </div>
       </section>
-
-    
-
-      {/* Call to Action */}
-      {/* <section className=" text-white py-16 transition-all">
-        <div className="container mx-auto text-center">
-          <h2 className="text-4xl font-bold">Ready to Explore?</h2>
-          <p className="text-lg mt-4">
-            Start browsing and discovering digital inscriptions today.
-          </p>
-          <Link to="/mymedia">
-            <button className="btn  text-lg mt-6">Get Started</button>
-          </Link>
-        </div>
-      </section> */}
-
-      
     </div>
   );
 };
