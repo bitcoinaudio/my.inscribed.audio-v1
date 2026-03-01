@@ -1,195 +1,130 @@
 "use client";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate } from 'react-router-dom';
-import { useWallet } from '../context/WalletContext';
+import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
-
-import { request } from "sats-connect";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { cn } from "../lib/utils";
 import { setIinscriptionArray } from "../globalState";
-import { getOrdinalsSite, getBRC420Data, getBitmapData, isEnhancedInscription, getInscriptionAttributes, isBeatBlockInscription } from "../utils/inscriptions";
-import idesofmarch from '../lib/collections/idesofmarch.json';
-import dust from '../lib/collections/dust.json';
+import {
+  getBRC420Data,
+  getBitmapData,
+  getInscriptionAttributes,
+  isBeatBlockInscription,
+  isEnhancedInscription,
+} from "../utils/inscriptions";
+import { useWallet } from "../context/WalletContext";
+import idesofmarch from "../lib/collections/idesofmarch.json";
+import dust from "../lib/collections/dust.json";
 
+type WalletName = "unisat" | "xverse";
 
-import { WalletIcon } from '@omnisat/lasereyes-react'
-import { useLaserEyes } from '@omnisat/lasereyes-react'
-import { 
-  LaserEyesClient,
-  SUPPORTED_WALLETS,
-  ProviderType,
-  UNISAT, 
-  XVERSE,
-  OYL,
-  LEATHER,
-  MAGIC_EDEN,
-  OKX,
-  PHANTOM,
-  WIZZ,
-  ORANGE,
-  createStores, 
-  createConfig, 
-} from '@omnisat/lasereyes-core'
-const stores = createStores()
-const config = createConfig({ 
-  
-  // Optional: Configure data sources
-  dataSources: {
-    maestro: {
-      apiKey: 'your-maestro-api-key', // Optional for development
-    },
-  },
-})
-// Create and initialize the client
-const client = new LaserEyesClient(stores, config)
-client.initialize()
-
-// Now you can use the client
-console.log('Client initialized')
-declare global {
-  interface Window {
-    unisat?: {
-      getInscriptions: (cursor: number, size: number) => Promise<{ list: any[] }>;
-    };
-  }
-}
-
-// Types
-type WalletName = keyof typeof SUPPORTED_WALLETS;
-
-interface HtmlInscription {
+type ProcessedInscription = {
   id: string;
   isIOM: boolean;
   isDust: boolean;
   contentType?: string;
   isEnhanced: boolean;
-  attributes?: any;
+  attributes?: unknown;
   isBRC420: boolean;
   brc420Url?: string;
   isBitmap?: boolean;
   bitmap?: string;
   isBeatBlock?: boolean;
-}
-const ordSite1 = "https://radinals.bitcoinaudio.co";
-const ordSite2 = "https://ordinals.com";
-// check if ordSite1 is availbale, if not use ordSite2
-const checkOrdinalsSite = async () => {
-  try {
-    const response = await fetch(ordSite1, { method: 'HEAD' });
-    if (response.status === 200) {
-      return ordSite1;
-    }else {
-       return ordSite2;
-    }
-  } catch (error) {
-    console.error("Error checking ordinals site:", error);
-  }
- }
+};
+
+type RawWalletInscription = {
+  inscriptionId?: string;
+  contentType?: string;
+};
+
+const WALLET_OPTIONS: Array<{ name: WalletName; label: string }> = [
+  { name: "unisat", label: "UniSat" },
+  { name: "xverse", label: "Xverse" },
+];
+
 const ConnectWallet = ({ className }: { className?: string }) => {
-  const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
-  const { connectWallet, disconnectWallet } = useWallet();
-  const [isOpen, setIsOpen] = useState(false);
-  const [hasWallet, setHasWallet] = useState({ [UNISAT]: false, [XVERSE]: false, [MAGIC_EDEN]: false });
-  const [htmlInscriptions, setHtmlInscriptions] = useState<HtmlInscription[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [walletLoading, setWalletLoading] = useState<string | null>(null);
   const navigate = useNavigate();
+  const {
+    isWalletConnected,
+    provider,
+    address,
+    availableWallets,
+    authStatus,
+    authError,
+    connectWallet,
+    disconnectWallet,
+    fetchInscriptions,
+    authenticateWallet,
+  } = useWallet();
 
-  const idesOfMarchIDs = useMemo(() => new Set(idesofmarch.map(item => item.id)), []);
-  const dustIDs = useMemo(() => new Set(dust.map(item => item.id)), []);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [walletLoading, setWalletLoading] = useState<WalletName | null>(null);
 
-  useEffect(() => {
-    setHasWallet({ [UNISAT]: hasUnisat, [XVERSE]: hasXverse, [MAGIC_EDEN]: hasMagicEden });
-  }, [hasUnisat, hasXverse, hasMagicEden]);
+  const idesOfMarchIDs = useMemo(
+    () => new Set(idesofmarch.map((item: { id: string }) => item.id)),
+    []
+  );
+  const dustIDs = useMemo(
+    () => new Set(dust.map((item: { id: string }) => item.id)),
+    []
+  );
 
-  const processInscriptions = async (raw) => {
-    const results = await Promise.all(raw.map(async (insc) => {
-      const id = insc.inscriptionId;
-      const [brc420, bmp] = await Promise.all([
-        getBRC420Data(id),
-        getBitmapData(id),
-      ]);
+  const processInscriptions = async (raw: RawWalletInscription[]): Promise<ProcessedInscription[]> => {
+    const results = await Promise.all(
+      raw.map(async (inscription: RawWalletInscription) => {
+        const id = inscription.inscriptionId;
+        if (!id) return null;
 
-      return {
-        id,
-        isIOM: idesOfMarchIDs.has(id),
-        isDust: dustIDs.has(id),
-        contentType: insc.contentType,
-        isEnhanced: isEnhancedInscription(id, idesOfMarchIDs, dustIDs),
-        attributes: getInscriptionAttributes(id),
-        isBeatBlock: isBeatBlockInscription(id),
-        ...brc420,
-        ...bmp,
-      };
-    }));
+        const [brc420, bitmap] = await Promise.all([getBRC420Data(id), getBitmapData(id)]);
 
-    const clean = results.filter(Boolean);
-    setHtmlInscriptions(clean);
-    setIinscriptionArray(clean);
-    return clean;
+        return {
+          id,
+          isIOM: idesOfMarchIDs.has(id),
+          isDust: dustIDs.has(id),
+          contentType: inscription.contentType,
+          isEnhanced: isEnhancedInscription(id, idesOfMarchIDs, dustIDs),
+          attributes: getInscriptionAttributes(id),
+          isBeatBlock: isBeatBlockInscription(id),
+          ...brc420,
+          ...bitmap,
+        };
+      })
+    );
+
+    return results.filter(Boolean) as ProcessedInscription[];
   };
 
-  const getUnisatInscriptions = async () => {
-    if (!window?.unisat?.getInscriptions) return [];
-    try {
-      setWalletLoading('unisat');
-      const res = await window.unisat.getInscriptions(0, 100);
-      return res?.list ? await processInscriptions(res.list) : [];
-    } catch (e) {
-      console.error("UniSat error:", e);
-      return [];
-    } finally {
-      setWalletLoading(null);
-    }
+  const handleDisconnect = () => {
+    disconnectWallet();
+    setIinscriptionArray([]);
+    navigate("/");
   };
 
-  const getXverseInscriptions = async () => {
-    try {
-      setWalletLoading('xverse');
-      const response = await request("wallet_connect", null);
-      if (response.status === 'success') {
-        const p2tr = response.result.addresses?.find(addr => addr.addressType === 'p2tr');
-        if (p2tr) {
-          const res = await request("ord_getInscriptions", { offset: 0, limit: 100 });
-          if (res.status === 'success') {
-            return res.result.inscriptions ? await processInscriptions(res.result.inscriptions) : [];
-          }
-        }
-      }
-      return [];
-    } catch (e) {
-      console.error("Xverse error:", e);
-      return [];
-    } finally {
-      setWalletLoading(null);
-    }
-  };
-
-  const handleConnect = async (walletName) => {
-    if (provider === walletName) {
-      disconnectWallet();
-      disconnect();
-      setHtmlInscriptions([]);
-      setIinscriptionArray([]);
-      navigate('/');
+  const handleConnect = async (walletName: WalletName) => {
+    if (provider === walletName && isWalletConnected) {
+      handleDisconnect();
       return;
     }
 
     setIsOpen(false);
     setIsLoading(true);
+    setWalletLoading(walletName);
 
     try {
-      await connect(walletName);
-      connectWallet();
-      if (walletName === 'unisat') await getUnisatInscriptions();
-      else if (walletName === 'xverse') await getXverseInscriptions();
-      navigate('/mymedia');
-    } catch (err) {
-      console.error(`Connection to ${walletName} failed:`, err);
+      await connectWallet(walletName);
+      const inscriptions = await fetchInscriptions(100, walletName);
+      const processed = await processInscriptions(inscriptions);
+      setIinscriptionArray(processed);
+      const inscriptionIds = processed.map((item) => item.id);
+      await authenticateWallet(inscriptionIds);
+      navigate("/mymedia");
+    } catch (error) {
+      console.error(`Connection to ${walletName} failed:`, error);
       disconnectWallet();
-      disconnect();
+      setIinscriptionArray([]);
     } finally {
+      setWalletLoading(null);
       setIsLoading(false);
     }
   };
@@ -201,16 +136,18 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     className
   );
 
-  const shortAddress = useMemo(() =>
-    address ? `${address.slice(0, 5)}...${address.slice(-5)}` : ""
-  , [address]);
+  const shortAddress = useMemo(
+    () => (address ? `${address.slice(0, 5)}...${address.slice(-5)}` : ""),
+    [address]
+  );
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      {address ? (
-        <Button onClick={() => handleConnect(provider)} className={buttonClass} disabled={isLoading}>
-          <WalletIcon size={32} walletName={provider} className="!w-[32px] !h-[32px]" />
+      {isWalletConnected ? (
+        <Button onClick={handleDisconnect} className={buttonClass} disabled={isLoading}>
           Disconnect <span className="text-lg">{shortAddress}</span>
+          {authStatus === "authenticated" ? <span className="text-xs ml-2">verified</span> : null}
+          {authStatus === "error" && authError ? <span className="text-xs ml-2">auth failed</span> : null}
         </Button>
       ) : (
         <DialogTrigger asChild>
@@ -222,21 +159,18 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
       <DialogContent className="bg-white dark:bg-gray-800 border-none text-black dark:text-white rounded-2xl">
         <DialogHeader>
-          <DialogTitle>Connect Desktop Wallet</DialogTitle>
+          <DialogTitle>Connect Wallet</DialogTitle>
         </DialogHeader>
         <div className="p-4">
-          {Object.values(SUPPORTED_WALLETS).map(wallet => (
-            hasWallet[wallet.name] && (
-              <Button
-                key={wallet.name}
-                onClick={() => handleConnect(wallet.name)}
-                className={buttonClass}
-                disabled={walletLoading === wallet.name}
-              >
-                <WalletIcon size={24} walletName={wallet.name} />
-                {walletLoading === wallet.name ? "Connecting..." : `Connect ${wallet.name}`}
-              </Button>
-            )
+          {WALLET_OPTIONS.map((wallet) => (
+            <Button
+              key={wallet.name}
+              onClick={() => handleConnect(wallet.name)}
+              className={buttonClass}
+              disabled={walletLoading === wallet.name || !availableWallets[wallet.name]}
+            >
+              {walletLoading === wallet.name ? "Connecting..." : `Connect ${wallet.label}`}
+            </Button>
           ))}
         </div>
       </DialogContent>

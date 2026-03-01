@@ -7,7 +7,6 @@ import {
   XVERSE,
   OYL,
   LEATHER,
-  MAGIC_EDEN,
   OKX,
   PHANTOM,
   WIZZ,

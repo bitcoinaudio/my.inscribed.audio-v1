@@ -26,7 +26,7 @@ Featured collection: [The Ides of March](https://gamma.io/ordinals/collections/i
   - Collect unique assets and view detailed attributes.
 
 - **Personal Media Dashboard**
-  - Connect your Unisat, Xverse, or Magic Eden wallet to view and manage your inscribed assets.
+  - Connect your Unisat or Xverse wallet to view and manage your inscribed assets.
   - Filter assets by MIME type (audio, image, video, model, text, etc.).
   - Enhanced Ordinals and BRC420 support for collectors.
 
@@ -52,10 +52,44 @@ Featured collection: [The Ides of March](https://gamma.io/ordinals/collections/i
 
 3. **Run the development server:**
    ```bash
-   npm start
+  npm run dev
    ```
 
-4. **Connect your Bitcoin Ordinals-compatible wallet (Unisat, Xverse, Magic Eden) to view and manage your assets.**
+4. **Connect your Bitcoin Ordinals-compatible wallet (Unisat or Xverse) to view and manage your assets.**
+
+## Integration Notes
+
+- Integration env vars are intentionally minimal; wallet auth API base is configurable.
+- Ordinals endpoints are currently code-level constants in [src/utils/inscriptions.ts](src/utils/inscriptions.ts).
+- Wallet auth API base can be set with `VITE_WALLET_AUTH_BASE_URL` (defaults to same-origin).
+- Backend wallet auth verifier is strict-by-default and validates signatures server-side.
+- Optional (trusted local dev only): `WALLET_AUTH_ALLOW_UNVERIFIED=true` can bypass signature verification.
+- Role policy inputs on API service:
+  - `WALLET_ROLE_ADMIN_INSCRIPTIONS` (comma-separated inscription IDs)
+  - `WALLET_ROLE_CREATOR_INSCRIPTIONS` (comma-separated inscription IDs)
+  - `WALLET_AUTH_TRUST_CLIENT_INSCRIPTIONS=true` (disabled by default; keep false in production)
+- Backend ownership lookup inputs on API service:
+  - `WALLET_AUTH_ORDINALS_ADDRESS_URL_TEMPLATES` (comma-separated URL templates containing `{address}`)
+  - `WALLET_AUTH_REQUIRE_OWNERSHIP_LOOKUP=true` (fail auth when ownership lookup fails)
+  - `WALLET_AUTH_OWNERSHIP_TIMEOUT_MS` (default 10000)
+
+### Wallet Role Contract
+
+This frontend consumes canonical Beatfeed wallet-auth role names directly:
+
+- `listener`
+- `creator`
+- `admin`
+
+Role constants are centralized in [src/constants/walletRoles.ts](src/constants/walletRoles.ts).
+
+Current behavior in this app:
+
+- roles are requested and stored after wallet auth session verification
+- `/mymedia` requires an authenticated wallet role (`listener`, `creator`, or `admin`)
+- if wallet-auth backend is unavailable, `/mymedia` guard allows access to avoid local-dev lockout
+
+When role-gated UI is introduced, use these same canonical role names and keep backend/frontend naming synchronized.
 
 ## Contributing
 

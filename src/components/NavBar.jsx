@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom"; 
+import { NavLink } from "react-router-dom";
 import { Toggle } from "react-hook-theme";
 import ConnectWallet from './ConnectWallet';
 import ConnectMobile from './ConnectMobile';
@@ -7,8 +7,6 @@ import { useDeviceContext } from "../utils/DeviceStore";
 import iaLogo from '/images/ia-bg3.png';
 import { useWallet } from '../context/WalletContext';
 import "react-hook-theme/dist/styles/style.css";
-import LaserEyes from '../components/LaserEyes';
-import { useLaserEyes } from '@omnisat/lasereyes-react'
 
 
 const basenavigation = [
@@ -18,13 +16,10 @@ const basenavigation = [
 
 
 const NavBar = () => {
-  const [active, setActive] = useState("Home");
-  const { isWalletConnected } = useWallet();
+  const { isWalletConnected, hasContent } = useWallet();
   const { isMobile } = useDeviceContext();
   const [showNav, setShowNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-
-  const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
 
 
   useEffect(() => {
@@ -46,20 +41,22 @@ const NavBar = () => {
 
   const navigation = [
     ...basenavigation,
-    ...(address ? [
-      { name: "My Media", href: "/mymedia" },
-      { name: "NK-1", href: "/nk-1" },
-    ] : [])
+    ...(isWalletConnected && hasContent ? [{ name: "My Media", href: "/mymedia" }] : []),
+    ...(isWalletConnected ? [{ name: "NK-1", href: "/nk-1" }] : [])
   ];
+
+  const navLinkClass = ({ isActive }) =>
+    `btn btn-ghost font-urbanist text-sm font-light ${isActive ? "bg-base-300" : ""}`;
+
   //  console.log("isWalletConnected NavBar", isWalletConnected);
 
   return (
     <div className={`sticky top-0 z-50 flex justify-center py-4 gap-4 transition-transform duration-300 ${showNav ? 'translate-y-0' : '-translate-y-full'}`}>
       <div className="navbar ">
         <div className="navbar-start">
-        <Link to="https://inscribed.audio" className="btn btn-ghost font-urbanist text-lg font-semibold gap-4 lg:hidden">
+        <a href="https://inscribed.audio" className="btn btn-ghost font-urbanist text-lg font-semibold gap-4 lg:hidden">
            <img src={iaLogo} alt="inscribed audio" className="w-10 h-10" />
-          </Link>
+          </a>
           <div className="dropdown">
             {/* Mobile Menu */}
             
@@ -82,11 +79,11 @@ const NavBar = () => {
             {/* Mobile Menu */}
 
             <ul className="menu dropdown-content menu-md z-[1] mt-3 w-52 gap-2 rounded-box bg-base-100 p-2 shadow">
-              {navigation.map((item, index) => (
-                <li key={index}>
-                  <Link to={item.href} className="font-urbanist">
+              {navigation.map((item) => (
+                <li key={item.href}>
+                  <NavLink to={item.href} end={item.href === "/"} className="font-urbanist">
                     {item.name}
-                  </Link>
+                  </NavLink>
                 </li>
               ))}
             </ul>
@@ -95,20 +92,18 @@ const NavBar = () => {
         </div>
         {/* Desktop Menu */}
         <div className="navbar-center ml-10 hidden lg:flex">
-            <Link to="https://inscribed.audio" className="btn btn-ghost font-urbanist text-lg font-semibold gap-4 ">
+            <a href="https://inscribed.audio" className="btn btn-ghost font-urbanist text-lg font-semibold gap-4 ">
            <img src={iaLogo} alt="inscribed audio" className="w-10 h-10" /><span className="text-sm font-semibold">Inscribed.Audio</span>
-          </Link>
-          {navigation.map((item, index) => (
-            <nav key={index} className="menu menu-horizontal px-1">
-              <Link
+          </a>
+          {navigation.map((item) => (
+            <nav key={item.href} className="menu menu-horizontal px-1">
+              <NavLink
                 to={item.href}
-                className={`btn btn-ghost   font-urbanist text-sm font-light ${
-                  active === item.name ? "bg-base-300" : ""
-                }`}
-                onClick={() => setActive(item.name)}
+                end={item.href === "/"}
+                className={navLinkClass}
               >
                 {item.name}
-              </Link>
+              </NavLink>
                
             </nav>
           ))}
@@ -117,6 +112,9 @@ const NavBar = () => {
         <div className="navbar-end h-10 scale-75">
           <div className="flex flex-col gap-4">
           {isMobile ? <ConnectMobile /> : <ConnectWallet />}
+          {isWalletConnected && !hasContent ? (
+            <span className="text-[10px] text-base-content/70 text-center">No ordinals found in connected wallet</span>
+          ) : null}
           </div>
 
           <Toggle />

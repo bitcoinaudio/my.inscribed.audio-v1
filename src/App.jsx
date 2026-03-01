@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import { WalletProvider } from "./context/WalletContext";
-import { LaserEyesProvider } from '@omnisat/lasereyes-react'
-import { MAINNET } from '@omnisat/lasereyes-core'
 import { DeviceProvider } from "./utils/DeviceStore";
 
 import LandingPage from "./pages/LandingPage";
@@ -26,22 +24,21 @@ const App = () => {
   return (
     <Router>
       <WalletProvider>
-        <LaserEyesProvider config={{ network: MAINNET }}>
-          <DeviceProvider>
-            <div className="p-2 md:px-10">
-              <NavBar />
-              <Routes>
-                <Route path="/" element={<LandingPage />} />  
-                <Route path="/home" element={<Home />} />
-                <Route path="/feature" element={<Feature />} />
-                <Route path="/collections" element={<Collections />} />
-                <Route path="/mymedia" element={<MyMedia />} />
-                <Route path="/nk-1" element={<NK1 />} />
-              </Routes>
-            </div>
-            <FooterPage />
-          </DeviceProvider>
-        </LaserEyesProvider>
+        <DeviceProvider>
+          <div className="p-2 md:px-10">
+            <NavBar />
+            <Routes>
+              <Route path="/" element={<LandingPage />} />  
+              <Route path="/home" element={<Home />} />
+              <Route path="/feature" element={<Feature />} />
+              <Route path="/collections" element={<Collections />} />
+              <Route path="/mymedia" element={<MyMedia />} />
+              <Route path="/my-media" element={<Navigate to="/mymedia" replace />} />
+              <Route path="/nk-1" element={<NK1 />} />
+            </Routes>
+          </div>
+          <FooterPage />
+        </DeviceProvider>
       </WalletProvider>
     </Router>
   );

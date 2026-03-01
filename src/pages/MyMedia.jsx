@@ -7,7 +7,6 @@ import ordImage from "/images/ordinals.svg";
 import iomImage from "/images/idesofmarch.png";
 import woman from "/images/woman-sticker.webp";
 import MimeTypeFilter from "../components/MimeTypeFilter";
-import { useLaserEyes } from "@omnisat/lasereyes";
 import GLTFViewer from "../components/GLTFViewer";
 import { Dialog, DialogContent, DialogTrigger } from "../components/ui/dialog";
 
@@ -38,6 +37,8 @@ const MIME_TYPES = {
 };
 
 const ALL_MIME_TYPES = Object.values(MIME_TYPES).flat();
+const BITMAP_FILTER_KEY = "bitmaps";
+const FILTER_ITEMS = [...ALL_MIME_TYPES, BITMAP_FILTER_KEY];
 
 const getContentCategory = (contentType) => {
   if (MIME_TYPES.text.includes(contentType)) return "text";
@@ -155,7 +156,7 @@ const MediaCard = React.memo(({ item }) => {
           <LazyIframe src={contentUrl} />
         ) : isBitmap ? (
           <div>
-            <LazyIframe src={`https://ord.bitmapstr.io/block/height/${item.bitmap}`} />
+            <LazyIframe src={`https://feed.bitmapstr.io/block/height/${item.bitmap}`} />
              <p className="text-lg font-urbanist font-medium text-orange-400 opacity-60 py-4">
               {item.bitmap + '.bitmap'}
             </p>
@@ -288,20 +289,31 @@ const MediaCard = React.memo(({ item }) => {
 
 // MyMedia Component
 const MyMedia = () => {
-  const { connect, disconnect, address, provider, hasUnisat, hasXverse, hasMagicEden } = useLaserEyes();
   const [selectedMimeTypes, setSelectedMimeTypes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
+  const filteredItems = useMemo(() => (
+    selectedMimeTypes.length > 0
+      ? inscriptionArray.filter((item) => {
+          const matchesMime = selectedMimeTypes.includes(item.contentType);
+          const matchesBitmap = selectedMimeTypes.includes(BITMAP_FILTER_KEY) && item.isBitmap;
+          return matchesMime || matchesBitmap;
+        })
+      : inscriptionArray
+  ), [selectedMimeTypes]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   const paginatedItems = useMemo(() => {
-    const filteredArray = selectedMimeTypes.length > 0
-      ? inscriptionArray.filter(item => selectedMimeTypes.includes(item.contentType))
-      : inscriptionArray;
-
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredArray.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [selectedMimeTypes, currentPage]);
-
-  const totalPages = Math.ceil(inscriptionArray.length / ITEMS_PER_PAGE);
+    return filteredItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredItems, currentPage]);
 
   const handlePageChange = (newPage) => {
     setCurrentPage(Math.min(Math.max(newPage, 1), totalPages));
@@ -318,14 +330,14 @@ const MyMedia = () => {
     >
       <motion.div variants={fadeIn("up", "tween", 0.2, 1)} className="w-full">
         <MimeTypeFilter
-          mimeTypes={ALL_MIME_TYPES}
+          mimeTypes={FILTER_ITEMS}
           selectedMimeTypes={selectedMimeTypes}
           onChange={setSelectedMimeTypes}
         />
 
         <div className="flex flex-col items-center mt-4">
           <div className="text-center mb-4">
-            <span className="text-sm font-bold">Total Items: {inscriptionArray.length}</span>
+            <span className="text-sm font-bold">Total Items: {filteredItems.length}</span>
             <div className="text-sm mt-2">
               Page {currentPage} of {totalPages}
             </div>
