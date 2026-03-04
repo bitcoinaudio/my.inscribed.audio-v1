@@ -30,7 +30,7 @@
 	color: var(--color-text);
 }
 
-[data-theme="baa-light"] {
+[data-theme="light"] {
 	--color-bg-0: var(--theme-light-bg);
 	--color-bg-1: var(--theme-light-surface);
 	--color-bg-2: var(--theme-light-border);
