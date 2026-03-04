@@ -11,10 +11,10 @@ module.exports = {
   },
   plugins: [require("daisyui")],
   daisyui: {
-    darkTheme: "baa-dark",
+    darkTheme: "dark",
     themes: [
       {
-        "baa-dark": {
+        "dark": {
           "primary": "#f7931a",
           "primary-content": "#0b0b0b",
           "secondary": "#181818",
@@ -38,7 +38,7 @@ module.exports = {
         }
       },
       {
-        "baa-light": {
+        "light": {
           "primary": "#101010",
           "primary-content": "#fff7ef",
           "secondary": "#e9dccd",

@@ -7,6 +7,18 @@ import iaLogo from '/images/ia-bg3.png';
 import { useWallet } from '../context/WalletContext';
 import { applyThemeConfig, loadAdminThemeConfig, resolveInitialTheme } from "../utils/themeConfig";
 
+const THEME_KEY = "myinscribed-theme-mode";
+
+const getStoredTheme = () => {
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved === "light" || saved === "dark") return saved;
+
+  const legacy = localStorage.getItem("theme");
+  if (legacy === "light" || legacy === "dark") return legacy;
+
+  return "dark";
+};
+
 
 const basenavigation = [
   { name: "My Inscribed Audio", href: "/" },
@@ -19,7 +31,7 @@ const NavBar = () => {
   const { isMobile } = useDeviceContext();
   const [showNav, setShowNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [theme, setTheme] = useState(() => (localStorage.getItem("theme") === "light" ? "light" : "dark"));
+  const [theme, setTheme] = useState(getStoredTheme);
 
 
   useEffect(() => {
@@ -40,9 +52,9 @@ const NavBar = () => {
   }, [lastScrollY]);
 
   useEffect(() => {
-    const themeName = theme === "light" ? "baa-light" : "baa-dark";
-    document.documentElement.setAttribute("data-theme", themeName);
-    localStorage.setItem("theme", theme);
+    document.documentElement.setAttribute("data-theme", theme);
+    document.body.setAttribute("data-theme", theme);
+    localStorage.setItem(THEME_KEY, theme);
   }, [theme]);
 
   useEffect(() => {
@@ -57,7 +69,7 @@ const NavBar = () => {
       setTheme(nextTheme);
 
       if (config.allowUserOverride === false) {
-        localStorage.setItem("theme", nextTheme);
+        localStorage.setItem(THEME_KEY, nextTheme);
       }
     };
 
@@ -75,7 +87,7 @@ const NavBar = () => {
   ];
 
   const navLinkClass = ({ isActive }) =>
-    `btn btn-ghost font-urbanist text-sm font-light ${isActive ? "bg-base-100 border border-base-300 text-primary" : "text-base-content/75"}`;
+    `btn btn-ghost font-urbanist text-sm font-medium ${isActive ? "bg-base-100 text-primary" : "text-base-content/75"}`;
 
   const toggleTheme = () => {
     setTheme((current) => (current === "light" ? "dark" : "light"));
@@ -84,8 +96,8 @@ const NavBar = () => {
   //  console.log("isWalletConnected NavBar", isWalletConnected);
 
   return (
-    <div className={`sticky top-0 z-50 flex justify-center py-4 transition-transform duration-300 ${showNav ? 'translate-y-0' : '-translate-y-full'}`}>
-      <div className="navbar w-full max-w-7xl rounded-box border border-base-300 bg-base-200/95 px-3 backdrop-blur">
+    <div className={`sticky top-0 z-50 flex justify-center py-3 transition-transform duration-300 ${showNav ? 'translate-y-0' : '-translate-y-full'}`}>
+      <div className="navbar w-full max-w-7xl rounded-box bg-base-200/95 px-3 py-2 backdrop-blur">
         <div className="navbar-start">
         <a href="https://inscribed.audio" className="btn btn-ghost font-urbanist text-lg font-semibold gap-4 lg:hidden">
            <img src={iaLogo} alt="inscribed audio" className="w-10 h-10" />
@@ -142,16 +154,28 @@ const NavBar = () => {
           ))}
         </div>
 
-        <div className="navbar-end h-10 gap-2 md:scale-90">
-          <div className="flex flex-col gap-1">
+        <div className="navbar-end items-center gap-2">
+          <div className="flex min-h-[2.5rem] flex-col justify-center gap-1">
           {isMobile ? <ConnectMobile /> : <ConnectWallet />}
           {isWalletConnected && !hasContent ? (
             <span className="text-[10px] text-base-content/70 text-center">No ordinals found in connected wallet</span>
           ) : null}
           </div>
 
-          <button className="btn btn-sm btn-outline" onClick={toggleTheme} aria-label="Toggle theme mode">
-            {theme === "light" ? "Dark" : "Light"}
+          <button
+            className="btn btn-sm btn-outline"
+            onClick={toggleTheme}
+            aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+            title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              {theme === "light" ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              )}
+            </svg>
+            <span className="text-xs font-medium uppercase tracking-wide">{theme === "light" ? "Dark" : "Light"}</span>
           </button>
         </div>
       </div>

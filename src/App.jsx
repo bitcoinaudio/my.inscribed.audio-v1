@@ -12,25 +12,8 @@ import MyMedia from "./pages/MyMedia";
 import NK1 from "./pages/NK-1";
 import NavBar from "./components/NavBar";
 import FooterPage from "./pages/Footer";
-import { applyThemeConfig, loadAdminThemeConfig } from "./utils/themeConfig";
 
 const App = () => {
-  React.useEffect(() => {
-    let active = true;
-
-    const run = async () => {
-      const config = await loadAdminThemeConfig();
-      if (!active || !config) return;
-      applyThemeConfig(config);
-    };
-
-    run();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
   return (
     <Router>
       <WalletProvider>

@@ -68,7 +68,7 @@ export async function loadAdminThemeConfig(): Promise<ThemeConfig | null> {
 }
 
 export function resolveInitialTheme(config: ThemeConfig | null): ThemeMode {
-  const saved = localStorage.getItem("theme");
+  const saved = localStorage.getItem("myinscribed-theme-mode") ?? localStorage.getItem("theme");
   const hasSaved = saved === "light" || saved === "dark";
 
   if (!config) {
