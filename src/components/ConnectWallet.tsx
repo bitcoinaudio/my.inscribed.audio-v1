@@ -63,7 +63,6 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     isWalletConnected,
     provider,
     address,
-    contentCount,
     availableWallets,
     authStatus,
     authError,
@@ -75,7 +74,6 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     clearMobileConnectNotice,
     mobileResumeWallet,
     consumeMobileResumeWallet,
-    runtime,
   } = useWallet();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -237,9 +235,9 @@ const ConnectWallet = ({ className }: { className?: string }) => {
         setMobilePrompt({
           wallet: mobileResumeWallet,
           deeplink: retryDeeplink,
-          message: `Returned from wallet but provider is not available yet. Open this site inside the ${
+          message: `We couldn't access your wallet in this browser. Open this site in ${
             mobileResumeWallet === "unisat" ? "UniSat" : "Xverse"
-          } app and retry connection.`,
+          } and try again.`,
         });
       } finally {
         if (active) {
@@ -289,43 +287,6 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     [address]
   );
 
-  const isDevRuntime =
-    (import.meta as ImportMeta & { env?: { DEV?: boolean } }).env?.DEV === true;
-
-  const debugInfo = useMemo(() => {
-    if (!isDevRuntime) return null;
-
-    const params = typeof window !== "undefined" ? window.location.search : "";
-    const pendingWallet =
-      typeof window !== "undefined"
-        ? window.sessionStorage.getItem("myinscribed.pendingMobileWallet") || "none"
-        : "none";
-
-    return {
-      connected: isWalletConnected,
-      provider: provider || "none",
-      authStatus,
-      contentCount,
-      availableUnisat: availableWallets.unisat,
-      availableXverse: availableWallets.xverse,
-      runtime,
-      mobileResumeWallet: mobileResumeWallet || "none",
-      isAutoResuming,
-      pendingWallet,
-      query: params || "(none)",
-    };
-  }, [
-    isWalletConnected,
-    provider,
-    authStatus,
-    contentCount,
-    availableWallets,
-    runtime,
-    mobileResumeWallet,
-    isAutoResuming,
-    isDevRuntime,
-  ]);
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <div className="w-full">
@@ -351,7 +312,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
         {isMobile && !inWalletBrowser && !isWalletConnected && pendingWalletHint ? (
           <div className="mt-1 rounded-md border border-blue-300 bg-blue-50 px-2 py-1 text-[10px] text-blue-900 dark:border-blue-700 dark:bg-blue-950/30 dark:text-blue-200">
-            <div>This mobile browser cannot access {pendingWalletHint === "unisat" ? "UniSat" : "Xverse"} provider directly after app switch.</div>
+            <div>This browser can't access {pendingWalletHint === "unisat" ? "UniSat" : "Xverse"} directly after switching apps.</div>
             <button
               className="mt-1 underline"
               onClick={() => {
@@ -361,9 +322,9 @@ const ConnectWallet = ({ className }: { className?: string }) => {
                 }
               }}
             >
-              Try reopening in {pendingWalletHint === "unisat" ? "UniSat" : "Xverse"}
+              Open in {pendingWalletHint === "unisat" ? "UniSat" : "Xverse"}
             </button>
-            <div className="mt-1">If this still returns here, open this URL manually inside the wallet browser or connect on desktop.</div>
+            <div className="mt-1">If it opens here again, open this URL from your wallet browser or connect on desktop.</div>
           </div>
         ) : null}
       </div>
@@ -418,17 +379,6 @@ const ConnectWallet = ({ className }: { className?: string }) => {
           ) : null}
         </div>
       </DialogContent>
-
-      {debugInfo ? (
-        <div className="mt-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-[10px] text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
-          <div className="font-semibold">Wallet Debug (DEV only)</div>
-          <div>connected: {String(debugInfo.connected)} | provider: {debugInfo.provider} | auth: {debugInfo.authStatus} | items: {debugInfo.contentCount}</div>
-          <div>available: unisat={String(debugInfo.availableUnisat)} xverse={String(debugInfo.availableXverse)}</div>
-          <div>runtime: mobile={String(debugInfo.runtime.isMobile)} inWallet={String(debugInfo.runtime.inWalletBrowser)} walletBrowser={debugInfo.runtime.walletBrowserType || "none"}</div>
-          <div>resume: mobileResumeWallet={debugInfo.mobileResumeWallet} autoResuming={String(debugInfo.isAutoResuming)} pending={debugInfo.pendingWallet}</div>
-          <div>query: {debugInfo.query}</div>
-        </div>
-      ) : null}
     </Dialog>
   );
 };

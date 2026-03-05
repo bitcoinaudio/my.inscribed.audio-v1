@@ -297,9 +297,9 @@ export const WalletProvider = ({ children }) => {
 
       if (currentRuntime.inWalletBrowser || hasAnyProvider) {
         setMobileResumeWallet(pendingWallet);
-        setMobileConnectNotice('Pending wallet connection detected. Resuming your media sync...');
+        setMobileConnectNotice('Resuming your wallet session and syncing media...');
       } else {
-        setMobileConnectNotice('Return detected, but wallet provider is not available in this browser. Continue inside wallet browser or use desktop extension.');
+        setMobileConnectNotice('This browser cannot access your wallet directly. Continue in your wallet browser or connect on desktop.');
       }
     }
 
@@ -332,7 +332,7 @@ export const WalletProvider = ({ children }) => {
 
       if (currentRuntime.inWalletBrowser || hasAnyProvider) {
         setMobileResumeWallet((current) => current || pendingWallet);
-        setMobileConnectNotice('Resuming wallet session. Syncing your media...');
+        setMobileConnectNotice('Resuming your wallet session and syncing media...');
       }
     };
 
