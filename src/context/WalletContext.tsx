@@ -1,16 +1,21 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import Wallet, { AddressPurpose, MessageSigningProtocols } from 'sats-connect';
 import {
   createWalletNonce,
   getWalletSession,
   logoutWalletSession,
   verifyWalletSignature,
 } from '../utils/walletAuthClient';
+import { buildWalletDeeplink, buildWalletReturnUrl, parseWalletReturnState } from '../utils/walletDeeplink';
+import { getWalletRuntime, type WalletRuntime } from '../utils/walletRuntime';
 import type { WalletRole } from '../constants/walletRoles';
 
 type WalletProviderName = 'unisat' | 'xverse' | null;
 type AuthStatus = 'idle' | 'pending' | 'authenticated' | 'unavailable' | 'error';
 type ConnectedWalletProvider = Exclude<WalletProviderName, null>;
+type ConnectWalletOptions = { skipDeeplink?: boolean };
+
+const ORDINALS_PURPOSE = 'ordinals';
+const PAYMENT_PURPOSE = 'payment';
 
 type RawInscription = {
   inscriptionId?: string;
@@ -30,8 +35,168 @@ declare global {
     };
     BitcoinProvider?: unknown;
     XverseProviders?: unknown;
+    bitcoin?: {
+      isXverse?: boolean;
+      request?: (method: string, params?: unknown) => Promise<unknown>;
+    };
   }
 }
+
+type XverseProvider = {
+  request?: (method: string, params?: unknown) => Promise<unknown>;
+  getAccounts?: (params?: unknown) => Promise<unknown>;
+  getInscriptions?: (offset: number, limit: number) => Promise<unknown>;
+  signMessage?: (params: unknown) => Promise<unknown>;
+};
+
+type XverseAccount = {
+  address?: string;
+  purpose?: string;
+};
+
+const getXverseProvider = (): XverseProvider | null => {
+  if (typeof window === 'undefined') return null;
+
+  const providers: unknown[] = [window.BitcoinProvider, window.bitcoin, window.XverseProviders];
+
+  for (const candidate of providers) {
+    if (!candidate || typeof candidate !== 'object') continue;
+
+    const provider = candidate as XverseProvider;
+    if (typeof provider.request === 'function' || typeof provider.getAccounts === 'function') {
+      return provider;
+    }
+
+    const nested = Object.values(candidate as Record<string, unknown>);
+    for (const item of nested) {
+      if (!item || typeof item !== 'object') continue;
+      const nestedProvider = item as XverseProvider;
+      if (typeof nestedProvider.request === 'function' || typeof nestedProvider.getAccounts === 'function') {
+        return nestedProvider;
+      }
+    }
+  }
+
+  return null;
+};
+
+const unwrapXverseResult = (payload: unknown) => {
+  const response = payload as { status?: string; result?: unknown };
+  if (response?.status === 'success') return response.result;
+  if (response?.status && response.status !== 'success') {
+    throw new Error('Xverse request failed');
+  }
+  return payload;
+};
+
+const requestXverse = async (method: string, params?: unknown): Promise<unknown> => {
+  const provider = getXverseProvider();
+  if (!provider) throw new Error('Xverse wallet not detected');
+
+  if (typeof provider.request === 'function') {
+    const response = await provider.request(method, params);
+    return unwrapXverseResult(response);
+  }
+
+  if (method === 'getAccounts' && typeof provider.getAccounts === 'function') {
+    const response = await provider.getAccounts(params);
+    return unwrapXverseResult(response);
+  }
+
+  if ((method === 'ord_getInscriptions' || method === 'getInscriptions') && typeof provider.getInscriptions === 'function') {
+    const query = params as { offset?: number; limit?: number };
+    const response = await provider.getInscriptions(query?.offset || 0, query?.limit || 100);
+    return unwrapXverseResult(response);
+  }
+
+  if (method === 'signMessage' && typeof provider.signMessage === 'function') {
+    const response = await provider.signMessage(params);
+    return unwrapXverseResult(response);
+  }
+
+  throw new Error(`Xverse provider does not support method: ${method}`);
+};
+
+type WalletConnectError = Error & {
+  code?: string;
+  deeplink?: string;
+  walletProvider?: WalletProviderName;
+};
+
+const PENDING_MOBILE_WALLET_KEY = 'myinscribed.pendingMobileWallet';
+const PENDING_MOBILE_WALLET_TS_KEY = 'myinscribed.pendingMobileWalletTs';
+const PENDING_MOBILE_WALLET_MAX_AGE_MS = 10 * 60 * 1000;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const waitFor = async (check: () => boolean, attempts = 12, delayMs = 250) => {
+  for (let index = 0; index < attempts; index += 1) {
+    if (check()) return true;
+    await sleep(delayMs);
+  }
+  return check();
+};
+
+const readPendingMobileWallet = (): ConnectedWalletProvider | null => {
+  if (typeof window === 'undefined') return null;
+
+  const wallet = window.sessionStorage.getItem(PENDING_MOBILE_WALLET_KEY);
+  const tsRaw = window.sessionStorage.getItem(PENDING_MOBILE_WALLET_TS_KEY);
+  const ts = Number(tsRaw || 0);
+  const isFresh = Number.isFinite(ts) && ts > 0 && Date.now() - ts < PENDING_MOBILE_WALLET_MAX_AGE_MS;
+
+  if (!isFresh) {
+    window.sessionStorage.removeItem(PENDING_MOBILE_WALLET_KEY);
+    window.sessionStorage.removeItem(PENDING_MOBILE_WALLET_TS_KEY);
+    return null;
+  }
+
+  if (wallet === 'unisat' || wallet === 'xverse') return wallet;
+  return null;
+};
+
+const writePendingMobileWallet = (wallet: ConnectedWalletProvider) => {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.setItem(PENDING_MOBILE_WALLET_KEY, wallet);
+  window.sessionStorage.setItem(PENDING_MOBILE_WALLET_TS_KEY, Date.now().toString());
+};
+
+const clearPendingMobileWallet = () => {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.removeItem(PENDING_MOBILE_WALLET_KEY);
+  window.sessionStorage.removeItem(PENDING_MOBILE_WALLET_TS_KEY);
+};
+
+const stripWalletReturnParams = () => {
+  if (typeof window === 'undefined') return;
+
+  const url = new URL(window.location.href);
+  const keysToDrop = [
+    'wallet',
+    'walletReturn',
+    'wallet_status',
+    'status',
+    'inXverse',
+    'inUnisat',
+    'error',
+    'cancelled',
+    'data',
+    'message',
+  ];
+
+  let removed = false;
+  keysToDrop.forEach((key) => {
+    if (url.searchParams.has(key)) {
+      url.searchParams.delete(key);
+      removed = true;
+    }
+  });
+
+  if (removed) {
+    const nextUrl = `${url.pathname}${url.search}${url.hash}`;
+    window.history.replaceState({}, document.title, nextUrl);
+  }
+};
 
 const WalletContext = createContext({
   isWalletConnected: false,
@@ -44,8 +209,19 @@ const WalletContext = createContext({
   authRoles: [] as WalletRole[],
   authSessionToken: '',
   authError: '',
-  connectWallet: async (_provider: Exclude<WalletProviderName, null>) => '',
+  runtime: {
+    isMobile: false,
+    isIOS: false,
+    isAndroid: false,
+    inWalletBrowser: false,
+    walletBrowserType: null,
+  } as WalletRuntime,
+  mobileConnectNotice: '',
+  mobileResumeWallet: null as ConnectedWalletProvider | null,
+  connectWallet: async (_provider: Exclude<WalletProviderName, null>, _options?: ConnectWalletOptions) => '',
   disconnectWallet: () => {},
+  clearMobileConnectNotice: () => {},
+  consumeMobileResumeWallet: () => {},
   fetchInscriptions: async (_limit = 100, _provider?: ConnectedWalletProvider) => [] as RawInscription[],
   authenticateWallet: async (_inscriptionIds: string[] = []) => ({
     ok: false,
@@ -73,12 +249,110 @@ export const WalletProvider = ({ children }) => {
   const [authRoles, setAuthRoles] = useState<WalletRole[]>([]);
   const [authSessionToken, setAuthSessionToken] = useState('');
   const [authError, setAuthError] = useState('');
+  const [runtime, setRuntime] = useState<WalletRuntime>(() => getWalletRuntime());
+  const [mobileConnectNotice, setMobileConnectNotice] = useState('');
+  const [mobileResumeWallet, setMobileResumeWallet] = useState<ConnectedWalletProvider | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const refreshRuntime = () => {
+      const nextRuntime = getWalletRuntime();
+      setRuntime(nextRuntime);
+
+      const hasUnisat = Boolean(window.unisat) || nextRuntime.walletBrowserType === 'unisat';
+      const hasXverse =
+        Boolean(window.BitcoinProvider || window.XverseProviders || window.bitcoin?.isXverse) ||
+        nextRuntime.walletBrowserType === 'xverse' ||
+        nextRuntime.isMobile;
+
+      setAvailableWallets({ unisat: hasUnisat || nextRuntime.isMobile, xverse: hasXverse });
+    };
+
+    refreshRuntime();
+    window.addEventListener('resize', refreshRuntime);
+
+    const returnedState = parseWalletReturnState();
+    const pendingWallet = readPendingMobileWallet();
+    if (returnedState.hasWalletReturn && returnedState.message) {
+      setMobileConnectNotice(returnedState.message);
+    }
+
+    if (returnedState.hasWalletReturn && returnedState.status === 'success') {
+      const resumeWallet = (returnedState.wallet || pendingWallet) as ConnectedWalletProvider | null;
+      if (resumeWallet) {
+        setMobileResumeWallet(resumeWallet);
+        setMobileConnectNotice('Wallet connected. Syncing your media...');
+      }
+      stripWalletReturnParams();
+    } else if (returnedState.hasWalletReturn && returnedState.status !== 'success') {
+      stripWalletReturnParams();
+    }
+
+    if (!returnedState.hasWalletReturn && pendingWallet) {
+      const currentRuntime = getWalletRuntime();
+      const hasAnyProvider = Boolean(
+        window.unisat || window.BitcoinProvider || window.XverseProviders || window.bitcoin?.isXverse,
+      );
+
+      if (currentRuntime.inWalletBrowser || hasAnyProvider) {
+        setMobileResumeWallet(pendingWallet);
+        setMobileConnectNotice('Pending wallet connection detected. Resuming your media sync...');
+      } else {
+        setMobileConnectNotice('Return detected, but wallet provider is not available in this browser. Continue inside wallet browser or use desktop extension.');
+      }
+    }
+
+    return () => {
+      window.removeEventListener('resize', refreshRuntime);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const hasUnisat = Boolean(window.unisat);
-    const hasXverse = Boolean(window.BitcoinProvider || window.XverseProviders);
-    setAvailableWallets({ unisat: hasUnisat, xverse: hasXverse || true });
+    const hasXverse = Boolean(window.BitcoinProvider || window.XverseProviders || window.bitcoin?.isXverse);
+    setAvailableWallets((current) => ({
+      unisat: current.unisat || hasUnisat,
+      xverse: current.xverse || hasXverse,
+    }));
+  }, [runtime.inWalletBrowser, runtime.walletBrowserType]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const attemptResumeFromPending = () => {
+      const pendingWallet = readPendingMobileWallet();
+      if (!pendingWallet) return;
+
+      const currentRuntime = getWalletRuntime();
+      const hasAnyProvider = Boolean(
+        window.unisat || window.BitcoinProvider || window.XverseProviders || window.bitcoin?.isXverse,
+      );
+
+      if (currentRuntime.inWalletBrowser || hasAnyProvider) {
+        setMobileResumeWallet((current) => current || pendingWallet);
+        setMobileConnectNotice('Resuming wallet session. Syncing your media...');
+      }
+    };
+
+    const onFocus = () => {
+      attemptResumeFromPending();
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        attemptResumeFromPending();
+      }
+    };
+
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, []);
 
   const disconnectWallet = useCallback(() => {
@@ -92,10 +366,42 @@ export const WalletProvider = ({ children }) => {
     setAuthRoles([]);
     setAuthSessionToken('');
     setAuthError('');
+    clearPendingMobileWallet();
   }, [authSessionToken]);
 
-  const connectWallet = useCallback(async (walletProvider: Exclude<WalletProviderName, null>) => {
+  const connectWallet = useCallback(async (walletProvider: Exclude<WalletProviderName, null>, options?: ConnectWalletOptions) => {
+    const currentRuntime = getWalletRuntime();
+    const skipDeeplink = Boolean(options?.skipDeeplink);
+    const shouldUseMobileDeeplink =
+      currentRuntime.isMobile &&
+      !currentRuntime.inWalletBrowser &&
+      !skipDeeplink &&
+      walletProvider === 'unisat';
+
+    if (shouldUseMobileDeeplink) {
+      const deeplink = buildWalletDeeplink(walletProvider, {
+        from: 'my.inscribed.audio',
+        returnUrl: buildWalletReturnUrl(walletProvider),
+      });
+      writePendingMobileWallet(walletProvider);
+
+      const connectError = new Error('Wallet deeplink launched') as WalletConnectError;
+      connectError.code = 'DEEPLINK_LAUNCHED';
+      connectError.deeplink = deeplink;
+      connectError.walletProvider = walletProvider;
+
+      window.location.href = deeplink;
+      throw connectError;
+    }
+
+    if (walletProvider === 'xverse') {
+      clearPendingMobileWallet();
+    }
+
     if (walletProvider === 'unisat') {
+      if (!window?.unisat) {
+        await waitFor(() => Boolean(window?.unisat));
+      }
       if (!window?.unisat) throw new Error('UniSat wallet not detected');
       const accounts =
         (await window.unisat.requestAccounts?.()) ||
@@ -105,27 +411,34 @@ export const WalletProvider = ({ children }) => {
       if (!nextAddress) throw new Error('No UniSat account available');
       setProvider('unisat');
       setAddress(nextAddress);
+      clearPendingMobileWallet();
       return nextAddress;
     }
 
     if (walletProvider === 'xverse') {
-      const response = await Wallet.request('getAccounts', {
-        purposes: [AddressPurpose.Ordinals, AddressPurpose.Payment],
+      const result = await requestXverse('getAccounts', {
+        purposes: [ORDINALS_PURPOSE, PAYMENT_PURPOSE],
         message: 'Connect wallet to verify ownership and load inscriptions.',
       });
-      if (response.status !== 'success') {
-        throw new Error('Xverse connection failed');
-      }
-      const addresses = response.result || [];
-      const ordinals = addresses.find((entry) => entry.purpose === AddressPurpose.Ordinals);
+      const addresses = Array.isArray(result) ? result as XverseAccount[] : [];
+      const ordinals = addresses.find((entry) => (entry.purpose || '').toLowerCase() === ORDINALS_PURPOSE);
       const nextAddress = ordinals?.address || addresses[0]?.address || '';
       if (!nextAddress) throw new Error('No Xverse account available');
       setProvider('xverse');
       setAddress(nextAddress);
+      clearPendingMobileWallet();
       return nextAddress;
     }
 
     throw new Error('Unsupported wallet provider');
+  }, []);
+
+  const clearMobileConnectNotice = useCallback(() => {
+    setMobileConnectNotice('');
+  }, []);
+
+  const consumeMobileResumeWallet = useCallback(() => {
+    setMobileResumeWallet(null);
   }, []);
 
   const fetchInscriptions = useCallback(async (limit = 100, providerOverride?: ConnectedWalletProvider) => {
@@ -140,9 +453,7 @@ export const WalletProvider = ({ children }) => {
     }
 
     if (effectiveProvider === 'xverse') {
-      const response = await Wallet.request('ord_getInscriptions', { offset: 0, limit });
-      if (response.status !== 'success') return [];
-      const payload = response.result;
+      const payload = await requestXverse('ord_getInscriptions', { offset: 0, limit });
       const rows = Array.isArray(payload)
         ? payload
         : payload?.inscriptions || payload?.list || [];
@@ -162,17 +473,13 @@ export const WalletProvider = ({ children }) => {
     }
 
     if (provider === 'xverse') {
-      const response = await Wallet.request('signMessage', {
+      const result = await requestXverse('signMessage', {
         address,
         message,
-        protocol: MessageSigningProtocols.BIP322,
+        protocol: 'BIP322',
       });
 
-      if (response.status !== 'success') {
-        throw new Error('Xverse signMessage rejected');
-      }
-
-      const signature = (response.result as { signature?: string })?.signature || '';
+      const signature = (result as { signature?: string } | string)?.signature || (typeof result === 'string' ? result : '');
 
       if (!signature) throw new Error('Xverse signature missing');
       return signature;
@@ -239,8 +546,13 @@ export const WalletProvider = ({ children }) => {
     authRoles,
     authSessionToken,
     authError,
+    runtime,
+    mobileConnectNotice,
+    mobileResumeWallet,
     connectWallet,
     disconnectWallet,
+    clearMobileConnectNotice,
+    consumeMobileResumeWallet,
     fetchInscriptions,
     authenticateWallet,
     hasRole: (role: WalletRole) => authRoles.includes(role),
@@ -254,8 +566,13 @@ export const WalletProvider = ({ children }) => {
     authRoles,
     authSessionToken,
     authError,
+    runtime,
+    mobileConnectNotice,
+    mobileResumeWallet,
     connectWallet,
     disconnectWallet,
+    clearMobileConnectNotice,
+    consumeMobileResumeWallet,
     fetchInscriptions,
     authenticateWallet,
     authRoles,

@@ -1,10 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { getWalletRuntime, type WalletBrowserType } from "./walletRuntime";
 
 // Define the context type
 interface DeviceContextType {
   isMobile: boolean;
   isIOS: boolean;
   isAndroid: boolean;
+  inWalletBrowser: boolean;
+  walletBrowserType: WalletBrowserType;
 }
 
 // Create the context with a default value
@@ -24,21 +27,29 @@ export const DeviceProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isMobile, setIsMobile] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
+  const [inWalletBrowser, setInWalletBrowser] = useState(false);
+  const [walletBrowserType, setWalletBrowserType] = useState<WalletBrowserType>(null);
 
   useEffect(() => {
-    const userAgent = navigator.userAgent;
+    const refreshRuntime = () => {
+      const runtime = getWalletRuntime();
+      setIsMobile(runtime.isMobile);
+      setIsIOS(runtime.isIOS);
+      setIsAndroid(runtime.isAndroid);
+      setInWalletBrowser(runtime.inWalletBrowser);
+      setWalletBrowserType(runtime.walletBrowserType);
+    };
 
-    // Check for mobile device
-    const checkMobile = window.innerWidth <= 768;
-    setIsMobile(checkMobile);
+    refreshRuntime();
+    window.addEventListener("resize", refreshRuntime);
 
-    // Check for iOS and Android
-    setIsIOS(/iPhone|iPad|iPod/i.test(userAgent));
-    setIsAndroid(/Android/i.test(userAgent));
+    return () => {
+      window.removeEventListener("resize", refreshRuntime);
+    };
   }, []);
 
   return (
-    <DeviceContext.Provider value={{ isMobile, isIOS, isAndroid }}>
+    <DeviceContext.Provider value={{ isMobile, isIOS, isAndroid, inWalletBrowser, walletBrowserType }}>
       {children}
     </DeviceContext.Provider>
   );

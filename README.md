@@ -55,6 +55,11 @@ Featured collection: [The Ides of March](https://gamma.io/ordinals/collections/i
   npm run dev
    ```
 
+  **For LAN/mobile testing (wallet in-app browsers):**
+  ```bash
+  npm run dev:lan
+  ```
+
 4. **Connect your Bitcoin Ordinals-compatible wallet (Unisat or Xverse) to view and manage your assets.**
 
 ## Integration Notes
@@ -62,6 +67,8 @@ Featured collection: [The Ides of March](https://gamma.io/ordinals/collections/i
 - Integration env vars are intentionally minimal; wallet auth API base is configurable.
 - Ordinals endpoints are currently code-level constants in [src/utils/inscriptions.ts](src/utils/inscriptions.ts).
 - Wallet auth API base can be set with `VITE_WALLET_AUTH_BASE_URL` (defaults to same-origin).
+- Mobile wallet deeplink bases can be configured with `VITE_UNISAT_DEEPLINK_BASE` and `VITE_XVERSE_DEEPLINK_BASE`.
+- Deeplink return target can be overridden with `VITE_WALLET_CONNECT_RETURN_URL` (defaults to current page URL).
 - Backend wallet auth verifier is strict-by-default and validates signatures server-side.
 - Optional (trusted local dev only): `WALLET_AUTH_ALLOW_UNVERIFIED=true` can bypass signature verification.
 - Role policy inputs on API service:
@@ -88,6 +95,7 @@ Current behavior in this app:
 - roles are requested and stored after wallet auth session verification
 - `/mymedia` requires an authenticated wallet role (`listener`, `creator`, or `admin`)
 - if wallet-auth backend is unavailable, `/mymedia` guard allows access to avoid local-dev lockout
+- wallet connect policy is desktop-direct, mobile deeplink-first, with direct connect when already inside wallet in-app browsers
 
 When role-gated UI is introduced, use these same canonical role names and keep backend/frontend naming synchronized.
 
