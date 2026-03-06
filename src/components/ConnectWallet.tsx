@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { cn } from "../lib/utils";
-import { setIinscriptionArray } from "../globalState";
 import {
   getBRC420Data,
   getBitmapData,
@@ -56,6 +55,8 @@ const WALLET_OPTIONS: Array<{ name: WalletName; label: string }> = [
   { name: "xverse", label: "Xverse" },
 ];
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const ConnectWallet = ({ className }: { className?: string }) => {
   const navigate = useNavigate();
   const { isMobile, inWalletBrowser } = useDeviceContext();
@@ -68,6 +69,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     authError,
     connectWallet,
     disconnectWallet,
+    setWalletItems,
     fetchInscriptions,
     authenticateWallet,
     mobileConnectNotice,
@@ -97,11 +99,16 @@ const ConnectWallet = ({ className }: { className?: string }) => {
 
     refreshPending();
     window.addEventListener("focus", refreshPending);
-    document.addEventListener("visibilitychange", refreshPending);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refreshPending();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
       window.removeEventListener("focus", refreshPending);
-      document.removeEventListener("visibilitychange", refreshPending);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, []);
 
@@ -133,7 +140,13 @@ const ConnectWallet = ({ className }: { className?: string }) => {
         const id = inscription.inscriptionId;
         if (!id) return null;
 
-        const [brc420, bitmap] = await Promise.all([getBRC420Data(id), getBitmapData(id)]);
+        let brc420 = {};
+        let bitmap = {};
+        try {
+          [brc420, bitmap] = await Promise.all([getBRC420Data(id), getBitmapData(id)]);
+        } catch (error) {
+          console.warn(`Metadata enrichment failed for inscription ${id}:`, error);
+        }
 
         return {
           id,
@@ -152,9 +165,35 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     return results.filter(Boolean) as ProcessedInscription[];
   }, [idesOfMarchIDs, dustIDs]);
 
+  const fetchInscriptionsWithRetry = useCallback(async (walletName: WalletName) => {
+    const shouldRetry = walletName === "xverse" && isMobile;
+    const maxAttempts = shouldRetry ? 4 : 1;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      try {
+        const inscriptions = await fetchInscriptions(100, walletName);
+        if (inscriptions.length > 0) {
+          return inscriptions;
+        }
+      } catch (error) {
+        if (attempt === maxAttempts) {
+          console.error(`Failed to fetch inscriptions for ${walletName}:`, error);
+        } else {
+          console.warn(`Retrying inscription fetch for ${walletName} (attempt ${attempt + 1}/${maxAttempts})`, error);
+        }
+      }
+
+      if (attempt < maxAttempts) {
+        await sleep(350 * attempt);
+      }
+    }
+
+    return [];
+  }, [fetchInscriptions, isMobile]);
+
   const handleDisconnect = () => {
     disconnectWallet();
-    setIinscriptionArray([]);
+    setWalletItems([]);
     navigate("/");
   };
 
@@ -163,22 +202,25 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     options?: { skipDeeplink?: boolean }
   ) => {
     await connectWallet(walletName, options);
-    const inscriptions = await fetchInscriptions(100, walletName);
+    setIsOpen(false);
+    const inscriptions = await fetchInscriptionsWithRetry(walletName);
     const processed = await processInscriptions(inscriptions);
-    setIinscriptionArray(processed);
+    setWalletItems(processed);
     const inscriptionIds = processed.map((item) => item.id);
     await authenticateWallet(inscriptionIds);
-    setIsOpen(false);
     navigate("/mymedia");
   }, [
     connectWallet,
-    fetchInscriptions,
+    fetchInscriptionsWithRetry,
     processInscriptions,
+    setWalletItems,
     authenticateWallet,
     navigate,
   ]);
 
   const handleConnect = async (walletName: WalletName) => {
+    if (isLoading) return;
+
     if (provider === walletName && isWalletConnected) {
       handleDisconnect();
       return;
@@ -203,8 +245,6 @@ const ConnectWallet = ({ className }: { className?: string }) => {
       }
 
       console.error(`Connection to ${walletName} failed:`, error);
-      disconnectWallet();
-      setIinscriptionArray([]);
     } finally {
       setWalletLoading(null);
       setIsLoading(false);
@@ -345,7 +385,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
               key={wallet.name}
               onClick={() => handleConnect(wallet.name)}
               className={buttonClass}
-              disabled={walletLoading === wallet.name || !canConnect}
+              disabled={isLoading || walletLoading === wallet.name || !canConnect}
             >
               {walletLoading === wallet.name ? "Connecting..." : `Connect ${wallet.label}`}
             </Button>

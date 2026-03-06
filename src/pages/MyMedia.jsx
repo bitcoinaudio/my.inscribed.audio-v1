@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { fadeIn, staggerContainer } from "../utils/motion";
-import { inscriptionArray } from "../globalState";
+import { useWallet } from "../context/WalletContext";
 import beatblockImage from "/images/beatblocks.png";
 import ordImage from "/images/ordinals.svg";
 import iomImage from "/images/idesofmarch.png";
@@ -289,18 +289,19 @@ const MediaCard = React.memo(({ item }) => {
 
 // MyMedia Component
 const MyMedia = () => {
+  const { walletItems } = useWallet();
   const [selectedMimeTypes, setSelectedMimeTypes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
   const filteredItems = useMemo(() => (
     selectedMimeTypes.length > 0
-      ? inscriptionArray.filter((item) => {
+      ? walletItems.filter((item) => {
           const matchesMime = selectedMimeTypes.includes(item.contentType);
           const matchesBitmap = selectedMimeTypes.includes(BITMAP_FILTER_KEY) && item.isBitmap;
           return matchesMime || matchesBitmap;
         })
-      : inscriptionArray
-  ), [selectedMimeTypes]);
+      : walletItems
+  ), [selectedMimeTypes, walletItems]);
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE));
 

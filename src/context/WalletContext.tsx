@@ -13,6 +13,19 @@ type WalletProviderName = 'unisat' | 'xverse' | null;
 type AuthStatus = 'idle' | 'pending' | 'authenticated' | 'unavailable' | 'error';
 type ConnectedWalletProvider = Exclude<WalletProviderName, null>;
 type ConnectWalletOptions = { skipDeeplink?: boolean };
+type WalletMediaItem = {
+  id: string;
+  contentType?: string;
+  isIOM?: boolean;
+  isDust?: boolean;
+  isEnhanced?: boolean;
+  attributes?: unknown;
+  isBRC420?: boolean;
+  brc420Url?: string;
+  isBitmap?: boolean;
+  bitmap?: string;
+  isBeatBlock?: boolean;
+};
 
 const ORDINALS_PURPOSE = 'ordinals';
 const PAYMENT_PURPOSE = 'payment';
@@ -89,13 +102,41 @@ const unwrapXverseResult = (payload: unknown) => {
   return payload;
 };
 
+const tryXverseRequest = async (provider: XverseProvider, method: string, params?: unknown): Promise<unknown> => {
+  if (typeof provider.request !== 'function') {
+    throw new Error('Xverse request method unavailable');
+  }
+
+  const attempts: Array<() => Promise<unknown>> = [
+    () => provider.request!(method, params),
+    () => provider.request!({ method, params }),
+  ];
+
+  let lastError: unknown = null;
+  for (const run of attempts) {
+    try {
+      return await run();
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw (lastError instanceof Error ? lastError : new Error('Xverse request failed'));
+};
+
 const requestXverse = async (method: string, params?: unknown): Promise<unknown> => {
   const provider = getXverseProvider();
   if (!provider) throw new Error('Xverse wallet not detected');
 
   if (typeof provider.request === 'function') {
-    const response = await provider.request(method, params);
-    return unwrapXverseResult(response);
+    try {
+      const response = await tryXverseRequest(provider, method, params);
+      return unwrapXverseResult(response);
+    } catch (requestError) {
+      if (!provider.getAccounts && !provider.getInscriptions && !provider.signMessage) {
+        throw requestError;
+      }
+    }
   }
 
   if (method === 'getAccounts' && typeof provider.getAccounts === 'function') {
@@ -202,6 +243,7 @@ const WalletContext = createContext({
   isWalletConnected: false,
   provider: null as WalletProviderName,
   address: '',
+  walletItems: [] as WalletMediaItem[],
   hasContent: false,
   contentCount: 0,
   availableWallets: { unisat: false, xverse: true },
@@ -220,6 +262,7 @@ const WalletContext = createContext({
   mobileResumeWallet: null as ConnectedWalletProvider | null,
   connectWallet: async (_provider: Exclude<WalletProviderName, null>, _options?: ConnectWalletOptions) => '',
   disconnectWallet: () => {},
+  setWalletItems: (_items: WalletMediaItem[]) => {},
   clearMobileConnectNotice: () => {},
   consumeMobileResumeWallet: () => {},
   fetchInscriptions: async (_limit = 100, _provider?: ConnectedWalletProvider) => [] as RawInscription[],
@@ -243,6 +286,7 @@ const normalizeInscriptions = (inscriptions: RawInscription[]) =>
 export const WalletProvider = ({ children }) => {
   const [provider, setProvider] = useState<WalletProviderName>(null);
   const [address, setAddress] = useState('');
+  const [walletItems, setWalletItems] = useState<WalletMediaItem[]>([]);
   const [contentCount, setContentCount] = useState(0);
   const [availableWallets, setAvailableWallets] = useState({ unisat: false, xverse: true });
   const [authStatus, setAuthStatus] = useState<AuthStatus>('idle');
@@ -361,6 +405,7 @@ export const WalletProvider = ({ children }) => {
     }
     setProvider(null);
     setAddress('');
+    setWalletItems([]);
     setContentCount(0);
     setAuthStatus('idle');
     setAuthRoles([]);
@@ -376,7 +421,7 @@ export const WalletProvider = ({ children }) => {
       currentRuntime.isMobile &&
       !currentRuntime.inWalletBrowser &&
       !skipDeeplink &&
-      walletProvider === 'unisat';
+      (walletProvider === 'unisat' || walletProvider === 'xverse');
 
     if (shouldUseMobileDeeplink) {
       const deeplink = buildWalletDeeplink(walletProvider, {
@@ -392,10 +437,6 @@ export const WalletProvider = ({ children }) => {
 
       window.location.href = deeplink;
       throw connectError;
-    }
-
-    if (walletProvider === 'xverse') {
-      clearPendingMobileWallet();
     }
 
     if (walletProvider === 'unisat') {
@@ -416,6 +457,9 @@ export const WalletProvider = ({ children }) => {
     }
 
     if (walletProvider === 'xverse') {
+      if (!getXverseProvider()) {
+        await waitFor(() => Boolean(getXverseProvider()));
+      }
       const result = await requestXverse('getAccounts', {
         purposes: [ORDINALS_PURPOSE, PAYMENT_PURPOSE],
         message: 'Connect wallet to verify ownership and load inscriptions.',
@@ -539,7 +583,8 @@ export const WalletProvider = ({ children }) => {
     isWalletConnected: Boolean(provider && address),
     provider,
     address,
-    hasContent: contentCount > 0,
+    walletItems,
+    hasContent: walletItems.length > 0 || contentCount > 0,
     contentCount,
     availableWallets,
     authStatus,
@@ -551,6 +596,7 @@ export const WalletProvider = ({ children }) => {
     mobileResumeWallet,
     connectWallet,
     disconnectWallet,
+    setWalletItems,
     clearMobileConnectNotice,
     consumeMobileResumeWallet,
     fetchInscriptions,
@@ -560,6 +606,7 @@ export const WalletProvider = ({ children }) => {
   }), [
     provider,
     address,
+    walletItems,
     contentCount,
     availableWallets,
     authStatus,
@@ -571,6 +618,7 @@ export const WalletProvider = ({ children }) => {
     mobileResumeWallet,
     connectWallet,
     disconnectWallet,
+    setWalletItems,
     clearMobileConnectNotice,
     consumeMobileResumeWallet,
     fetchInscriptions,
