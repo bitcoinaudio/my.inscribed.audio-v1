@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "./ui/dialog";
@@ -63,7 +63,6 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   const {
     isWalletConnected,
     provider,
-    address,
     availableWallets,
     authStatus,
     authError,
@@ -84,6 +83,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   const [mobilePrompt, setMobilePrompt] = useState<MobilePromptState | null>(null);
   const [isAutoResuming, setIsAutoResuming] = useState(false);
   const [pendingWalletHint, setPendingWalletHint] = useState<WalletName | null>(null);
+  const restoredSyncProviderRef = useRef<WalletName | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -310,6 +310,58 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     consumeMobileResumeWallet,
   ]);
 
+  useEffect(() => {
+    if (!isWalletConnected || !provider) {
+      restoredSyncProviderRef.current = null;
+      return;
+    }
+
+    if (isLoading || isAutoResuming || mobileResumeWallet) return;
+    if (authStatus !== "idle") return;
+    if (restoredSyncProviderRef.current === provider) return;
+
+    let active = true;
+
+    const syncRestoredWallet = async () => {
+      setIsLoading(true);
+      setWalletLoading(provider);
+
+      try {
+        const inscriptions = await fetchInscriptionsWithRetry(provider);
+        const processed = await processInscriptions(inscriptions);
+        setWalletItems(processed);
+        const inscriptionIds = processed.map((item) => item.id);
+        await authenticateWallet(inscriptionIds);
+      } catch (error) {
+        if (!active) return;
+        console.error(`Failed to sync restored ${provider} session:`, error);
+      } finally {
+        if (active) {
+          restoredSyncProviderRef.current = provider;
+          setWalletLoading(null);
+          setIsLoading(false);
+        }
+      }
+    };
+
+    syncRestoredWallet();
+
+    return () => {
+      active = false;
+    };
+  }, [
+    isWalletConnected,
+    provider,
+    isLoading,
+    isAutoResuming,
+    mobileResumeWallet,
+    authStatus,
+    fetchInscriptionsWithRetry,
+    processInscriptions,
+    setWalletItems,
+    authenticateWallet,
+  ]);
+
   const handleOpenWalletApp = () => {
     if (!mobilePrompt?.deeplink) return;
     window.location.href = mobilePrompt.deeplink;
@@ -322,17 +374,12 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     className
   );
 
-  const shortAddress = useMemo(
-    () => (address ? `${address.slice(0, 5)}...${address.slice(-5)}` : ""),
-    [address]
-  );
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <div className="w-full">
         {isWalletConnected ? (
           <Button onClick={handleDisconnect} className={buttonClass} disabled={isLoading}>
-            Disconnect <span className="text-lg">{shortAddress}</span>
+            Disconnect
             {authStatus === "authenticated" ? <span className="text-xs ml-2">verified</span> : null}
             {authStatus === "error" && authError ? <span className="text-xs ml-2">auth failed</span> : null}
           </Button>

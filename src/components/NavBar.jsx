@@ -27,7 +27,7 @@ const basenavigation = [
 
 
 const NavBar = () => {
-  const { isWalletConnected, hasContent } = useWallet();
+  const { isWalletConnected, hasContent, address } = useWallet();
   const { isMobile } = useDeviceContext();
   const [showNav, setShowNav] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -93,10 +93,12 @@ const NavBar = () => {
     setTheme((current) => (current === "light" ? "dark" : "light"));
   };
 
+  const shortAddress = address ? `${address.slice(0, 5)}...${address.slice(-5)}` : "";
+
   //  console.log("isWalletConnected NavBar", isWalletConnected);
 
   return (
-    <div className={`sticky top-0 z-50 flex justify-center py-3 transition-transform duration-300 ${showNav ? 'translate-y-0' : '-translate-y-full'}`}>
+    <div className={`sticky top-0 z-50 flex flex-col items-center gap-2 py-3 transition-transform duration-300 ${showNav ? 'translate-y-0' : '-translate-y-full'}`}>
       <div className="navbar w-full max-w-7xl rounded-box bg-base-200/95 px-3 py-2 backdrop-blur">
         <div className="navbar-start">
         <a href="https://inscribed.audio" className="btn btn-ghost font-urbanist text-lg font-semibold gap-4 lg:hidden">
@@ -126,7 +128,7 @@ const NavBar = () => {
             <ul className="menu dropdown-content menu-md z-[1] mt-3 w-52 gap-2 rounded-box bg-base-100 p-2 shadow">
               {navigation.map((item) => (
                 <li key={item.href}>
-                  <NavLink to={item.href} end={item.href === "/"} className="font-urbanist">
+                  <NavLink to={item.href} end={item.href === "/"} className="font-urbanist text-xs">
                     {item.name}
                   </NavLink>
                 </li>
@@ -155,7 +157,7 @@ const NavBar = () => {
         </div>
 
         <div className="navbar-end items-center gap-2">
-          <div className="flex min-h-[2.5rem] flex-col justify-center gap-1">
+          <div className="flex min-h-[2.0rem] flex-col justify-center gap-1">
           {isMobile ? <ConnectMobile /> : <ConnectWallet />}
           {isWalletConnected && !hasContent ? (
             <span className="text-[10px] text-base-content/70 text-center">No ordinals found in connected wallet</span>
@@ -179,6 +181,11 @@ const NavBar = () => {
           </button>
         </div>
       </div>
+      {isWalletConnected && shortAddress ? (
+        <div className="w-full max-w-7xl rounded-box border border-base-300 bg-base-100 px-4 py-2 text-center text-xs text-base-content">
+          Hi, your current address is {shortAddress}
+        </div>
+      ) : null}
     </div>
   );
 };

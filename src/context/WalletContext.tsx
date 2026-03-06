@@ -67,6 +67,87 @@ type XverseAccount = {
   purpose?: string;
 };
 
+const extractXverseAccounts = (payload: unknown): XverseAccount[] => {
+  const roots: unknown[] = [
+    payload,
+    (payload as { result?: unknown })?.result,
+    (payload as { data?: unknown })?.data,
+    (payload as { accounts?: unknown })?.accounts,
+    (payload as { addresses?: unknown })?.addresses,
+  ];
+
+  for (const root of roots) {
+    const rows = Array.isArray(root)
+      ? root
+      : Array.isArray((root as { addresses?: unknown })?.addresses)
+        ? (root as { addresses: unknown[] }).addresses
+        : null;
+
+    if (!rows) continue;
+
+    const accounts = rows
+      .map((entry) => {
+        const row = entry as {
+          address?: string;
+          addressString?: string;
+          btcAddress?: string;
+          paymentAddress?: string;
+          purpose?: string;
+          type?: string;
+        };
+
+        return {
+          address: row.address || row.addressString || row.btcAddress || row.paymentAddress,
+          purpose: row.purpose || row.type,
+        };
+      })
+      .filter((item) => Boolean(item.address));
+
+    if (accounts.length > 0) return accounts;
+  }
+
+  return [];
+};
+
+const extractXverseInscriptions = (payload: unknown): RawInscription[] => {
+  const roots: unknown[] = [
+    payload,
+    (payload as { result?: unknown })?.result,
+    (payload as { data?: unknown })?.data,
+  ];
+
+  for (const root of roots) {
+    const rows = Array.isArray(root)
+      ? root
+      : (root as { inscriptions?: unknown[]; list?: unknown[]; items?: unknown[]; results?: unknown[] });
+
+    const source = Array.isArray(rows)
+      ? rows
+      : rows.inscriptions || rows.list || rows.items || rows.results || [];
+
+    if (!Array.isArray(source) || source.length === 0) continue;
+
+    return source.map((entry) => {
+      const row = entry as {
+        inscriptionId?: string;
+        inscription_id?: string;
+        id?: string;
+        contentType?: string;
+        mimeType?: string;
+        mediaType?: string;
+        content_type?: string;
+      };
+
+      return {
+        inscriptionId: row.inscriptionId || row.inscription_id || row.id,
+        contentType: row.contentType || row.mimeType || row.mediaType || row.content_type,
+      };
+    });
+  }
+
+  return [];
+};
+
 const getXverseProvider = (): XverseProvider | null => {
   if (typeof window === 'undefined') return null;
 
@@ -167,6 +248,12 @@ type WalletConnectError = Error & {
 const PENDING_MOBILE_WALLET_KEY = 'myinscribed.pendingMobileWallet';
 const PENDING_MOBILE_WALLET_TS_KEY = 'myinscribed.pendingMobileWalletTs';
 const PENDING_MOBILE_WALLET_MAX_AGE_MS = 10 * 60 * 1000;
+const CONNECTED_WALLET_KEY = 'myinscribed.connectedWallet';
+
+type PersistedConnectedWallet = {
+  provider: ConnectedWalletProvider;
+  address: string;
+};
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -206,6 +293,40 @@ const clearPendingMobileWallet = () => {
   if (typeof window === 'undefined') return;
   window.sessionStorage.removeItem(PENDING_MOBILE_WALLET_KEY);
   window.sessionStorage.removeItem(PENDING_MOBILE_WALLET_TS_KEY);
+};
+
+const readPersistedConnectedWallet = (): PersistedConnectedWallet | null => {
+  if (typeof window === 'undefined') return null;
+
+  const raw = window.localStorage.getItem(CONNECTED_WALLET_KEY);
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw) as { provider?: string; address?: string };
+    const walletProvider = parsed?.provider;
+    const walletAddress = parsed?.address;
+
+    if ((walletProvider === 'unisat' || walletProvider === 'xverse') && typeof walletAddress === 'string' && walletAddress) {
+      return {
+        provider: walletProvider,
+        address: walletAddress,
+      };
+    }
+  } catch {
+  }
+
+  window.localStorage.removeItem(CONNECTED_WALLET_KEY);
+  return null;
+};
+
+const writePersistedConnectedWallet = (wallet: PersistedConnectedWallet) => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(CONNECTED_WALLET_KEY, JSON.stringify(wallet));
+};
+
+const clearPersistedConnectedWallet = () => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(CONNECTED_WALLET_KEY);
 };
 
 const stripWalletReturnParams = () => {
@@ -296,6 +417,14 @@ export const WalletProvider = ({ children }) => {
   const [runtime, setRuntime] = useState<WalletRuntime>(() => getWalletRuntime());
   const [mobileConnectNotice, setMobileConnectNotice] = useState('');
   const [mobileResumeWallet, setMobileResumeWallet] = useState<ConnectedWalletProvider | null>(null);
+
+  useEffect(() => {
+    const persistedWallet = readPersistedConnectedWallet();
+    if (!persistedWallet) return;
+
+    setProvider((current) => current || persistedWallet.provider);
+    setAddress((current) => current || persistedWallet.address);
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -412,6 +541,7 @@ export const WalletProvider = ({ children }) => {
     setAuthSessionToken('');
     setAuthError('');
     clearPendingMobileWallet();
+    clearPersistedConnectedWallet();
   }, [authSessionToken]);
 
   const connectWallet = useCallback(async (walletProvider: Exclude<WalletProviderName, null>, options?: ConnectWalletOptions) => {
@@ -453,6 +583,7 @@ export const WalletProvider = ({ children }) => {
       setProvider('unisat');
       setAddress(nextAddress);
       clearPendingMobileWallet();
+      writePersistedConnectedWallet({ provider: 'unisat', address: nextAddress });
       return nextAddress;
     }
 
@@ -464,13 +595,14 @@ export const WalletProvider = ({ children }) => {
         purposes: [ORDINALS_PURPOSE, PAYMENT_PURPOSE],
         message: 'Connect wallet to verify ownership and load inscriptions.',
       });
-      const addresses = Array.isArray(result) ? result as XverseAccount[] : [];
+      const addresses = extractXverseAccounts(result);
       const ordinals = addresses.find((entry) => (entry.purpose || '').toLowerCase() === ORDINALS_PURPOSE);
       const nextAddress = ordinals?.address || addresses[0]?.address || '';
       if (!nextAddress) throw new Error('No Xverse account available');
       setProvider('xverse');
       setAddress(nextAddress);
       clearPendingMobileWallet();
+      writePersistedConnectedWallet({ provider: 'xverse', address: nextAddress });
       return nextAddress;
     }
 
@@ -498,10 +630,7 @@ export const WalletProvider = ({ children }) => {
 
     if (effectiveProvider === 'xverse') {
       const payload = await requestXverse('ord_getInscriptions', { offset: 0, limit });
-      const rows = Array.isArray(payload)
-        ? payload
-        : payload?.inscriptions || payload?.list || [];
-      const normalized = normalizeInscriptions(rows);
+      const normalized = normalizeInscriptions(extractXverseInscriptions(payload));
       setContentCount(normalized.length);
       return normalized;
     }
@@ -523,7 +652,12 @@ export const WalletProvider = ({ children }) => {
         protocol: 'BIP322',
       });
 
-      const signature = (result as { signature?: string } | string)?.signature || (typeof result === 'string' ? result : '');
+      const resultObj = result as { signature?: string; result?: { signature?: string }; data?: { signature?: string } };
+      const signature =
+        resultObj?.signature ||
+        resultObj?.result?.signature ||
+        resultObj?.data?.signature ||
+        (typeof result === 'string' ? result : '');
 
       if (!signature) throw new Error('Xverse signature missing');
       return signature;
