@@ -6,7 +6,7 @@
 
 Welcome to the future of music and digital ownership, where legendary creative works meet Bitcoin innovation. my.inscribed.audio empowers artists, collectors, and enthusiasts to enjoy and manage their digital assets in a truly decentralized, immutable way.
 
-Featured collection: [The Ides of March](https://gamma.io/ordinals/collections/ides-of-march) — a pioneering music NFT series on Bitcoin Ordinals.
+Featured collection: [The Ides of March](https://www.satflow.com/ordinals/inscribedaudio) — a pioneering music NFT series on Bitcoin Ordinals.
 
 ## Features
 

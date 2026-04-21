@@ -88,7 +88,7 @@ const LazyIframe = ({ src, placeholderSrc, className }) => {
 
 // Cross-browser compatible window.open function
 const openMusicPlayer = () => {
-  const url = "https://ar.io/o_yJ-NsYZTbbiexDhywUjtuvnr2kdEck7JD1zaTZfeY";
+  const url = "https://up6it6g3dbstnw4j5rbyolaur3n27hv5ur2eojhmsd243jgzpxta.ar.io/o_yJ-NsYZTbbiexDhywUjtuvnr2kdEck7JD1zaTZfeY/";
   const windowName = "musicPlayer_" + Date.now(); // Unique name to avoid conflicts
   
   // Enhanced window features for better cross-browser compatibility
@@ -239,7 +239,7 @@ const MediaCard = React.memo(({ item }) => {
                 <a
                   className="tooltip"
                   data-tip="IOM"
-                  href="https://ar.io/0AphIk6Qiuu3RwGtYL02w9weo3Cci5Xp-M0LRgZ42Gg"
+                  href="https://2afgcisoscfoxn2hagwwbpjwypob5i3qtsfzl2pyzufumbty3bua.ar.io/0AphIk6Qiuu3RwGtYL02w9weo3Cci5Xp-M0LRgZ42Gg/"
                   target="_blank"
                   rel="noopener noreferrer"
                 >

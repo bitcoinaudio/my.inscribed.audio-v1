@@ -192,6 +192,13 @@ const ConnectWallet = ({ className }: { className?: string }) => {
   }, [fetchInscriptions, isMobile]);
 
   const handleDisconnect = () => {
+    restoredSyncProviderRef.current = null;
+    setIsOpen(false);
+    setIsLoading(false);
+    setWalletLoading(null);
+    setIsAutoResuming(false);
+    setMobilePrompt(null);
+    clearMobileConnectNotice();
     disconnectWallet();
     setWalletItems([]);
     navigate("/");
@@ -377,7 +384,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <div className="w-full">
         {isWalletConnected ? (
-          <Button onClick={handleDisconnect} className={buttonClass} disabled={isLoading}>
+          <Button onClick={handleDisconnect} className={buttonClass}>
             Disconnect
             {authStatus === "authenticated" ? <span className="text-xs ml-2">verified</span> : null}
             {authStatus === "error" && authError ? <span className="text-xs ml-2">auth failed</span> : null}

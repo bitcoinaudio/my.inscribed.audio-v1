@@ -44,7 +44,7 @@ const LandingPage = () => {
 
           <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
             <div className="card rounded-box border border-base-300 bg-base-100 p-6 transition duration-300 hover:-translate-y-1 hover:border-primary/50">
-              <a className="tooltip" data-tip="Collect" href="https://gamma.io/ordinals/collections/ides-of-march" target="_blank" rel="noreferrer">
+              <a className="tooltip" data-tip="Collect" href="https://www.satflow.com/ordinals/inscribedaudio" target="_blank" rel="noreferrer">
                 <img src={headphones} alt="headphones" className="rounded-box" />
                 </a>
               <div className="p-4">
@@ -64,7 +64,7 @@ const LandingPage = () => {
             </div>
 
             <div className="card rounded-box border border-base-300 bg-base-100 p-6 transition duration-300 hover:-translate-y-1 hover:border-primary/50">
-              <a className="tooltip" data-tip="Collect" href="https://gamma.io/ordinals/collections/ides-of-march" target="_blank" rel="noreferrer">
+              <a className="tooltip" data-tip="Collect" href="https://www.satflow.com/ordinals/inscribedaudio" target="_blank" rel="noreferrer">
                 <img src={woman} alt="woman" className="rounded-box" />
               </a>
               <div className="p-4">

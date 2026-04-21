@@ -1,4 +1,4 @@
-export type WalletBrowserType = 'unisat' | 'xverse' | null;
+export type WalletBrowserType = "unisat" | "xverse" | null;
 
 export type WalletRuntime = {
   isMobile: boolean;
@@ -8,55 +8,41 @@ export type WalletRuntime = {
   walletBrowserType: WalletBrowserType;
 };
 
-const getUserAgent = () => (typeof window !== 'undefined' ? window.navigator.userAgent || '' : '');
-
-const detectWalletBrowserType = (): WalletBrowserType => {
-  if (typeof window === 'undefined') return null;
-
-  const params = new URLSearchParams(window.location.search);
-  const walletParam = (params.get('wallet') || '').toLowerCase();
-
-  if (params.has('inUnisat') || walletParam === 'unisat') return 'unisat';
-  if (params.has('inXverse') || walletParam === 'xverse') return 'xverse';
-
-  if (window.unisat) return 'unisat';
-
-  const bitcoinProvider = (window as Window & { bitcoin?: { isXverse?: boolean } }).bitcoin;
-  if (bitcoinProvider?.isXverse || window.BitcoinProvider || window.XverseProviders) return 'xverse';
-
-  const userAgent = getUserAgent();
-  if (/unisat/i.test(userAgent)) return 'unisat';
-  if (/xverse/i.test(userAgent)) return 'xverse';
-
-  return null;
-};
-
-const detectMobileRuntime = () => {
-  if (typeof window === 'undefined') {
-    return { isMobile: false, isIOS: false, isAndroid: false };
-  }
-
-  const userAgent = getUserAgent();
-  const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
-  const isAndroid = /Android/i.test(userAgent);
-  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-  const isMobileByUA = /Mobi|Android|iPhone|iPad|iPod/i.test(userAgent);
-  const isSmallViewport = window.innerWidth <= 960;
-
-  return {
-    isMobile: isMobileByUA || (isSmallViewport && isTouch),
-    isIOS,
-    isAndroid,
-  };
-};
+const MOBILE_UA_REGEX = /Android|iPhone|iPad|iPod|IEMobile|Opera Mini/i;
 
 export const getWalletRuntime = (): WalletRuntime => {
-  const device = detectMobileRuntime();
-  const walletBrowserType = detectWalletBrowserType();
+  if (typeof window === "undefined") {
+    return {
+      isMobile: false,
+      isIOS: false,
+      isAndroid: false,
+      inWalletBrowser: false,
+      walletBrowserType: null,
+    };
+  }
+
+  const userAgent = navigator.userAgent || "";
+  const isMobile = MOBILE_UA_REGEX.test(userAgent);
+  const isIOS = /iPhone|iPad|iPod/i.test(userAgent);
+  const isAndroid = /Android/i.test(userAgent);
+  const search = window.location.search;
+
+  const walletBrowserType =
+    /unisat/i.test(userAgent) || /inUnisat=1|\bwallet=unisat\b/i.test(search)
+      ? "unisat"
+      : /xverse/i.test(userAgent) || /inXverse=1|\bwallet=xverse\b/i.test(search)
+        ? "xverse"
+        : null;
+
+  const inWalletBrowser =
+    /xverse|unisat|okx|tokenpocket/i.test(userAgent) ||
+    /inXverse=1|inUnisat=1|wallet=/i.test(search);
 
   return {
-    ...device,
-    inWalletBrowser: Boolean(walletBrowserType),
+    isMobile,
+    isIOS,
+    isAndroid,
+    inWalletBrowser,
     walletBrowserType,
   };
 };
