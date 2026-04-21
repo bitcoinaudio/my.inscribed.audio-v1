@@ -11,7 +11,7 @@ import {
   isBeatBlockInscription,
   isEnhancedInscription,
 } from "../utils/inscriptions";
-import { buildWalletDeeplink, buildWalletReentryDeeplink, buildWalletReturnUrl } from "../utils/walletDeeplink";
+import { buildWalletReentryDeeplink } from "../utils/walletDeeplink";
 import { useWallet } from "../context/WalletContext";
 import { useDeviceContext } from "../utils/DeviceStore";
 import idesofmarch from "../lib/collections/idesofmarch.json";
@@ -245,6 +245,8 @@ const ConnectWallet = ({ className }: { className?: string }) => {
       }
 
       console.error(`Connection to ${walletName} failed:`, error);
+      disconnectWallet();
+      setWalletItems([]);
     } finally {
       setWalletLoading(null);
       setIsLoading(false);
@@ -267,10 +269,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
         if (!active) return;
 
         console.error(`Auto-resume connection to ${mobileResumeWallet} failed:`, error);
-        const retryDeeplink = buildWalletDeeplink(mobileResumeWallet, {
-          from: "my.inscribed.audio",
-          returnUrl: buildWalletReturnUrl(mobileResumeWallet),
-        });
+        const retryDeeplink = buildWalletReentryDeeplink(mobileResumeWallet);
 
         setMobilePrompt({
           wallet: mobileResumeWallet,
@@ -424,6 +423,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
           {WALLET_OPTIONS.map((wallet) => (
             (() => {
               const canConnect =
+                wallet.name === "unisat" ||
                 availableWallets[wallet.name] ||
                 (isMobile && !inWalletBrowser);
 

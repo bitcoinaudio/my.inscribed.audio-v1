@@ -88,7 +88,7 @@ const LazyIframe = ({ src, placeholderSrc, className }) => {
 
 // Cross-browser compatible window.open function
 const openMusicPlayer = () => {
-  const url = "https://arweave.net/o_yJ-NsYZTbbiexDhywUjtuvnr2kdEck7JD1zaTZfeY";
+  const url = "https://ar.io/o_yJ-NsYZTbbiexDhywUjtuvnr2kdEck7JD1zaTZfeY";
   const windowName = "musicPlayer_" + Date.now(); // Unique name to avoid conflicts
   
   // Enhanced window features for better cross-browser compatibility
@@ -239,7 +239,7 @@ const MediaCard = React.memo(({ item }) => {
                 <a
                   className="tooltip"
                   data-tip="IOM"
-                  href="https://arweave.net/0AphIk6Qiuu3RwGtYL02w9weo3Cci5Xp-M0LRgZ42Gg"
+                  href="https://ar.io/0AphIk6Qiuu3RwGtYL02w9weo3Cci5Xp-M0LRgZ42Gg"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
