@@ -12,7 +12,7 @@ import {
   isBeatBlockInscription,
   isEnhancedInscription,
 } from "../utils/inscriptions";
-import { buildWalletDeeplink, buildWalletReentryDeeplink, buildWalletReturnUrl } from "../utils/walletDeeplink";
+import { buildWalletReentryDeeplink } from "../utils/walletDeeplink";
 import { useWallet } from "../context/WalletContext";
 import { useDeviceContext } from "../utils/DeviceStore";
 import idesofmarch from "../lib/collections/idesofmarch.json";
@@ -158,12 +158,34 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     navigate("/");
   };
 
+  const fetchInscriptionsWithRetry = useCallback(async (walletName: WalletName, limit = 100) => {
+    const shouldRetry = walletName === "xverse";
+    const maxAttempts = shouldRetry ? 4 : 1;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      try {
+        const inscriptions = await fetchInscriptions(limit, walletName);
+        if (inscriptions.length > 0 || attempt === maxAttempts) {
+          return inscriptions;
+        }
+      } catch (error) {
+        if (attempt === maxAttempts) {
+          throw error;
+        }
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
+    }
+
+    return [];
+  }, [fetchInscriptions]);
+
   const completeWalletConnection = useCallback(async (
     walletName: WalletName,
     options?: { skipDeeplink?: boolean }
   ) => {
     await connectWallet(walletName, options);
-    const inscriptions = await fetchInscriptions(100, walletName);
+    const inscriptions = await fetchInscriptionsWithRetry(walletName, 100);
     const processed = await processInscriptions(inscriptions);
     setIinscriptionArray(processed);
     const inscriptionIds = processed.map((item) => item.id);
@@ -172,7 +194,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
     navigate("/mymedia");
   }, [
     connectWallet,
-    fetchInscriptions,
+    fetchInscriptionsWithRetry,
     processInscriptions,
     authenticateWallet,
     navigate,
@@ -227,10 +249,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
         if (!active) return;
 
         console.error(`Auto-resume connection to ${mobileResumeWallet} failed:`, error);
-        const retryDeeplink = buildWalletDeeplink(mobileResumeWallet, {
-          from: "my.inscribed.audio",
-          returnUrl: buildWalletReturnUrl(mobileResumeWallet),
-        });
+        const retryDeeplink = buildWalletReentryDeeplink(mobileResumeWallet);
 
         setMobilePrompt({
           wallet: mobileResumeWallet,
@@ -337,6 +356,7 @@ const ConnectWallet = ({ className }: { className?: string }) => {
           {WALLET_OPTIONS.map((wallet) => (
             (() => {
               const canConnect =
+                wallet.name === "unisat" ||
                 availableWallets[wallet.name] ||
                 (isMobile && !inWalletBrowser);
 

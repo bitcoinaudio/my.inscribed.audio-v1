@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import { fadeIn, staggerContainer } from "../utils/motion";
-import { inscriptionArray } from "../globalState";
+import { getInscriptionArray, subscribeToInscriptionArray } from "../globalState";
 import beatblockImage from "/images/beatblocks.png";
 import ordImage from "/images/ordinals.svg";
 import iomImage from "/images/idesofmarch.png";
@@ -88,7 +88,7 @@ const LazyIframe = ({ src, placeholderSrc, className }) => {
 
 // Cross-browser compatible window.open function
 const openMusicPlayer = () => {
-  const url = "https://arweave.net/o_yJ-NsYZTbbiexDhywUjtuvnr2kdEck7JD1zaTZfeY";
+  const url = "https://ar.io/o_yJ-NsYZTbbiexDhywUjtuvnr2kdEck7JD1zaTZfeY";
   const windowName = "musicPlayer_" + Date.now(); // Unique name to avoid conflicts
   
   // Enhanced window features for better cross-browser compatibility
@@ -239,7 +239,7 @@ const MediaCard = React.memo(({ item }) => {
                 <a
                   className="tooltip"
                   data-tip="IOM"
-                  href="https://arweave.net/0AphIk6Qiuu3RwGtYL02w9weo3Cci5Xp-M0LRgZ42Gg"
+                  href="https://ar.io/0AphIk6Qiuu3RwGtYL02w9weo3Cci5Xp-M0LRgZ42Gg"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -291,16 +291,19 @@ const MediaCard = React.memo(({ item }) => {
 const MyMedia = () => {
   const [selectedMimeTypes, setSelectedMimeTypes] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [inscriptions, setInscriptions] = useState(() => getInscriptionArray());
+
+  useEffect(() => subscribeToInscriptionArray(setInscriptions), []);
 
   const filteredItems = useMemo(() => (
     selectedMimeTypes.length > 0
-      ? inscriptionArray.filter((item) => {
+      ? inscriptions.filter((item) => {
           const matchesMime = selectedMimeTypes.includes(item.contentType);
           const matchesBitmap = selectedMimeTypes.includes(BITMAP_FILTER_KEY) && item.isBitmap;
           return matchesMime || matchesBitmap;
         })
-      : inscriptionArray
-  ), [selectedMimeTypes]);
+      : inscriptions
+  ), [selectedMimeTypes, inscriptions]);
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / ITEMS_PER_PAGE));
 
